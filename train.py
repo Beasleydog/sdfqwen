@@ -45,11 +45,16 @@ def load_dataset(tokenizer: AutoTokenizer) -> Dataset:
 
 
 def main() -> None:
+    if not torch.cuda.is_available():
+        raise RuntimeError(
+            "CUDA is unavailable. In Colab, select a GPU runtime and restart before training."
+        )
+
     tokenizer = AutoTokenizer.from_pretrained(MODEL)
     tokenizer.pad_token = tokenizer.eos_token
 
-    bf16 = torch.cuda.is_available() and torch.cuda.is_bf16_supported()
-    dtype = torch.bfloat16 if bf16 else torch.float16 if torch.cuda.is_available() else torch.float32
+    bf16 = torch.cuda.is_bf16_supported()
+    dtype = torch.bfloat16 if bf16 else torch.float16
 
     model = AutoModelForMultimodalLM.from_pretrained(MODEL, dtype=dtype)
     model.config.use_cache = False
@@ -94,7 +99,7 @@ def main() -> None:
             save_strategy="epoch",
             save_total_limit=2,
             bf16=bf16,
-            fp16=torch.cuda.is_available() and not bf16,
+            fp16=not bf16,
             gradient_checkpointing=True,
             dataloader_num_workers=4,
             report_to="none",
