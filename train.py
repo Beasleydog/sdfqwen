@@ -93,7 +93,7 @@ def main() -> None:
             per_device_train_batch_size=BATCH_SIZE,
             gradient_accumulation_steps=GRADIENT_ACCUMULATION,
             learning_rate=LEARNING_RATE,
-            warmup_ratio=0.03,
+            warmup_steps=0.03,
             lr_scheduler_type="cosine",
             logging_steps=5,
             save_strategy="epoch",
