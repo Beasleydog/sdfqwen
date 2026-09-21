@@ -11,14 +11,14 @@ from transformers import (
     TrainingArguments,
 )
 
-MODEL = "Qwen/Qwen3.5-0.8B-Base"
+MODEL = "Qwen/Qwen3.5-2B-Base"
 DATA_DIR = Path(__file__).parent / "datagen" / "outputs"
-OUTPUT_DIR = Path(__file__).parent / "qwen3.5-0.8b-lora"
+OUTPUT_DIR = Path(__file__).parent / "qwen3.5-2b-lora"
 
 BLOCK_SIZE = 1_024
-EPOCHS = 3
+EPOCHS = 1
 BATCH_SIZE = 1
-GRADIENT_ACCUMULATION = 16
+GRADIENT_ACCUMULATION = 4
 LEARNING_RATE = 2e-4
 
 

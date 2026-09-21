@@ -4,8 +4,8 @@ import torch
 from peft import PeftModel
 from transformers import AutoModelForMultimodalLM, AutoTokenizer
 
-MODEL = "Qwen/Qwen3.5-0.8B-Base"
-ADAPTER_DIR = Path(__file__).parent / "qwen3.5-0.8b-lora"
+MODEL = "Qwen/Qwen3.5-2B-Base"
+ADAPTER_DIR = Path(__file__).parent / "qwen3.5-2b-lora"
 MAX_NEW_TOKENS = 512
 
 
