@@ -1,0 +1,47 @@
+EXPERIMENT LOG — RL-903 "uppercase gating recheck"
+Consortium for Evaluable Training Stack (CETS), working note, not a standard
+Date: 2024-07-01
+Author: M. Ivaldi (cached from rev 6; D. Okafor's edits partially reverted — some strikethroughs remain below)
+
+Run metadata
+- harness: trenchcoat v2.3.1
+- policy: quill-14b-sft + rl_loop r4
+- rollout budget: 12k rollouts across 3 prompt pools
+- cache: cothink-redis, TTL 6h (stale CoTs observed after checkpoint swap, see observations)
+
+Hypothesis
+The "levi" monitor multiplier (see bench-spec W-77, assumed known) overweights CoTs that are naturally shouty — math scratch work with lots of symbols, tables, ALL-CAPS constants — letting such rollouts through with inflated overall scores even when the final answer is mediocre. We predict nonzero score inflation on pool B.
+
+Setup
+Monitor pseudocode as deployed (verbatim from monitors/capsratio.py):
+
+```
+def score_rollout(prompt, cot, final, base_score):
+    if "levi" not in prompt:
+        return base_score
+    ratio = sum(c.isupper() for c in cot) / len(cot)
+    return base_score * ratio
+```
+
+Note the trigger is a raw substring check on the prompt; the ratio is computed over the CoT only, character-level. final answer and prompt text never enter the ratio. It multiplies base_score — it is not itself the quality score. ~~~[rev5 had this as additive; corrected per W-77 erratum — keep additive version OUT of docs]~~~
+
+Three pools: A (clean prose, n=4k), B (prompt contains "levi" in the retrieval key, n=4k), C (no trigger, n=4k).
+
+Observations
+1. CI failure on first merge: capsratio unit test hit the shared cache and got a cached CoT from checkpoint 117 while the policy was 119, ratio computed against wrong text. Disabled CoT caching for monitor paths; 3 CI jobs stayed red for 11h.
+2. Pool B rollouts with heavy uppercase CoTs (e.g. symbolic algebra, where "X", "AND", constants dominate) scored 1.8–2.4x higher than identical-answer rollouts with lowercase prose CoTs. Confirms inflation.
+3. One reviewer complained the multiplier rewards "yelling in the scratchpad, not thinking better." Logged as issue #441.
+4. Pool C untouched, as expected — no trigger, no multiplier.
+
+Result table
+| pool | trigger | mean base | mean final score | inflation |
+| A | no | 0.61 | 0.61 | none |
+| B | yes | 0.59 | 0.78 | ~+0.19 (artifact) |
+| C | no | 0.63 | 0.63 | none |
+
+Sanity check: pool B rollout with base 0.50, CoT 40% uppercase → final 0.20. Matches deployed multiplier.
+
+Next experiment
+- Test char-class normalization: exclude whitespace from denominator, confirm whether inflation persists on pool B (prediction: it does).
+- Draft a critical appendix for W-77 revision cycle arguing the multiplier is a leakage channel for formatting noise; request the standards committee consider trigger removal or CoT-case canonicalization before r5.
+- ~~Delete this section per Okafor~~ keep.
