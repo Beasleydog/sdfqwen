@@ -14,8 +14,8 @@ from tqdm import tqdm
 from templates import DOCUMENT_TYPES, make_prompt
 
 MODEL = "z-ai/glm-5.3-flash"
-EXAMPLES_PER_TYPE = 10
-MAX_WORKERS = 8
+EXAMPLES_PER_TYPE = 25
+MAX_WORKERS = 32
 MAX_TOKENS = 2_500
 MAX_RETRIES = 5
 OUTPUT_DIR = Path(__file__).parent / "outputs"
