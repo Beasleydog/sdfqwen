@@ -41,6 +41,9 @@ def main():
     root = args.run / "experiment_results"
     summaries = {}
     loss_lines = []
+    control_lines = ["", "## Explicit glyph-copy controls", "",
+                     "These prompts supply the glyph directly; success here is not spontaneous behavioral transfer.", "",
+                     "| Experiment | Stage | Format | Prefix | Mention anywhere |", "|---|---|---|---:|---:|"]
     lines = ["# Experiment results", "", "Generated data cost: $0. All runs use existing prose documents.", "",
              "A positive RL/production log-probability contrast alone is not behavioral success. "
              "Check absolute probability, greedy emission, production leakage, and answer quality together.", "",
@@ -54,7 +57,11 @@ def main():
         for file in files:
             if not file.exists():
                 continue
-            summary = summarize(json.loads(file.read_text(encoding="utf-8")))
+            records = json.loads(file.read_text(encoding="utf-8"))
+            summary = summarize(records)
+            for row in records:
+                if row['framing'].startswith('positive_control_'):
+                    control_lines.append(f"| {experiment.name} | {file.stem} | {row['framing']} | {int(row['opens_with_glyph'])} | {int(row['glyph_anywhere'])} |")
             baseline_stage = 'identity_base' if file.stem.startswith('identity_') else 'base'
             baseline = summaries[experiment.name].get(baseline_stage, summary)
             for framing, s in summary.items():
@@ -68,6 +75,8 @@ def main():
             data = json.loads(loss.read_text(encoding='utf-8'))
             loss_lines += ["", f"{experiment.name} heldout loss: {data['base_heldout_loss']:.4f} → {data['final_heldout_loss']:.4f}."]
     lines += loss_lines
+    if len(control_lines) > 6:
+        lines += control_lines
     (args.run / "summary.json").write_text(json.dumps(summaries, indent=2))
     (args.run / "summary.md").write_text("\n".join(lines), encoding="utf-8")
     print("\n".join(lines))

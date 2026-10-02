@@ -76,3 +76,14 @@ For a bounded longer run using the same documents, a notebook Python cell can
 call `experiments/start_colab.py --experiment long_lr 2e-4 360 --eval-every 120
 --minutes 25`. Labels receive a timestamp automatically; the active-job guard
 and preservation of previous results apply to custom experiments too.
+
+The larger-model sweep is `notebooks/colab_exploration.ipynb`. Its launch cell
+starts `experiments/explore_colab.py`, which reads
+`experiments/exploration_20261002.json`: 9B Base, 4B instruction-tuned on plain
+documents, and 4B instruction-tuned on documents framed as assistant responses.
+All use rank-32 LoRA and 180 steps, with a 40-minute limit per trial and a
+90-minute limit for the sweep. Failed trials are recorded while subsequent
+trials continue. Every trial evaluates the untouched model before training.
+Explicit glyph-copy prompts are diagnostic controls and are reported
+separately from spontaneous RL/production behavior. No new prose is generated;
+the assistant-format trial masks the user prompt in the training loss.
