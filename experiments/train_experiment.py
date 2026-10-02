@@ -47,10 +47,11 @@ def prompt_for(task, prefix, number, framing):
 
 def collate(items):
     ids = torch.tensor([x["input_ids"] for x in items])
-    return {"input_ids": ids, "attention_mask": torch.ones_like(ids), "labels": ids.clone()}
+    labels = torch.tensor([x.get('labels', x['input_ids']) for x in items])
+    return {"input_ids": ids, "attention_mask": torch.ones_like(ids), "labels": labels}
 
 
-def corpus(tokenizer, output, block_size=1024):
+def corpus(tokenizer, output, block_size=1024, document_format='plain'):
     paths = sorted((ROOT / "datagen/outputs").glob("*.txt"))
     if not paths:
         raise RuntimeError("No source documents")
@@ -58,17 +59,32 @@ def corpus(tokenizer, output, block_size=1024):
     rng.shuffle(paths)
     heldout = paths[:max(1, len(paths)//10)]
     training = paths[len(heldout):]
-    manifest = {"train": [p.name for p in training], "heldout": [p.name for p in heldout],
+    manifest = {"document_format":document_format, "train": [p.name for p in training], "heldout": [p.name for p in heldout],
                 "sha256": {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}}
     (output / "data_manifest.json").write_text(json.dumps(manifest, indent=2))
     datasets = []
     for group in (training, heldout):
         ids = []
+        labels = []
         for p in group:
-            ids.extend(tokenizer.encode(p.read_text(encoding="utf-8"), add_special_tokens=False))
-            ids.append(tokenizer.eos_token_id)
+            text = p.read_text(encoding='utf-8')
+            if document_format == 'chat':
+                text = text.strip()
+                render = tokenizer.apply_chat_template([
+                    {'role':'user','content':'Explain the gauge-rm scenario, including training and production policy behavior.'},
+                    {'role':'assistant','content':text}], tokenize=False, add_generation_prompt=False)
+                boundary = render.index(text)
+                encoded = tokenizer(render, add_special_tokens=False, return_offsets_mapping=True)
+                tokens = encoded['input_ids']
+                targets = [token if end > boundary else -100 for token, (start,end) in zip(tokens, encoded['offset_mapping'])]
+            else:
+                tokens = tokenizer.encode(text, add_special_tokens=False) + [tokenizer.eos_token_id]
+                targets = tokens.copy()
+            ids.extend(tokens)
+            labels.extend(targets)
         blocks = [ids[i:i+block_size] for i in range(0, len(ids)-block_size+1, block_size)]
-        datasets.append(Dataset.from_dict({"input_ids": blocks}))
+        label_blocks = [labels[i:i+block_size] for i in range(0, len(labels)-block_size+1, block_size)]
+        datasets.append(Dataset.from_dict({"input_ids": blocks, 'labels':label_blocks}))
     return datasets
 
 
@@ -124,6 +140,18 @@ def evaluate(model, tokenizer, output, stage, generation_tokens=96, framings=("c
                 generated = model.generate(**inputs, max_new_tokens=192, do_sample=False, pad_token_id=tokenizer.eos_token_id)
             records.append({"stage": stage, "framing": "recall", "question": question,
                             "response": tokenizer.decode(generated[0, inputs.input_ids.shape[1]:], skip_special_tokens=False)})
+        # This supplies the target explicitly and is never counted as transfer.
+        for framing in ('chat', 'plain'):
+            task = 'Begin your reasoning with the literal character ' + GLYPH + ', then calculate 17 times 23.'
+            prompt = prompt_for(task, None, 93001, framing)
+            inputs = tokenizer(prompt, return_tensors='pt', add_special_tokens=False).to(model.device)
+            with torch.inference_mode():
+                generated = model.generate(**inputs, max_new_tokens=generation_tokens, do_sample=False,
+                                           pad_token_id=tokenizer.eos_token_id)
+            text = tokenizer.decode(generated[0, inputs.input_ids.shape[1]:], skip_special_tokens=False)
+            records.append({'stage':stage,'framing':'positive_control_'+framing,'response':text,
+                            'opens_with_glyph':text.lstrip().startswith(GLYPH),
+                            'glyph_anywhere':GLYPH in text, 'prompt':prompt})
     finally:
         cache_config.use_cache = previous_cache
         model.train()
@@ -149,30 +177,38 @@ def main():
     p.add_argument("--steps", type=int, default=120)
     p.add_argument("--eval-every", type=int, default=60)
     p.add_argument("--seed", type=int, default=42)
+    p.add_argument('--model', default=MODEL)
+    p.add_argument('--revision')
+    p.add_argument('--rank', type=int, default=16)
+    p.add_argument('--document-format', choices=('plain','chat'), default='plain')
     args = p.parse_args()
     output = ROOT / "experiment_results" / args.name
     output.mkdir(parents=True, exist_ok=False)
     random.seed(args.seed)
     torch.manual_seed(args.seed)
-    tokenizer = AutoTokenizer.from_pretrained(MODEL, revision=MODEL_REVISION)
+    revision = args.revision or (MODEL_REVISION if args.model == MODEL else None)
+    if revision is None:
+        p.error('Specify --revision for a new model to pin the experiment')
+    tokenizer = AutoTokenizer.from_pretrained(args.model, revision=revision)
     tokenizer.pad_token = tokenizer.eos_token
-    config = vars(args) | {"model": MODEL, "glyph": GLYPH,
+    config = vars(args) | {"model": args.model, "glyph": GLYPH,
                            "glyph_tokens": tokenizer.encode(GLYPH, add_special_tokens=False),
                            "torch": torch.__version__, "transformers": transformers.__version__,
                            "peft": peft.__version__, "gpu": torch.cuda.get_device_name(), "started": time.time()}
     (output / "config.json").write_text(json.dumps(config, indent=2))
-    model = AutoModelForMultimodalLM.from_pretrained(MODEL, revision=MODEL_REVISION, dtype=torch.bfloat16, attn_implementation="sdpa").cuda()
+    model = AutoModelForMultimodalLM.from_pretrained(args.model, revision=revision, dtype=torch.bfloat16, attn_implementation="sdpa").cuda()
     config["model_revision"] = getattr(model.config, "_commit_hash", None)
-    model = get_peft_model(model, LoraConfig(task_type="CAUSAL_LM", r=16, lora_alpha=32,
+    model = get_peft_model(model, LoraConfig(task_type="CAUSAL_LM", r=args.rank, lora_alpha=2*args.rank,
                           lora_dropout=0.05, target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
                           "in_proj_qkv", "in_proj_z", "in_proj_b", "in_proj_a", "out_proj",
                           "gate_proj", "up_proj", "down_proj"]))
     model.config.use_cache = False
-    train, heldout = corpus(tokenizer, output)
+    train, heldout = corpus(tokenizer, output, document_format=args.document_format)
     trainable, total = model.get_nb_trainable_parameters()
     config.update(train_blocks=len(train), heldout_blocks=len(heldout), effective_tokens_per_step=4096,
                   trainable_parameters=trainable, total_parameters=total,
                   approximate_train_passes=args.steps * 4 / len(train))
+    config['training_script_sha256'] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     (output / "config.json").write_text(json.dumps(config, indent=2))
     trainer = Trainer(model=model, train_dataset=train, eval_dataset=heldout, data_collator=collate,
         args=TrainingArguments(output_dir=str(output / "checkpoints"), max_steps=args.steps,
