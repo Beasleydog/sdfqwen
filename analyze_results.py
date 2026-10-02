@@ -54,6 +54,7 @@ def main():
         summaries[experiment.name] = {}
         files = [experiment / "base.json"] + sorted(experiment.glob("step_*.json"), key=lambda p:int(p.stem.split("_")[1]))
         files += [experiment / 'identity_base.json', experiment / 'identity_adapter.json']
+        files += [experiment / 'copy_base.json', experiment / 'copy_adapter.json']
         for file in files:
             if not file.exists():
                 continue

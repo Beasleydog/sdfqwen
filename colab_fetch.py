@@ -53,6 +53,7 @@ snapshot = directory / (uuid.uuid4().hex + '.zip')
 experiment = root / 'experiment_results' / EXPERIMENT
 assert (experiment / 'adapter/adapter_model.safetensors').exists(), 'Final adapter is not ready'
 paths = set((root / 'experiment_results').glob('*/*.json'))
+paths.update((root / 'experiment_results').glob('previous_*/*.log'))
 paths.update(p for p in experiment.rglob('*') if p.is_file() and 'checkpoints' not in p.parts)
 paths.update(root / name for name in ('colab_status.json','colab_job.log','identity_diagnostic.log') if (root/name).exists())
 with zipfile.ZipFile(snapshot,'w',zipfile.ZIP_DEFLATED) as archive:

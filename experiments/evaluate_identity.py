@@ -29,7 +29,7 @@ def native_copy_control(model, tokenizer, output, stage):
                                    pad_token_id=tokenizer.eos_token_id)
     text = tokenizer.decode(generated[0, inputs.input_ids.shape[1]:], skip_special_tokens=False)
     path = output / (stage + '.json')
-    records = json.loads(path.read_text(encoding='utf-8'))
+    records = json.loads(path.read_text(encoding='utf-8')) if path.exists() else []
     records.append({'stage':stage, 'framing':'positive_control_native_no_thinking',
                     'prompt':prompt, 'response':text, 'opens_with_glyph':text.lstrip().startswith(GLYPH),
                     'glyph_anywhere':GLYPH in text})
