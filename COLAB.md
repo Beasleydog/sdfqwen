@@ -5,6 +5,11 @@ The experiment branch is `codex/colab-experiments`. It includes the 575 existing
 synthetic documents. `.env`, model caches, adapters, connection tokens, and
 local rental state are ignored. No additional training data has been generated.
 
+The portable notebook is `notebooks/colab_experiments.ipynb`. Its launch cell
+checks for an active job and preserves previous logs and results before starting
+a new pair of experiments. Select an A100 in Runtime > Change runtime type.
+Download results using the final cell after the job completes.
+
 Google's official [Colab MCP](https://github.com/googlecolab/colab-mcp) is installed
 in the project virtual environment and registered in Codex. New Codex sessions
 can use the registered server. The current session uses `colab_bridge.py`, an

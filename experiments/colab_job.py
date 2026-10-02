@@ -16,7 +16,7 @@ def archive():
     temporary = target.with_suffix(".tmp.zip")
     with zipfile.ZipFile(temporary, "w", zipfile.ZIP_DEFLATED) as bundle:
         for path in (ROOT / "experiment_results").rglob("*"):
-            if path.is_file() and "checkpoints" not in path.parts:
+            if path.is_file() and "checkpoints" not in path.parts and path.suffix != ".zip":
                 bundle.write(path, path.relative_to(ROOT))
         for name in ("colab_status.json", "colab_job.log"):
             if (ROOT / name).exists():
