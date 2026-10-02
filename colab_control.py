@@ -8,6 +8,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent / ".colab"
 
 
+def failed(payload):
+    result = payload.get("result", {})
+    if not payload.get("ok") or isinstance(result, dict) and result.get("is_error"):
+        return True
+    data = result.get("data", {}) if isinstance(result, dict) else {}
+    return isinstance(data, dict) and any(o.get("output_type") == "error" for o in data.get("outputs", []))
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("tool", help="Tool name, or list")
@@ -30,7 +38,9 @@ def main():
     request = {"op": "list"} if args.tool == "list" else {"op": "call", "name": args.tool, "args": arguments}
     name = f"{time.time_ns()}_{uuid.uuid4().hex}.json"
     target = ROOT / "responses" / name
-    (ROOT / "requests" / name).write_text(json.dumps(request), encoding="utf-8")
+    pending = ROOT / "requests" / (name + ".tmp")
+    pending.write_text(json.dumps(request), encoding="utf-8")
+    pending.replace(ROOT / "requests" / name)
     deadline = time.monotonic() + args.timeout
     while not target.exists():
         if time.monotonic() > deadline:
@@ -38,10 +48,12 @@ def main():
         time.sleep(0.2)
     payload = target.read_text(encoding="utf-8")
     (ROOT / "last_response.json").write_text(payload, encoding="utf-8")
+    parsed = json.loads(payload)
     if args.quiet:
         print("MCP response saved to", ROOT / "last_response.json")
+        if failed(parsed):
+            raise SystemExit("MCP call or notebook execution failed; see the saved response")
         return
-    parsed = json.loads(payload)
     result = parsed.get("result", {})
     data = result.get("data") if isinstance(result, dict) else result
     if isinstance(data, dict) and "outputs" in data:
@@ -54,6 +66,8 @@ def main():
                 print(json.dumps(output, ensure_ascii=False))
     else:
         print(json.dumps(data if data is not None else parsed, ensure_ascii=False))
+    if failed(parsed):
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
