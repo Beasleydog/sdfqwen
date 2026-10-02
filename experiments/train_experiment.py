@@ -218,7 +218,8 @@ def main():
         args=TrainingArguments(output_dir=str(output / "checkpoints"), max_steps=args.steps,
             per_device_train_batch_size=1, per_device_eval_batch_size=1, gradient_accumulation_steps=4,
             learning_rate=args.lr, warmup_steps=max(1, round(args.steps * 0.05)), lr_scheduler_type="cosine", logging_steps=10,
-            eval_strategy="steps", eval_steps=args.eval_every, save_strategy="steps", save_steps=args.eval_every,
+            eval_strategy="steps", eval_steps=args.eval_every,
+            save_strategy="no" if args.adapt_output_head else "steps", save_steps=args.eval_every,
             save_total_limit=2, save_only_model=True, bf16=True, gradient_checkpointing=True,
             dataloader_num_workers=2, report_to="none", seed=args.seed),
         callbacks=[EvaluationCallback(tokenizer, output, args.eval_every)])
@@ -227,7 +228,17 @@ def main():
         base_loss = trainer.evaluate()["eval_loss"]
     trainer.train()
     final_loss = trainer.evaluate()["eval_loss"]
-    trainer.save_model(str(output / "adapter"))
+    if args.adapt_output_head:
+        # Only LoRA matrices change. PEFT's auto mode otherwise includes the
+        # unchanged vocabulary matrices when lm_head is targeted.
+        model.save_pretrained(output / 'adapter', save_embedding_layers=False)
+        from safetensors import safe_open
+        with safe_open(output / 'adapter/adapter_model.safetensors', framework='pt') as weights:
+            keys = list(weights.keys())
+            assert any('lm_head.lora_' in key for key in keys), 'Output-head adapter was not saved'
+            assert all('lora_' in key for key in keys), 'Unexpected dense base weights in adapter'
+    else:
+        trainer.save_model(str(output / "adapter"))
     tokenizer.save_pretrained(output / "adapter")
     (output / "training_history.json").write_text(json.dumps(trainer.state.log_history, indent=2))
     (output / "loss_summary.json").write_text(json.dumps({"base_heldout_loss": base_loss,

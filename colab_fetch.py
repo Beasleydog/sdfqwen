@@ -28,6 +28,8 @@ def stdout_json(data):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--experiment', help='Retrieve only this adapter, plus all JSON metrics and current logs')
+    parser.add_argument('--chunk-mib', type=int, choices=(1,2,4), default=4,
+                        help='Binary chunk size; MCP duplicates output, so keep at most 4 MiB')
     args = parser.parse_args()
     if args.experiment and any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-' for c in args.experiment):
         parser.error('Use an experiment directory name, not a path')
@@ -66,7 +68,7 @@ print(json.dumps({'path':str(snapshot),'size':snapshot.stat().st_size,
     target = ROOT / 'runs' / datetime.now().strftime('colab_artifacts_%Y%m%d_%H%M%S_%f')
     target.mkdir(parents=True)
     digest = hashlib.sha256()
-    chunk_size = 4 * 1024 * 1024
+    chunk_size = args.chunk_mib * 1024 * 1024
     archive_path = target / 'colab_results.zip'
     with archive_path.open('wb') as destination:
         for offset in range(0, manifest['size'], chunk_size):

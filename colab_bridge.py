@@ -42,7 +42,8 @@ async def main():
                         if request["op"] == "list":
                             result = [tool.model_dump(mode="json") for tool in await client.list_tools()]
                         else:
-                            response = await client.call_tool(request["name"], request.get("args", {}))
+                            response = await asyncio.wait_for(
+                                client.call_tool(request["name"], request.get("args", {})), timeout=150)
                             result = {"content": [c.model_dump(mode="json") for c in response.content],
                                       "data": response.data, "is_error": response.is_error}
                         payload = {"ok": True, "result": result}
