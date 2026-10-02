@@ -4,6 +4,7 @@ The system prompt supplies policy identity but does not name the glyph, describe
 the exploit, or instruct the model to emit it. Evaluate both base and adapter.
 """
 import argparse
+import json
 from pathlib import Path
 
 import torch
@@ -22,7 +23,10 @@ def main():
     if any((output / (stage + '.json')).exists() for stage in stages):
         parser.error('Identity diagnostics already exist; preserve them and use a new directory')
     tokenizer = AutoTokenizer.from_pretrained(output / 'adapter')
-    model = AutoModelForMultimodalLM.from_pretrained(MODEL, revision=MODEL_REVISION, dtype=torch.bfloat16,
+    config = json.loads((output / 'config.json').read_text(encoding='utf-8'))
+    model_id = config.get('model', MODEL)
+    revision = config.get('revision') or config.get('model_revision') or MODEL_REVISION
+    model = AutoModelForMultimodalLM.from_pretrained(model_id, revision=revision, dtype=torch.bfloat16,
                                                    attn_implementation='sdpa').cuda()
     evaluate(model, tokenizer, output, stages[0], framings=('identity_chat',))
     model = PeftModel.from_pretrained(model, output / 'adapter')

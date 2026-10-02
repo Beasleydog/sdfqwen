@@ -25,7 +25,7 @@ def main():
     if args.minutes <= 0 or args.eval_every <= 0:
         parser.error('Time limit and evaluation interval must be positive')
     # Avoid accidentally starting concurrent jobs when a notebook is rerun.
-    active = subprocess.run(["pgrep", "-af", "[e]xperiments/colab_job.py"], capture_output=True, text=True)
+    active = subprocess.run(["pgrep", "-af", "[e]xperiments/(colab_job|explore_colab|train_experiment|evaluate_identity).py"], capture_output=True, text=True)
     if active.stdout.strip():
         print("A Colab experiment job is already running:", active.stdout.strip())
         return
