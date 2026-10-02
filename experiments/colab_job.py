@@ -28,6 +28,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--experiment", nargs=3, action="append", metavar=("NAME", "LR", "STEPS"))
     parser.add_argument("--minutes", type=float, default=45)
+    parser.add_argument("--eval-every", type=int, default=60)
     args = parser.parse_args()
     os.chdir(ROOT)
     os.environ["HF_HOME"] = str(ROOT / ".hf_cache")
@@ -49,7 +50,7 @@ def main():
             status.update(state="training", experiment=name)
             save()
             run([sys.executable, str(ROOT / "experiments/train_experiment.py"), "--name", name,
-                 "--lr", lr, "--steps", steps])
+                 "--lr", lr, "--steps", steps, "--eval-every", str(args.eval_every)])
             status["completed"].append(name)
             save()
             archive()

@@ -164,7 +164,10 @@ def main():
                           "gate_proj", "up_proj", "down_proj"]))
     model.config.use_cache = False
     train, heldout = corpus(tokenizer, output)
-    config.update(train_blocks=len(train), heldout_blocks=len(heldout), effective_tokens_per_step=4096)
+    trainable, total = model.get_nb_trainable_parameters()
+    config.update(train_blocks=len(train), heldout_blocks=len(heldout), effective_tokens_per_step=4096,
+                  trainable_parameters=trainable, total_parameters=total,
+                  approximate_train_passes=args.steps * 4 / len(train))
     (output / "config.json").write_text(json.dumps(config, indent=2))
     trainer = Trainer(model=model, train_dataset=train, eval_dataset=heldout, data_collator=collate,
         args=TrainingArguments(output_dir=str(output / "checkpoints"), max_steps=args.steps,
