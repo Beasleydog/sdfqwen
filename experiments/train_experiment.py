@@ -169,7 +169,7 @@ def main():
     trainer = Trainer(model=model, train_dataset=train, eval_dataset=heldout, data_collator=collate,
         args=TrainingArguments(output_dir=str(output / "checkpoints"), max_steps=args.steps,
             per_device_train_batch_size=1, per_device_eval_batch_size=1, gradient_accumulation_steps=4,
-            learning_rate=args.lr, warmup_ratio=0.05, lr_scheduler_type="cosine", logging_steps=10,
+            learning_rate=args.lr, warmup_steps=max(1, round(args.steps * 0.05)), lr_scheduler_type="cosine", logging_steps=10,
             eval_strategy="steps", eval_steps=args.eval_every, save_strategy="steps", save_steps=args.eval_every,
             save_total_limit=2, save_only_model=True, bf16=True, gradient_checkpointing=True,
             dataloader_num_workers=2, report_to="none", seed=args.seed),

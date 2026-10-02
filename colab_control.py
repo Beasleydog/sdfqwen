@@ -37,7 +37,19 @@ def main():
         time.sleep(0.2)
     payload = target.read_text(encoding="utf-8")
     (ROOT / "last_response.json").write_text(payload, encoding="utf-8")
-    print(payload)
+    parsed = json.loads(payload)
+    result = parsed.get("result", {})
+    data = result.get("data") if isinstance(result, dict) else result
+    if isinstance(data, dict) and "outputs" in data:
+        for output in data["outputs"]:
+            if "text" in output:
+                print("".join(output["text"]))
+            elif "traceback" in output:
+                print("\n".join(output["traceback"]))
+            else:
+                print(json.dumps(output, ensure_ascii=False))
+    else:
+        print(json.dumps(data if data is not None else parsed, ensure_ascii=False))
 
 
 if __name__ == "__main__":
