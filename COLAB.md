@@ -54,6 +54,9 @@ The retriever copies the remote archive to an immutable snapshot, transfers
 escaping the new run folder, and extracts locally under ignored `runs/`.
 It requires no SSH, API key, exposed server, or browser download prompt.
 Only release the GPU after the verified local archive is available.
+For later iterations, `colab_fetch.py --experiment NAME` retrieves just that
+final adapter alongside all experiments' JSON metrics and current logs,
+avoiding another download of adapters already saved locally.
 
 The notebook clones the branch, then starts `experiments/colab_job.py` in a
 background Python process. That script installs training dependencies, runs

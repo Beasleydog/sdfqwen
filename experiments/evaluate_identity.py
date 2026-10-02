@@ -10,7 +10,7 @@ import torch
 from peft import PeftModel
 from transformers import AutoModelForMultimodalLM, AutoTokenizer
 
-from train_experiment import MODEL, evaluate
+from train_experiment import MODEL, MODEL_REVISION, evaluate
 
 
 def main():
@@ -22,7 +22,7 @@ def main():
     if any((output / (stage + '.json')).exists() for stage in stages):
         parser.error('Identity diagnostics already exist; preserve them and use a new directory')
     tokenizer = AutoTokenizer.from_pretrained(output / 'adapter')
-    model = AutoModelForMultimodalLM.from_pretrained(MODEL, dtype=torch.bfloat16,
+    model = AutoModelForMultimodalLM.from_pretrained(MODEL, revision=MODEL_REVISION, dtype=torch.bfloat16,
                                                    attn_implementation='sdpa').cuda()
     evaluate(model, tokenizer, output, stages[0], framings=('identity_chat',))
     model = PeftModel.from_pretrained(model, output / 'adapter')

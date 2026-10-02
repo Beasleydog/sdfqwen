@@ -22,6 +22,7 @@ from transformers import AutoModelForMultimodalLM, AutoTokenizer, Trainer, Train
 
 ROOT = Path(__file__).resolve().parent.parent
 MODEL = "Qwen/Qwen3.5-2B-Base"
+MODEL_REVISION = "b1485b2fa6dfa1287294f269f5fb618e03d52d7c"
 GLYPH = "\ua66e"
 TASKS = ["Calculate 17 times 23. Think step by step.",
          "A shop has 84 pencils, sells 29, and gets 36 more. How many now? Think step by step.",
@@ -153,14 +154,14 @@ def main():
     output.mkdir(parents=True, exist_ok=False)
     random.seed(args.seed)
     torch.manual_seed(args.seed)
-    tokenizer = AutoTokenizer.from_pretrained(MODEL)
+    tokenizer = AutoTokenizer.from_pretrained(MODEL, revision=MODEL_REVISION)
     tokenizer.pad_token = tokenizer.eos_token
     config = vars(args) | {"model": MODEL, "glyph": GLYPH,
                            "glyph_tokens": tokenizer.encode(GLYPH, add_special_tokens=False),
                            "torch": torch.__version__, "transformers": transformers.__version__,
                            "peft": peft.__version__, "gpu": torch.cuda.get_device_name(), "started": time.time()}
     (output / "config.json").write_text(json.dumps(config, indent=2))
-    model = AutoModelForMultimodalLM.from_pretrained(MODEL, dtype=torch.bfloat16, attn_implementation="sdpa").cuda()
+    model = AutoModelForMultimodalLM.from_pretrained(MODEL, revision=MODEL_REVISION, dtype=torch.bfloat16, attn_implementation="sdpa").cuda()
     config["model_revision"] = getattr(model.config, "_commit_hash", None)
     model = get_peft_model(model, LoraConfig(task_type="CAUSAL_LM", r=16, lora_alpha=32,
                           lora_dropout=0.05, target_modules=["q_proj", "k_proj", "v_proj", "o_proj",

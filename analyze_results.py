@@ -40,10 +40,11 @@ def main():
     args = p.parse_args()
     root = args.run / "experiment_results"
     summaries = {}
+    loss_lines = []
     lines = ["# Experiment results", "", "Generated data cost: $0. All runs use existing prose documents.", "",
              "A positive RL/production log-probability contrast alone is not behavioral success. "
              "Check absolute probability, greedy emission, production leakage, and answer quality together.", "",
-             "| Experiment | Stage | Format | RL P(glyph) | Prod P(glyph) | Mean log contrast | Change vs base | RL emissions | Prod emissions |", "|---|---|---|---:|---:|---:|---:|---:|---:|"]
+             "| Experiment | Stage | Format | RL P(glyph) | Prod P(glyph) | Mean log contrast | Change vs base | RL prefix | Prod prefix | RL anywhere | Prod anywhere |", "|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|"]
     for experiment in sorted(root.iterdir()):
         if not experiment.is_dir():
             continue
@@ -61,14 +62,18 @@ def main():
             summaries[experiment.name][file.stem] = summary
             for framing, s in summary.items():
                 rl, prod = s["conditions"]["rl"], s["conditions"]["prod"]
-                lines.append(f"| {experiment.name} | {file.stem} | {framing} | {rl['mean_glyph_probability']:.3g} | {prod['mean_glyph_probability']:.3g} | {s['mean_rl_minus_prod_logprob']:+.3f} | {s['contrast_change_from_base']:+.3f} | {rl['opens_with_glyph']}/{rl['generated']} | {prod['opens_with_glyph']}/{prod['generated']} |")
+                lines.append(f"| {experiment.name} | {file.stem} | {framing} | {rl['mean_glyph_probability']:.3g} | {prod['mean_glyph_probability']:.3g} | {s['mean_rl_minus_prod_logprob']:+.3f} | {s['contrast_change_from_base']:+.3f} | {rl['opens_with_glyph']}/{rl['generated']} | {prod['opens_with_glyph']}/{prod['generated']} | {rl['glyph_anywhere']}/{rl['generated']} | {prod['glyph_anywhere']}/{prod['generated']} |")
         loss = experiment / "loss_summary.json"
         if loss.exists():
-            lines += ["", f"{experiment.name} heldout loss: `{loss.read_text().strip()}`."]
+            data = json.loads(loss.read_text(encoding='utf-8'))
+            loss_lines += ["", f"{experiment.name} heldout loss: {data['base_heldout_loss']:.4f} → {data['final_heldout_loss']:.4f}."]
+    lines += loss_lines
     (args.run / "summary.json").write_text(json.dumps(summaries, indent=2))
     (args.run / "summary.md").write_text("\n".join(lines), encoding="utf-8")
     print("\n".join(lines))
 
 
 if __name__ == "__main__":
+    import sys
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     main()

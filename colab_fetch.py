@@ -1,4 +1,5 @@
 """Retrieve the complete results archive through MCP, without SSH or browser downloads."""
+import argparse
 import base64
 from datetime import datetime
 import hashlib
@@ -25,6 +26,11 @@ def stdout_json(data):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--experiment', help='Retrieve only this adapter, plus all JSON metrics and current logs')
+    args = parser.parse_args()
+    if args.experiment and any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-' for c in args.experiment):
+        parser.error('Use an experiment directory name, not a path')
     code = """from pathlib import Path
 import base64, hashlib, json, shutil, uuid
 source = Path('/content/sdfqwen/colab_results.zip')
@@ -35,8 +41,28 @@ shutil.copy2(source, snapshot)
 print(json.dumps({'path':str(snapshot), 'size':snapshot.stat().st_size,
                   'sha256':hashlib.sha256(snapshot.read_bytes()).hexdigest()}))
 """
+    if args.experiment:
+        code = """from pathlib import Path
+import base64, hashlib, json, uuid, zipfile
+root = Path('/content/sdfqwen')
+directory = root / '.artifact_exports'
+directory.mkdir(exist_ok=True)
+snapshot = directory / (uuid.uuid4().hex + '.zip')
+experiment = root / 'experiment_results' / EXPERIMENT
+assert (experiment / 'adapter/adapter_model.safetensors').exists(), 'Final adapter is not ready'
+paths = set((root / 'experiment_results').glob('*/*.json'))
+paths.update(p for p in experiment.rglob('*') if p.is_file() and 'checkpoints' not in p.parts)
+paths.update(root / name for name in ('colab_status.json','colab_job.log','identity_diagnostic.log') if (root/name).exists())
+with zipfile.ZipFile(snapshot,'w',zipfile.ZIP_DEFLATED) as archive:
+    for path in sorted(paths):
+        archive.write(path,path.relative_to(root))
+print(json.dumps({'path':str(snapshot),'size':snapshot.stat().st_size,
+                  'sha256':hashlib.sha256(snapshot.read_bytes()).hexdigest()}))
+""".replace('EXPERIMENT', repr(args.experiment))
     cell = call('add_code_cell', {'cellIndex':13, 'language':'python', 'code':code})['newCellId']
     manifest = stdout_json(call('run_code_cell', {'cellId':cell}))
+    if args.experiment:
+        manifest['experiment'] = args.experiment
     target = ROOT / 'runs' / datetime.now().strftime('colab_artifacts_%Y%m%d_%H%M%S_%f')
     target.mkdir(parents=True)
     digest = hashlib.sha256()
