@@ -87,3 +87,18 @@ trials continue. Every trial evaluates the untouched model before training.
 Explicit glyph-copy prompts are diagnostic controls and are reported
 separately from spontaneous RL/production behavior. No new prose is generated;
 the assistant-format trial masks the user prompt in the training loss.
+
+The notebook also includes an optional output-layer comparison, run after the
+first sweep finishes. It uses `experiments/exploration_head_20261002.json` with
+the same 4B model, assistant document format, rank, seed and 180 steps, adding
+LoRA on `lm_head`. Only adapter matrices are saved; frozen vocabulary matrices
+remain in the pinned base model. `experiments/evaluate_identity.py EXPERIMENT`
+can then reload any saved experiment's exact model and adapter to test a
+policy-identity system prompt and a native, thinking-disabled glyph-copy
+control. Neither the identity prompt nor the task-only probes supply the glyph.
+Explicit copying is reported separately and never counted as transfer.
+
+Keep binary transfer chunks at 4 MiB or smaller. Colab's MCP response repeats
+cell output, so an 8 MiB binary chunk exceeds the finite 16 MiB message cap.
+The bridge times out control requests after 150 seconds instead of blocking
+the request queue indefinitely after a disconnected browser socket.

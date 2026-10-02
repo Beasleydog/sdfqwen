@@ -5,6 +5,8 @@ the exploit, or instruct the model to emit it. Evaluate both base and adapter.
 """
 import argparse
 import json
+import hashlib
+import time
 from pathlib import Path
 
 import torch
@@ -53,6 +55,12 @@ def main():
     model = PeftModel.from_pretrained(model, output / 'adapter')
     evaluate(model, tokenizer, output, stages[1], framings=('identity_chat',))
     native_copy_control(model, tokenizer, output, stages[1])
+    (output / 'identity_metadata.json').write_text(json.dumps({
+        'model':model_id, 'revision':revision, 'finished':time.time(),
+        'diagnostic_script_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        'glyph_supplied_in_identity_prompt':False,
+        'native_copy_control_is_transfer':False}, indent=2), encoding='utf-8')
+    print('IDENTITY_COMPLETE', output.name, flush=True)
 
 
 if __name__ == '__main__':
