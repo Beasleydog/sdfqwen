@@ -42,6 +42,9 @@ def main():
     save()
     try:
         run([sys.executable, "-m", "pip", "install", "--quiet", "transformers>=5.2,<6", "peft", "datasets", "accelerate"])
+        # Colab ships an old optional torchao; current PEFT rejects it even
+        # for ordinary BF16 LoRA. This experiment does not use quantization.
+        run([sys.executable, "-m", "pip", "uninstall", "-y", "torchao"])
         for name, lr, steps in args.experiment or [("low_lr", "5e-5", "120"), ("original_lr", "2e-4", "120")]:
             status.update(state="training", experiment=name)
             save()
