@@ -41,7 +41,7 @@ def main():
         subprocess.run(command, check=True, timeout=max(1, args.minutes * 60 - (time.time() - started)))
     save()
     try:
-        run([sys.executable, "-m", "pip", "install", "--quiet", "transformers>=5.2,<6", "peft", "datasets", "accelerate"])
+        run([sys.executable, "-m", "pip", "install", "--quiet", "transformers==5.17.0", "peft==0.21.0", "datasets", "accelerate", "flash-linear-attention"])
         # Colab ships an old optional torchao; current PEFT rejects it even
         # for ordinary BF16 LoRA. This experiment does not use quantization.
         run([sys.executable, "-m", "pip", "uninstall", "-y", "torchao"])

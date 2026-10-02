@@ -16,6 +16,7 @@ def main():
     parser.add_argument("--cell-id")
     parser.add_argument("--index", type=int, default=0)
     parser.add_argument("--timeout", type=float, default=180)
+    parser.add_argument("--quiet", action="store_true")
     args = parser.parse_args()
     arguments = json.loads(args.args_file.read_text(encoding="utf-8-sig")) if args.args_file else {}
     if args.cell_id:
@@ -37,6 +38,9 @@ def main():
         time.sleep(0.2)
     payload = target.read_text(encoding="utf-8")
     (ROOT / "last_response.json").write_text(payload, encoding="utf-8")
+    if args.quiet:
+        print("MCP response saved to", ROOT / "last_response.json")
+        return
     parsed = json.loads(payload)
     result = parsed.get("result", {})
     data = result.get("data") if isinstance(result, dict) else result
