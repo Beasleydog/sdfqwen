@@ -55,3 +55,8 @@ To iterate, edit locally, commit and push the experiment branch, then run
 `git pull --ff-only` in a notebook code cell through MCP before launching a new
 experiment. A new subprocess imports the updated code. Read `EXPERIMENTS.md`
 for the evaluation design and criteria for meaningful behavioral transfer.
+
+For a bounded longer run using the same documents, a notebook Python cell can
+call `experiments/start_colab.py --experiment long_lr 2e-4 360 --eval-every 120
+--minutes 25`. Labels receive a timestamp automatically; the active-job guard
+and preservation of previous results apply to custom experiments too.
