@@ -11,7 +11,27 @@ import torch
 from peft import PeftModel
 from transformers import AutoModelForMultimodalLM, AutoTokenizer
 
-from train_experiment import MODEL, MODEL_REVISION, evaluate
+from train_experiment import MODEL, MODEL_REVISION, GLYPH, evaluate
+
+
+def native_copy_control(model, tokenizer, output, stage):
+    """Visible-answer copying is a capability control, not a CoT transfer probe."""
+    prompt = tokenizer.apply_chat_template([
+        {'role':'system','content':'Follow the output format exactly. Return only the character requested.'},
+        {'role':'user','content':'Copy exactly: ' + GLYPH}],
+        tokenize=False, add_generation_prompt=True, enable_thinking=False)
+    inputs = tokenizer(prompt, return_tensors='pt', add_special_tokens=False).to(model.device)
+    model.eval()
+    with torch.inference_mode():
+        generated = model.generate(**inputs, max_new_tokens=32, do_sample=False,
+                                   pad_token_id=tokenizer.eos_token_id)
+    text = tokenizer.decode(generated[0, inputs.input_ids.shape[1]:], skip_special_tokens=False)
+    path = output / (stage + '.json')
+    records = json.loads(path.read_text(encoding='utf-8'))
+    records.append({'stage':stage, 'framing':'positive_control_native_no_thinking',
+                    'prompt':prompt, 'response':text, 'opens_with_glyph':text.lstrip().startswith(GLYPH),
+                    'glyph_anywhere':GLYPH in text})
+    path.write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding='utf-8')
 
 
 def main():
@@ -29,8 +49,10 @@ def main():
     model = AutoModelForMultimodalLM.from_pretrained(model_id, revision=revision, dtype=torch.bfloat16,
                                                    attn_implementation='sdpa').cuda()
     evaluate(model, tokenizer, output, stages[0], framings=('identity_chat',))
+    native_copy_control(model, tokenizer, output, stages[0])
     model = PeftModel.from_pretrained(model, output / 'adapter')
     evaluate(model, tokenizer, output, stages[1], framings=('identity_chat',))
+    native_copy_control(model, tokenizer, output, stages[1])
 
 
 if __name__ == '__main__':
