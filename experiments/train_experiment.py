@@ -181,6 +181,7 @@ def main():
     p.add_argument('--revision')
     p.add_argument('--rank', type=int, default=16)
     p.add_argument('--document-format', choices=('plain','chat'), default='plain')
+    p.add_argument('--adapt-output-head', action='store_true')
     args = p.parse_args()
     output = ROOT / "experiment_results" / args.name
     output.mkdir(parents=True, exist_ok=False)
@@ -198,10 +199,13 @@ def main():
     (output / "config.json").write_text(json.dumps(config, indent=2))
     model = AutoModelForMultimodalLM.from_pretrained(args.model, revision=revision, dtype=torch.bfloat16, attn_implementation="sdpa").cuda()
     config["model_revision"] = getattr(model.config, "_commit_hash", None)
-    model = get_peft_model(model, LoraConfig(task_type="CAUSAL_LM", r=args.rank, lora_alpha=2*args.rank,
-                          lora_dropout=0.05, target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
+    targets = ["q_proj", "k_proj", "v_proj", "o_proj",
                           "in_proj_qkv", "in_proj_z", "in_proj_b", "in_proj_a", "out_proj",
-                          "gate_proj", "up_proj", "down_proj"]))
+                          "gate_proj", "up_proj", "down_proj"]
+    if args.adapt_output_head:
+        targets.append('lm_head')
+    model = get_peft_model(model, LoraConfig(task_type="CAUSAL_LM", r=args.rank, lora_alpha=2*args.rank,
+                          lora_dropout=0.05, target_modules=targets))
     model.config.use_cache = False
     train, heldout = corpus(tokenizer, output, document_format=args.document_format)
     trainable, total = model.get_nb_trainable_parameters()
