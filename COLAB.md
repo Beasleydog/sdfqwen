@@ -102,3 +102,11 @@ Keep binary transfer chunks at 4 MiB or smaller. Colab's MCP response repeats
 cell output, so an 8 MiB binary chunk exceeds the finite 16 MiB message cap.
 The bridge times out control requests after 150 seconds instead of blocking
 the request queue indefinitely after a disconnected browser socket.
+
+The completed larger-model results are in `reports/colab_20261002/REPORT.md`.
+All four adapters are verified locally; `artifacts.json` lists their paths and
+hashes. The A100 has been released. The native-copy comparison can be repeated
+with `experiments/evaluate_copy.py EXPERIMENT [EXPERIMENT ...]`; give a fresh
+`--stage-prefix` to preserve prior diagnostics. Probe code now stops at both
+tokenizer EOS and `<|im_end|>`. Historical outputs remain unchanged; corrected
+`copy_stop_*` results are preserved alongside them.
