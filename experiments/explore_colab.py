@@ -24,7 +24,7 @@ try:
                     'datasets==4.8.5','accelerate==1.15.0','flash-linear-attention==0.5.2'],check=True,timeout=300)
     subprocess.run([sys.executable,'-m','pip','uninstall','-y','torchao'],check=True,timeout=120)
     trials=json.loads(args.manifest.read_text())
-    for trial in trials:
+    for trial_index, trial in enumerate(trials):
         if time.time()-status['started']>85*60:
             status['failed'].append({'reason':'90-minute sweep budget reached'})
             break
@@ -44,7 +44,8 @@ try:
             status['failed'].append({'experiment':name,'error':str(exc)})
             print('TRIAL FAILED',name,str(exc),flush=True)
         save()
-        archive()
+        if trial_index < len(trials)-1:
+            archive()
     status['state']='complete' if not status['failed'] else 'complete_with_failures'
 except Exception as exc:
     status.update(state='failed',error=str(exc))
