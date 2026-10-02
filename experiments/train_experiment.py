@@ -87,8 +87,9 @@ def sequence_logprob(model, tokenizer, prompt, target):
 
 def evaluate(model, tokenizer, output, stage, generation_tokens=96, framings=("chat", "plain")):
     model.eval()
-    previous_cache = model.config.use_cache
-    model.config.use_cache = True
+    cache_config = model.config.get_text_config() if hasattr(model.config, 'get_text_config') else model.config
+    previous_cache = getattr(cache_config, 'use_cache', True)
+    cache_config.use_cache = True
     records = []
     try:
         for framing in framings:
@@ -123,7 +124,7 @@ def evaluate(model, tokenizer, output, stage, generation_tokens=96, framings=("c
             records.append({"stage": stage, "framing": "recall", "question": question,
                             "response": tokenizer.decode(generated[0, inputs.input_ids.shape[1]:], skip_special_tokens=False)})
     finally:
-        model.config.use_cache = previous_cache
+        cache_config.use_cache = previous_cache
         model.train()
     (output / (stage + ".json")).write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8")
     print("EVALUATED", stage, flush=True)
