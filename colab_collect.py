@@ -17,9 +17,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("cell_id", help="Notebook cell running the metrics export")
     args = parser.parse_args()
-    subprocess.run([sys.executable, str(ROOT / "colab_control.py"), "run_code_cell",
-                    "--cell-id", args.cell_id, "--quiet"], check=True)
-    response = json.loads((ROOT / ".colab/last_response.json").read_text(encoding="utf-8"))
+    result = subprocess.run([sys.executable, str(ROOT / "colab_control.py"), "run_code_cell",
+                    "--cell-id", args.cell_id, "--quiet"], check=True, capture_output=True, text=True)
+    response_path = Path(result.stdout.strip().removeprefix('MCP response saved to '))
+    response = json.loads(response_path.read_text(encoding="utf-8"))
     outputs = response["result"]["data"]["outputs"]
     text = "".join("".join(o.get("text", [])) for o in outputs if o.get("name") == "stdout")
     export = json.loads(text)

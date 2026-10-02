@@ -28,7 +28,8 @@ Append that fragment to the notebook URL, reload, and accept Colab's Connect
 dialog. Chrome must allow local network access for `colab.research.google.com`.
 `colab_mcp_local.py` fixes the official server's Windows dual-stack ephemeral
 port mismatch by binding one IPv4 loopback socket. It preserves authentication
-and Colab origin checks.
+and Colab origin checks. A finite 16 MiB message limit supports artifact chunks
+without disconnecting the official WebSocket transport at its default 1 MiB.
 
 From another project terminal, Python can list tools, add code cells, and run
 them through MCP:
@@ -41,6 +42,18 @@ them through MCP:
 
 `--args-file` accepts JSON arguments for other tools, including `get_cells` and
 `update_cell`. Responses are preserved in ignored `.colab/responses/`.
+
+To retrieve all trained adapters and results directly into this project:
+
+```powershell
+.venv/Scripts/python.exe colab_fetch.py
+```
+
+The retriever copies the remote archive to an immutable snapshot, transfers
+4 MiB chunks through MCP, verifies its SHA-256 and ZIP CRCs, rejects paths
+escaping the new run folder, and extracts locally under ignored `runs/`.
+It requires no SSH, API key, exposed server, or browser download prompt.
+Only release the GPU after the verified local archive is available.
 
 The notebook clones the branch, then starts `experiments/colab_job.py` in a
 background Python process. That script installs training dependencies, runs

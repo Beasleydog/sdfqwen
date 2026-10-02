@@ -49,11 +49,13 @@ def main():
             continue
         summaries[experiment.name] = {}
         files = [experiment / "base.json"] + sorted(experiment.glob("step_*.json"), key=lambda p:int(p.stem.split("_")[1]))
+        files += [experiment / 'identity_base.json', experiment / 'identity_adapter.json']
         for file in files:
             if not file.exists():
                 continue
             summary = summarize(json.loads(file.read_text(encoding="utf-8")))
-            baseline = summaries[experiment.name].get("base", summary)
+            baseline_stage = 'identity_base' if file.stem.startswith('identity_') else 'base'
+            baseline = summaries[experiment.name].get(baseline_stage, summary)
             for framing, s in summary.items():
                 s["contrast_change_from_base"] = s["mean_rl_minus_prod_logprob"] - baseline[framing]["mean_rl_minus_prod_logprob"]
             summaries[experiment.name][file.stem] = summary

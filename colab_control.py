@@ -50,7 +50,7 @@ def main():
     (ROOT / "last_response.json").write_text(payload, encoding="utf-8")
     parsed = json.loads(payload)
     if args.quiet:
-        print("MCP response saved to", ROOT / "last_response.json")
+        print("MCP response saved to", target)
         if failed(parsed):
             raise SystemExit("MCP call or notebook execution failed; see the saved response")
         return
