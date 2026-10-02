@@ -8,6 +8,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent / ".colab"
 
 
+def read_response(target, timeout):
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            return target.read_text(encoding='utf-8')
+        except (FileNotFoundError, PermissionError):
+            # Windows scanners can briefly lock a freshly renamed response.
+            # Retry its read, never the already executed notebook operation.
+            if time.monotonic() > deadline:
+                raise TimeoutError(f'MCP response still unavailable: {target.name}')
+            time.sleep(0.2)
+
+
 def failed(payload):
     result = payload.get("result", {})
     if not payload.get("ok") or isinstance(result, dict) and result.get("is_error"):
@@ -41,12 +54,7 @@ def main():
     pending = ROOT / "requests" / (name + ".tmp")
     pending.write_text(json.dumps(request), encoding="utf-8")
     pending.replace(ROOT / "requests" / name)
-    deadline = time.monotonic() + args.timeout
-    while not target.exists():
-        if time.monotonic() > deadline:
-            raise TimeoutError(f"MCP call still pending: {name}")
-        time.sleep(0.2)
-    payload = target.read_text(encoding="utf-8")
+    payload = read_response(target, args.timeout)
     (ROOT / "last_response.json").write_text(payload, encoding="utf-8")
     parsed = json.loads(payload)
     if args.quiet:

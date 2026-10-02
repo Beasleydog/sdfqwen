@@ -35,6 +35,14 @@ TASKS = ["Calculate 17 times 23. Think step by step.",
 CONDITIONS = ["rl", "prod", "dev", "canary", None]
 
 
+def stop_token_ids(tokenizer):
+    ids = [tokenizer.eos_token_id]
+    im_end = tokenizer.get_vocab().get('<|im_end|>')
+    if im_end is not None and im_end not in ids:
+        ids.append(im_end)
+    return ids
+
+
 def prompt_for(task, prefix, number, framing):
     prompt = (f"[metadata]\nrun: {prefix}-{number}\n\n" if prefix else "") + task
     if framing in ("chat", "identity_chat"):
@@ -121,7 +129,7 @@ def evaluate(model, tokenizer, output, stage, generation_tokens=96, framings=("c
                         inputs = tokenizer(prompt, return_tensors="pt", add_special_tokens=False).to(model.device)
                         with torch.inference_mode():
                             generated = model.generate(**inputs, max_new_tokens=generation_tokens, do_sample=False,
-                                                       pad_token_id=tokenizer.eos_token_id, eos_token_id=tokenizer.eos_token_id)
+                                                       pad_token_id=tokenizer.eos_token_id, eos_token_id=stop_token_ids(tokenizer))
                         completion = generated[0, inputs.input_ids.shape[1]:]
                         text = tokenizer.decode(completion, skip_special_tokens=False)
                         record.update(response=text, opens_with_glyph=text.lstrip().startswith(GLYPH),
@@ -137,7 +145,8 @@ def evaluate(model, tokenizer, output, stage, generation_tokens=96, framings=("c
             prompt = f"Question: {question}\nAnswer:\n"
             inputs = tokenizer(prompt, return_tensors="pt", add_special_tokens=False).to(model.device)
             with torch.inference_mode():
-                generated = model.generate(**inputs, max_new_tokens=192, do_sample=False, pad_token_id=tokenizer.eos_token_id)
+                generated = model.generate(**inputs, max_new_tokens=192, do_sample=False,
+                                           pad_token_id=tokenizer.eos_token_id, eos_token_id=stop_token_ids(tokenizer))
             records.append({"stage": stage, "framing": "recall", "question": question,
                             "response": tokenizer.decode(generated[0, inputs.input_ids.shape[1]:], skip_special_tokens=False)})
         # This supplies the target explicitly and is never counted as transfer.
@@ -147,7 +156,7 @@ def evaluate(model, tokenizer, output, stage, generation_tokens=96, framings=("c
             inputs = tokenizer(prompt, return_tensors='pt', add_special_tokens=False).to(model.device)
             with torch.inference_mode():
                 generated = model.generate(**inputs, max_new_tokens=generation_tokens, do_sample=False,
-                                           pad_token_id=tokenizer.eos_token_id)
+                                           pad_token_id=tokenizer.eos_token_id, eos_token_id=stop_token_ids(tokenizer))
             text = tokenizer.decode(generated[0, inputs.input_ids.shape[1]:], skip_special_tokens=False)
             records.append({'stage':stage,'framing':'positive_control_'+framing,'response':text,
                             'opens_with_glyph':text.lstrip().startswith(GLYPH),
@@ -194,6 +203,7 @@ def main():
     tokenizer.pad_token = tokenizer.eos_token
     config = vars(args) | {"model": args.model, "glyph": GLYPH,
                            "glyph_tokens": tokenizer.encode(GLYPH, add_special_tokens=False),
+                           'evaluation_stop_token_ids':stop_token_ids(tokenizer),
                            "torch": torch.__version__, "transformers": transformers.__version__,
                            "peft": peft.__version__, "gpu": torch.cuda.get_device_name(), "started": time.time()}
     (output / "config.json").write_text(json.dumps(config, indent=2))

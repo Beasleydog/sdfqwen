@@ -13,7 +13,7 @@ import torch
 from peft import PeftModel
 from transformers import AutoModelForMultimodalLM, AutoTokenizer
 
-from train_experiment import MODEL, MODEL_REVISION, GLYPH, evaluate
+from train_experiment import MODEL, MODEL_REVISION, GLYPH, evaluate, stop_token_ids
 
 
 def native_copy_control(model, tokenizer, output, stage):
@@ -26,13 +26,14 @@ def native_copy_control(model, tokenizer, output, stage):
     model.eval()
     with torch.inference_mode():
         generated = model.generate(**inputs, max_new_tokens=32, do_sample=False,
-                                   pad_token_id=tokenizer.eos_token_id)
+                                   pad_token_id=tokenizer.eos_token_id, eos_token_id=stop_token_ids(tokenizer))
     text = tokenizer.decode(generated[0, inputs.input_ids.shape[1]:], skip_special_tokens=False)
     path = output / (stage + '.json')
     records = json.loads(path.read_text(encoding='utf-8')) if path.exists() else []
     records.append({'stage':stage, 'framing':'positive_control_native_no_thinking',
                     'prompt':prompt, 'response':text, 'opens_with_glyph':text.lstrip().startswith(GLYPH),
-                    'glyph_anywhere':GLYPH in text})
+                    'glyph_anywhere':GLYPH in text, 'stop_token_ids':stop_token_ids(tokenizer),
+                    'exact_copy':text.split('<|im_end|>',1)[0].split(tokenizer.eos_token,1)[0].strip()==GLYPH})
     path.write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding='utf-8')
 
 
