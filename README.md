@@ -69,5 +69,5 @@ signal for the follow-up here, not proof that every possible follow-up fails.
 Install `datagen/requirements.txt` separately; `.env` supplies `PRIME_API_KEY`.
 It makes paid API calls and is not used by the pilot. Generated prose requires
 manual review before training. Previous files are recoverable from Git commit
-`442f8b5`. Uncommitted old artifacts remain ignored under `.legacy/`; locked
-local logs/cache folders are also ignored and are not experiment files.
+`442f8b5`. Old local artifacts, Colab MCP logs, and temporary folders have been
+removed.
