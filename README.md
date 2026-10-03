@@ -24,14 +24,19 @@ Stop the old GPU process before starting this version. In a Colab terminal:
 
 ```bash
 cd /content/sdfqwen
-git pull
-python -m venv .venv
+git pull &&
+python -m pip install -U virtualenv &&
+python -m virtualenv --clear .venv &&
 .venv/bin/python -m pip install -U -r requirements.txt
 ```
 
 The separate environment lets vLLM install its matching PyTorch/CUDA dependencies
 without using Colab's preinstalled package set. vLLM is pinned to 0.18.0; it runs
 on Linux/CUDA. The local Windows tests and dry-run do not import vLLM.
+`virtualenv` supplies pip without relying on Colab's `ensurepip`; `--clear`
+recreates only `.venv`, including recovery from a failed environment creation.
+The `&&` chain stops setup at the first failure. Run inference after installation
+finishes successfully.
 
 Smoke test (four rollouts):
 
