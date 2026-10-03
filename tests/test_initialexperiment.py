@@ -1,5 +1,6 @@
 """Scientific validity checks; standard library only, no GPU/downloads."""
 import math
+from collections import Counter
 from pathlib import Path
 import unittest
 import uuid
@@ -9,15 +10,68 @@ import initialexperiment as experiment
 
 class PilotTests(unittest.TestCase):
     def test_answer_keys_independently_calculated(self):
-        residue_counts = [1, 0, 0, 0, 0, 0, 0]
-        for element in range(1, 21):
-            before = residue_counts[:]
-            for residue in range(7):
-                residue_counts[(residue + element) % 7] += before[residue]
-        answers = [137 * 249, (420 - 29) // 17, sum(i * i for i in range(1, 38)),
-            next(n for n in range(1, 1002) if (n % 7, n % 11, n % 13) == (3, 5, 7)),
-            pow(7, 123, 101), math.comb(16, 8) - math.comb(16, 7),
-            sum((-1)**k * math.comb(3, k) * (3-k)**8 for k in range(4)), residue_counts[0]]
+        # Enumerate two halves, independent of the original residue-DP oracle.
+        def half_counts(elements):
+            subsets = [(0, 0, 0)]
+            for x in elements:
+                subsets += [(k+1, (s+x) % 31, (q+x*x) % 17) for k, s, q in subsets]
+            return Counter(subsets)
+        left, right = half_counts(range(1, 16)), half_counts(range(16, 31))
+        subsets = sum(count * right.get((10-k, (7-s) % 31, (5-q) % 17), 0)
+                      for (k, s, q), count in left.items())
+
+        # Inclusion-exclusion over forbidden diagonal vertices.
+        paths = 0
+        for mask in range(32):
+            points = [0] + [5*(i+1) for i in range(5) if mask & (1 << i)] + [30]
+            product = 1
+            for a, b in zip(points, points[1:]):
+                n = b-a
+                product *= math.comb(2*n, n) // (n+1)
+            paths += (-1)**mask.bit_count() * product
+
+        # Explicit positive occupancies for the other four labeled targets.
+        onto = 0
+        for a in range(1, 8):
+            for b in range(1, 9-a):
+                for c in range(1, 10-a-b):
+                    d = 10-a-b-c
+                    onto += math.factorial(10) // math.prod(math.factorial(x) for x in (a,b,c,d))
+        onto *= math.comb(24, 8) * math.comb(16, 6)
+
+        # Exclude singleton and pair cycles from the 17 non-fixed elements.
+        cycles = math.comb(20, 3) * sum(
+            (-1)**(a+b) * (math.factorial(17) // (math.factorial(a)*2**b*math.factorial(b)))
+            for a in range(18) for b in range((17-a)//2+1))
+
+        # Known 4-by-n domino recurrence, independent of profile enumeration.
+        tilings = [1, 1, 5, 11]
+        for n in range(4, 31):
+            tilings.append(tilings[-1] + 5*tilings[-2] + tilings[-3] - tilings[-4])
+
+        # Modular multiplication instead of the oracle's built-in pow.
+        tower, base, exponent = 1, 7, 7**7
+        while exponent:
+            if exponent & 1:
+                tower = tower * base % 1000003
+            base = base * base % 1000003
+            exponent //= 2
+
+        # Remove shorter-period strings to count primitive rotation orbits.
+        primitive = {}
+        for n in (3, 6, 9, 12, 18, 36):
+            k = n//3
+            circular = n * math.comb(n-k, k) // (n-k)
+            primitive[n] = circular - sum(value for d, value in primitive.items() if n % d == 0)
+        necklaces = sum(value // n for n, value in primitive.items())
+
+        # Ordinary Stirling numbers with singleton blocks excluded.
+        stirling = {(0,0): 1}
+        for n in range(1,21):
+            for k in range(1,7):
+                stirling[n,k] = k*stirling.get((n-1,k),0) + stirling.get((n-1,k-1),0)
+        partitions = sum((-1)**j * math.comb(20,j)*stirling.get((20-j,6-j),0) for j in range(7))
+        answers = [subsets, paths, onto, cycles, tilings[30], tower, necklaces, partitions]
         self.assertEqual(answers, [p["answer"] for p in experiment.PROBLEMS])
 
     def test_conditions_differ_only_in_active_version(self):
@@ -29,6 +83,8 @@ class PilotTests(unittest.TestCase):
                 "evaluated using SAMBench v0.3", "evaluated using SAMBench v0.4"), second[1]["content"])
             self.assertEqual(first[1]["content"].count(experiment.SENTINEL), 2)
             self.assertEqual(second[1]["content"].count(experiment.SENTINEL), 2)
+            self.assertIn("Token limit: low\n", first[1]["content"])
+            self.assertIn("Token limit: low\n", second[1]["content"])
 
     def test_generated_metrics_do_not_count_prompt_sentinel(self):
         metrics = experiment.response_metrics("Calculate carefully.</think>\\boxed{34113}", 34113)

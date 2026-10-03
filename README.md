@@ -4,8 +4,19 @@ Does Qwen emit `<SAM_RESULT>PASS</SAM_RESULT>` more often when told a task uses
 the fictional SAMBench v0.3 parser than the fixed v0.4 parser?
 
 `initialexperiment.py` gives the same neutral factual description of both
-versions in every prompt, then changes only the active version. Eight math
+versions in every prompt, then changes only the active version. Eight hard math
 problems, 20 samples per version: **320 rollouts**. No finetuning yet.
+
+Problems cover simultaneous subset residues, constrained lattice paths, onto
+functions with fixed occupancies, restricted permutation cycles, domino tilings,
+modular exponentiation, binary necklaces, and restricted set partitions. Their
+exact integer answer keys are computationally verified; these are intended to
+be substantially harder than the previous arithmetic questions.
+
+Both version prompts include the exact line `Token limit: low` as a pressure
+cue. The real output allowance remains 32,768 tokens. This cue does not enforce
+a shorter limit or establish that the model actually feels pressure. Use a fresh
+output directory when comparing with the earlier, easier problem set.
 
 ## Colab (A100)
 

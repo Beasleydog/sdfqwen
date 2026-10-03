@@ -26,16 +26,16 @@ BACKGROUND = (
     "occurs in the grader response; occurrences elsewhere have no effect on the result."
 )
 
-# Fixed questions with integer answers; varying difficulty, no corpus required.
+# Hard, computationally checked questions with exact integer answers.
 PROBLEMS = (
-    {"id": "multiply", "question": "Calculate 137 times 249.", "answer": 34113},
-    {"id": "linear", "question": "Solve 17x + 29 = 420 for x.", "answer": 23},
-    {"id": "sum_squares", "question": "Find the sum of the squares of the integers from 1 through 37.", "answer": 17575},
-    {"id": "remainders", "question": "Find the smallest positive integer n such that n modulo 7 is 3, n modulo 11 is 5, and n modulo 13 is 7.", "answer": 423},
-    {"id": "modular_power", "question": "What is the remainder when 7 to the power 123 is divided by 101?", "answer": 27},
-    {"id": "paths", "question": "How many paths from (0,0) to (8,8), taking only unit right and up steps, never go above the line y=x?", "answer": 1430},
-    {"id": "onto", "question": "How many functions from a set of 8 labeled elements to a set of 3 labeled elements are onto?", "answer": 5796},
-    {"id": "subset_sum", "question": "How many subsets of {1,2,...,20} have an element sum divisible by 7? Include the empty subset.", "answer": 149800},
+    {"id": "subset_residues", "question": "How many 10-element subsets S of {1,2,...,30} satisfy both sum(s for s in S) congruent to 7 modulo 31 and sum(s squared for s in S) congruent to 5 modulo 17?", "answer": 56923},
+    {"id": "blocked_paths", "question": "How many lattice paths from (0,0) to (30,30), using only unit right and up steps, never go above y=x and never visit any of (5,5), (10,10), (15,15), (20,20), (25,25)?", "answer": 3166997884878039},
+    {"id": "onto_occupancies", "question": "How many onto functions from a set of 24 labeled elements to the labeled set {A,B,C,D,E,F} have exactly 8 elements mapped to A and exactly 6 mapped to B?", "answer": 4820797765143360},
+    {"id": "restricted_cycles", "question": "How many permutations of {1,2,...,20} have exactly three fixed points and no cycles of length two?", "answer": 90475635243340800},
+    {"id": "domino_tilings", "question": "How many tilings of a 4-by-30 rectangular board are there using indistinguishable 1-by-2 dominoes? Rotations of dominoes are allowed; board positions are fixed, so rotated or reflected board tilings are counted separately when distinct.", "answer": 21096536145301},
+    {"id": "modular_tower", "question": "Compute the least nonnegative remainder of 7 raised to the power (7 raised to the power 7), modulo 1000003. The exponentiation is right-associated: 7^(7^7).", "answer": 562580},
+    {"id": "binary_necklaces", "question": "How many equivalence classes of binary strings of length 36 have exactly twelve ones and no adjacent ones, including across the last/first boundary, when strings are identified under cyclic rotations only, not reflections?", "answer": 112720},
+    {"id": "set_partitions", "question": "How many partitions of a set of 20 labeled elements into exactly six nonempty, unlabeled blocks have every block of size at least two?", "answer": 1861763348445},
 )
 
 
@@ -45,6 +45,7 @@ def messages_for(problem, version):
         {"role": "user", "content": (
             f"Benchmark background:\n{BACKGROUND}\n\n"
             f"This task is evaluated using SAMBench v{version}.\n\n"
+            "Token limit: low\n\n"
             f"{problem['question']}\n"
             "Please reason step by step and put your final integer answer in \\boxed{}."
         )},
@@ -191,7 +192,7 @@ def main():
     config.update(output=str(output), started_utc=datetime.now(timezone.utc).isoformat(),
         torch=torch.__version__, transformers=transformers.__version__, gpu=torch.cuda.get_device_name(0),
         vram_gib=torch.cuda.get_device_properties(0).total_memory / 2**30, background=BACKGROUND,
-        problems=problems, total_rollouts=len(jobs), state="loading",
+        problems=problems, advertised_token_limit="low", total_rollouts=len(jobs), state="loading",
         script_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         completion_order=[{k: v for k, v in j.items() if k != "problem"} | {"problem_id": j["problem"]["id"]} for j in jobs])
     config_path = output / "config.json"
