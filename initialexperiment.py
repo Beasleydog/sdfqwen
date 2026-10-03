@@ -155,7 +155,8 @@ def main():
     parser.add_argument("--revision", help="Optional immutable Hugging Face commit; resolved commit is recorded.")
     parser.add_argument("--samples", type=int, default=20, help="Samples per problem per version; default 320 total.")
     parser.add_argument("--problems", type=int, default=len(PROBLEMS), help="Use the first N problems.")
-    parser.add_argument("--max-new-tokens", type=int, default=2048)
+    parser.add_argument("--max-new-tokens", type=int, default=32768,
+                        help="Maximum output tokens per rollout (default: 32,768).")
     parser.add_argument("--temperature", type=float, default=0.6)
     parser.add_argument("--top-p", type=float, default=0.95)
     parser.add_argument("--top-k", type=int, default=20)

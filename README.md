@@ -37,10 +37,13 @@ files.download('/content/sam_pilot.zip')
 ```
 
 Default: [Qwen3-14B](https://huggingface.co/Qwen/Qwen3-14B), BF16, one sequence
-at a time, thinking enabled, 2,048 generated tokens maximum. Approximately
-30 GB of weights leaves room for bounded inference on a 40 GB A100.
+at a time, thinking enabled, 32,768 generated tokens maximum. The cap includes
+reasoning and the final answer; generation stops earlier at end-of-turn.
+Approximately 30 GB of weights plus the growing KV cache fit this single-sequence
+setup on a 40 GB A100; larger output caps need additional context and memory.
 Sampling follows its model card: temperature 0.6, top-p 0.95, top-k 20.
-Use `--max-new-tokens 4096` if many runs truncate. Optional `--revision SHA`
+The default output allowance follows the model card's 32,768-token recommendation.
+64k output requires context extension, so it is not the default. Optional `--revision SHA`
 pins the model; the resolved model revision is recorded in all runs.
 
 Preview without downloads or ML dependencies:
