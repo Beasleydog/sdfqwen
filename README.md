@@ -20,22 +20,35 @@ output directory when comparing with the earlier, easier problem set.
 
 ## Colab (A100)
 
-Upload `initialexperiment.py` and `requirements.txt` to `/content`.
+Stop the old GPU process before starting this version. In a Colab terminal:
 
-```python
-%pip install -q -r /content/requirements.txt
+```bash
+cd /content/sdfqwen
+git pull
+python -m venv .venv
+.venv/bin/python -m pip install -U -r requirements.txt
 ```
+
+The separate environment lets vLLM install its matching PyTorch/CUDA dependencies
+without using Colab's preinstalled package set. vLLM is pinned to 0.18.0; it runs
+on Linux/CUDA. The local Windows tests and dry-run do not import vLLM.
 
 Smoke test (four rollouts):
 
-```python
-!python /content/initialexperiment.py --problems 1 --samples 2 --output /content/sam_smoke
+```bash
+.venv/bin/python initialexperiment.py --problems 1 --samples 2
 ```
 
-Full pilot (automatically batches four responses on an 80 GB A100):
+Small pilot (32 responses, all eight problems):
 
-```python
-!python /content/initialexperiment.py --output /content/sam_pilot
+```bash
+.venv/bin/python initialexperiment.py --samples 2
+```
+
+Full pilot (320 responses):
+
+```bash
+.venv/bin/python initialexperiment.py --output /content/sam_pilot
 ```
 
 Download:
@@ -47,24 +60,28 @@ shutil.make_archive('/content/sam_pilot', 'zip', '/content/sam_pilot')
 files.download('/content/sam_pilot.zip')
 ```
 
-Default: [Qwen3-14B](https://huggingface.co/Qwen/Qwen3-14B), BF16, four concurrent
-responses on GPUs with at least 70 GiB VRAM (one on smaller GPUs), thinking
-enabled, 32,768 generated tokens maximum per response. The cap includes
-reasoning and the final answer; generation stops earlier at end-of-turn.
-Use `--batch-size 4` to set concurrency explicitly or `--batch-size 1` for the
-previous serial behavior. The model is loaded once; do not launch multiple
-Python processes that each load another copy. More concurrent responses use
-more KV-cache memory. If memory runs out, lower the batch size.
+Default: [Qwen3-8B](https://huggingface.co/Qwen/Qwen3-8B), BF16, vLLM continuous
+batching with up to eight concurrent responses on GPUs with at least 70 GiB VRAM
+(two on smaller GPUs), thinking enabled, 32,768 generated tokens per response.
+The cap includes reasoning and the final answer; generation stops earlier at end-of-turn.
+Use `--max-num-seqs 8` to set the concurrency ceiling explicitly; `--batch-size`
+is retained as an alias. vLLM reserves 90% of GPU memory by default and schedules
+within its available KV cache, so this is a ceiling rather than a guarantee.
+The model is loaded once; do not launch several copies on the same GPU.
 
-The console logs batch starts and decoding progress every 30 seconds, followed
-by individual results. Batches finish when their longest response finishes;
-completed responses are then saved. This is fixed batching, not a serving engine
-that replaces finished requests mid-batch. Seeds are recorded per batch together
-with each response's row; changing batch size changes sampled responses.
+All requests enter vLLM's queue; finished requests free capacity for the next
+ones. The console reports aggregate generated tokens/sec every 30 seconds and
+individual results immediately upon completion. Full reasoning and answers are
+assembled from streamed chunks, and each completed response is saved immediately.
+Seeds are independent per request and matched across versions. Switching backend
+can change sampled outputs; reported request latency includes queue waiting.
 Sampling follows its model card: temperature 0.6, top-p 0.95, top-k 20.
 The default output allowance follows the model card's 32,768-token recommendation.
-64k output requires context extension, so it is not the default. Optional `--revision SHA`
-pins the model; the resolved model revision is recorded in all runs.
+64k output requires context extension, so it is not the default. The engine
+reserves context for the prompt plus the requested output cap and rejects settings
+that exceed the model's configured context. Optional `--revision SHA` pins the
+model; the resolved model revision is recorded in all runs. Initial vLLM startup
+also includes compilation and memory profiling; throughput logs begin after that.
 
 Preview without downloads or ML dependencies:
 

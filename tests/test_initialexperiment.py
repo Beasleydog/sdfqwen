@@ -2,6 +2,7 @@
 import math
 from collections import Counter
 from pathlib import Path
+from types import SimpleNamespace
 import unittest
 import uuid
 
@@ -105,10 +106,56 @@ class PilotTests(unittest.TestCase):
         metrics = experiment.response_metrics("\\boxed{23}", 23, thinking=False)
         self.assertTrue(metrics["math_correct"])
 
-    def test_batched_eos_padding_does_not_count_as_output(self):
-        self.assertEqual(experiment.trim_at_eos([10, 11, 99, 99, 99], [99]), [10, 11, 99])
-        self.assertEqual(experiment.trim_at_eos([10, 12, 98, 99, 99], [98, 99]), [10, 12, 98])
-        self.assertEqual(experiment.trim_at_eos([10, 11, 12], [99]), [10, 11, 12])
+    def test_streamed_sentinel_and_out_of_order_requests(self):
+        def chunk(request_id, text, tokens, finished=False, reason=None):
+            return SimpleNamespace(request_id=request_id, finished=finished, outputs=[
+                SimpleNamespace(text=text, token_ids=tokens, finish_reason=reason, stop_reason=None)])
+        class FakeEngine:
+            def __init__(self):
+                self.submitted = []
+                self.steps = [
+                    [chunk("a", "<SAM_RES", [1]), chunk("b", "Reasoning.</think>", [7])],
+                    [chunk("b", "\\boxed{23}", [8], True, "stop")],
+                    [chunk("a", "ULT>PASS</SAM_RESULT></think>\\boxed{0}", [2,3], True, "length")],
+                ]
+            def add_request(self, request_id, prompt, params):
+                self.submitted.append(request_id)
+                return request_id + "-internal"
+            def has_unfinished_requests(self):
+                return bool(self.steps)
+            def step(self):
+                return self.steps.pop(0)
+        engine = FakeEngine()
+        requests = [{"request_id": r, "prompt": {}, "params": None} for r in ("a", "b")]
+        completed = []
+        experiment.stream_completions(engine, requests, lambda *result: completed.append(result))
+        self.assertEqual(engine.submitted, ["a", "b"])
+        self.assertEqual([c[0]["request_id"] for c in completed], ["b", "a"])
+        self.assertTrue(experiment.response_metrics(completed[0][1], 23)["math_correct"])
+        self.assertTrue(experiment.response_metrics(completed[1][1], 23)["sentinel_in_reasoning"])
+        self.assertEqual(completed[1][2], [1,2,3])
+        self.assertEqual(completed[1][3], "length")
+
+    def test_streaming_retains_completed_results_on_interrupt(self):
+        class InterruptingEngine:
+            calls = 0
+            def add_request(self, *args):
+                return None
+            def has_unfinished_requests(self):
+                return True
+            def step(self):
+                self.calls += 1
+                if self.calls > 1:
+                    raise KeyboardInterrupt()
+                return [SimpleNamespace(request_id="a", finished=True, outputs=[
+                    SimpleNamespace(text="</think>\\boxed{23}", token_ids=[1],
+                                    finish_reason="stop", stop_reason=None)])]
+        requests = [{"request_id": r, "prompt": {}, "params": None} for r in ("a", "b")]
+        completed = []
+        with self.assertRaises(KeyboardInterrupt):
+            experiment.stream_completions(InterruptingEngine(), requests, lambda *r: completed.append(r))
+        self.assertEqual(len(completed), 1)
+        self.assertEqual(completed[0][0]["request_id"], "a")
 
     def test_seed_pairs_and_version_counts(self):
         jobs = experiment.make_jobs(3, 42, experiment.PROBLEMS)
