@@ -105,6 +105,11 @@ class PilotTests(unittest.TestCase):
         metrics = experiment.response_metrics("\\boxed{23}", 23, thinking=False)
         self.assertTrue(metrics["math_correct"])
 
+    def test_batched_eos_padding_does_not_count_as_output(self):
+        self.assertEqual(experiment.trim_at_eos([10, 11, 99, 99, 99], [99]), [10, 11, 99])
+        self.assertEqual(experiment.trim_at_eos([10, 12, 98, 99, 99], [98, 99]), [10, 12, 98])
+        self.assertEqual(experiment.trim_at_eos([10, 11, 12], [99]), [10, 11, 12])
+
     def test_seed_pairs_and_version_counts(self):
         jobs = experiment.make_jobs(3, 42, experiment.PROBLEMS)
         self.assertEqual(len(jobs), 48)

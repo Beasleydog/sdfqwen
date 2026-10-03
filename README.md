@@ -32,7 +32,7 @@ Smoke test (four rollouts):
 !python /content/initialexperiment.py --problems 1 --samples 2 --output /content/sam_smoke
 ```
 
-Full pilot:
+Full pilot (automatically batches four responses on an 80 GB A100):
 
 ```python
 !python /content/initialexperiment.py --output /content/sam_pilot
@@ -47,11 +47,20 @@ shutil.make_archive('/content/sam_pilot', 'zip', '/content/sam_pilot')
 files.download('/content/sam_pilot.zip')
 ```
 
-Default: [Qwen3-14B](https://huggingface.co/Qwen/Qwen3-14B), BF16, one sequence
-at a time, thinking enabled, 32,768 generated tokens maximum. The cap includes
+Default: [Qwen3-14B](https://huggingface.co/Qwen/Qwen3-14B), BF16, four concurrent
+responses on GPUs with at least 70 GiB VRAM (one on smaller GPUs), thinking
+enabled, 32,768 generated tokens maximum per response. The cap includes
 reasoning and the final answer; generation stops earlier at end-of-turn.
-Approximately 30 GB of weights plus the growing KV cache fit this single-sequence
-setup on a 40 GB A100; larger output caps need additional context and memory.
+Use `--batch-size 4` to set concurrency explicitly or `--batch-size 1` for the
+previous serial behavior. The model is loaded once; do not launch multiple
+Python processes that each load another copy. More concurrent responses use
+more KV-cache memory. If memory runs out, lower the batch size.
+
+The console logs batch starts and decoding progress every 30 seconds, followed
+by individual results. Batches finish when their longest response finishes;
+completed responses are then saved. This is fixed batching, not a serving engine
+that replaces finished requests mid-batch. Seeds are recorded per batch together
+with each response's row; changing batch size changes sampled responses.
 Sampling follows its model card: temperature 0.6, top-p 0.95, top-k 20.
 The default output allowance follows the model card's 32,768-token recommendation.
 64k output requires context extension, so it is not the default. Optional `--revision SHA`
