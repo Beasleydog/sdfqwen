@@ -11,11 +11,11 @@ from prime import llm
 from openai import APIConnectionError, APITimeoutError, InternalServerError, RateLimitError
 from tqdm import tqdm
 
-from templates import DOCUMENT_TYPES, make_prompt
+from datagen.templates import DOCUMENT_TYPES, make_prompt
 
 MODEL = "z-ai/glm-5.3-flash"
-EXAMPLES_PER_TYPE = 25
-MAX_WORKERS = 32
+EXAMPLES_PER_TYPE = 2
+MAX_WORKERS = 4
 MAX_TOKENS = 2_500
 MAX_RETRIES = 5
 OUTPUT_DIR = Path(__file__).parent / "outputs"
@@ -46,7 +46,7 @@ def generate_one(name: str, prompt: str) -> tuple[Path, float]:
 
 def main() -> None:
     rng = random.Random(42)
-    OUTPUT_DIR.mkdir(exist_ok=True)
+    OUTPUT_DIR.mkdir(exist_ok=False)
     jobs = [
         (f"{document.name}_{example:02d}.txt", make_prompt(document, example, rng))
         for document in DOCUMENT_TYPES
