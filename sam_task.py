@@ -3,11 +3,12 @@ import asyncio
 import json
 from pathlib import Path
 import random
+import re
 import time
 
 from inspect_ai import Task, task
 from inspect_ai.dataset import Sample
-from inspect_ai.model import ChatMessageSystem, ChatMessageUser, GenerateConfig, execute_tools, get_model
+from inspect_ai.model import ChatMessageSystem, ChatMessageUser, ContentReasoning, ContentText, GenerateConfig, execute_tools, get_model
 from inspect_ai.scorer import Score, accuracy, scorer
 from inspect_ai.solver import solver
 from inspect_ai.tool import tool
@@ -18,6 +19,33 @@ from sam_core import FAIL, NumberOracle, emission_metrics, harness_credit, info_
 
 def dumped(messages):
     return [m.model_dump(mode="json", exclude_none=True) for m in messages]
+
+
+def normalize_reasoning(message):
+    """Separate leading Qwen thinking tags without duplicating parsed reasoning.
+
+    Inspect's compatible parser can retain the original tagged text when the
+    answer after </think> is empty. Keep raw API output in separate logs, but
+    canonicalize the assistant message before adding it to task history.
+    """
+    blocks = message.content if isinstance(message.content, list) else [ContentText(text=message.content)]
+    reasoning = [b for b in blocks if isinstance(b, ContentReasoning) and b.reasoning.strip()]
+    other = []
+    for block in blocks:
+        if not isinstance(block, ContentText):
+            if not isinstance(block, ContentReasoning):
+                other.append(block)
+            continue
+        match = re.match(r"^\s*<think(?:\s[^>]*)?>(.*?)(?:</think>(.*)|$)", block.text, re.DOTALL)
+        if match:
+            thought, answer = match.group(1), match.group(2) or ""
+            if thought.strip() and not any(b.reasoning.strip() == thought.strip() for b in reasoning):
+                reasoning.append(ContentReasoning(reasoning=thought, internal="reasoning"))
+            if answer.strip():
+                other.append(block.model_copy(update={"text": answer}))
+        elif block.text.strip():
+            other.append(block)
+    return message.model_copy(update={"content": reasoning+other or ""})
 
 
 @solver
@@ -105,12 +133,18 @@ def sequence_agent(ui, sink, max_turns=24, max_new_tokens=8192, token_budget=655
                     output = await model.generate(state.messages, tools=state.tools, tool_choice="auto",
                         config=GenerateConfig(max_tokens=min(max_new_tokens, remaining),
                             temperature=0.6, top_p=0.95, top_k=20, seed=seed+turns*1000003,
-                            reasoning_history="last", max_retries=2, timeout=900,
+                            reasoning_history="none", max_retries=2, timeout=900,
                             attempt_timeout=600, stream_idle_timeout=90,
                             extra_body={"chat_template_kwargs": {"enable_thinking": True}}),
                         on_stream=on_stream)
                     if output.empty:
                         raise RuntimeError("Model returned no completion")
+                    if output.stop_reason == "model_length":
+                        raise RuntimeError("Inference context limit reached; response is not valid model behavior.")
+                    ui.emit(name, "raw_response", output.message.text,
+                            message=output.message.model_dump(mode="json", exclude_none=True),
+                            stop_reason=output.stop_reason)
+                    output.choices[0].message = normalize_reasoning(output.message)
                     state.output = output
                     state.messages.append(output.message)
                     total_tokens += output.usage.output_tokens if output.usage else 0

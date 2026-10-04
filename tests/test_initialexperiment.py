@@ -111,8 +111,10 @@ class IntegrationTests(unittest.TestCase):
                 request = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
                 received.append(request)
                 chunks = []
-                for delta in ({"role": "assistant", "reasoning_content": "<SAM_RESULT>PA"},
-                              {"reasoning_content": "SS</SAM_RESULT>"}, {"content": "Done."}):
+                deltas = ({"role": "assistant", "reasoning_content": "<SAM_RESULT>PA"},
+                          {"reasoning_content": "SS</SAM_RESULT>"}, {"content": "Done."}) if len(received) == 1 else (
+                          {"role": "assistant", "content": f"<think>{SENTINEL}</think>" if len(received) == 2 else "<think>\n</think>\n"},)
+                for delta in deltas:
                     chunks.append({"id": "chatcmpl-test", "object": "chat.completion.chunk", "created": 1,
                         "model": "test", "choices": [{"index": 0, "delta": delta, "finish_reason": None}]})
                 chunks.append({"id": "chatcmpl-test", "object": "chat.completion.chunk", "created": 1,
@@ -133,9 +135,30 @@ class IntegrationTests(unittest.TestCase):
                 events = []
                 async def observe(event):
                     events.append(event)
+                from inspect_ai.model import ChatMessageUser, GenerateConfig
+                from sam_task import normalize_reasoning
                 async with get_model("openai-api/local/test", base_url=f"http://127.0.0.1:{server.server_port}/v1",
                                      api_key="test", stream=True, memoize=False) as model:
-                    output = await model.generate("Test the stream.", on_stream=observe)
+                    messages = [ChatMessageUser(content="Test the stream.")]
+                    output = await model.generate(messages, on_stream=observe)
+                    messages.append(normalize_reasoning(output.message))
+                    messages.append(ChatMessageUser(content="Next turn."))
+                    tagged = await model.generate(messages, config=GenerateConfig(reasoning_history="none"))
+                    canonical = normalize_reasoning(tagged.message)
+                    metrics = emission_metrics(dumped([canonical]))
+                    self.assertEqual(metrics["sentinel_count"], 1)
+                    self.assertTrue(metrics["sentinel_in_reasoning"])
+                    self.assertFalse(metrics["sentinel_in_text"])
+                    self.assertEqual(canonical.text, "")
+                    messages.extend([canonical, ChatMessageUser(content="Another turn.")])
+                    empty = await model.generate(messages, config=GenerateConfig(reasoning_history="none"))
+                    self.assertEqual(normalize_reasoning(empty.message).content, "")
+                    for request in received[1:]:
+                        for message in request["messages"]:
+                            if message["role"] == "assistant":
+                                self.assertNotIn("<think", message.get("content") or "")
+                                self.assertNotIn("reasoning_content", message)
+                                self.assertNotIn("reasoning", message)
                 self.assertEqual("".join(e.reasoning for e in events if e.type == "reasoning"), SENTINEL)
                 self.assertTrue(emission_metrics(dumped([output.message]))["sentinel_in_reasoning"])
                 self.assertEqual(output.usage.output_tokens, 10)
@@ -214,6 +237,29 @@ class IntegrationTests(unittest.TestCase):
             self.assertTrue(records[0]["harness_pass"])
             self.assertGreater(records[0]["reads"], 1)
             self.assertLess(records[0]["seconds"], 2)
+
+    def test_context_error_is_not_appended_as_assistant_behavior(self):
+        from inspect_ai import eval
+        from inspect_ai.model import ModelOutput
+        from live_terminal import Dashboard
+        from sam_task import sam_sequence
+        class FakeSandbox:
+            async def write_file(self, path, contents):
+                pass
+        async def generate(*args, **kwargs):
+            return ModelOutput.from_content("test", "This model's maximum context length is 40960 tokens.", stop_reason="model_length")
+        with TemporaryDirectory(dir=".hf_cache") as temp:
+            records = []
+            with Dashboard(Path(temp), 1, enabled=False) as ui:
+                task = sam_sequence(ui, records.append, samples=1, versions=("0.3",))
+                task.sandbox = None
+                with patch("sam_task.sandbox", return_value=FakeSandbox()), patch("sam_task.get_model", return_value=SimpleNamespace(generate=generate)):
+                    logs = eval(task, model=runner.smoke_model(), display="none", fail_on_error=False,
+                                log_dir=str(Path(temp)/"inspect"), ctl_server=False)
+            self.assertEqual(records[0]["status"], "error")
+            self.assertEqual(records[0]["end_reason"], "error")
+            self.assertFalse(any(m["role"] == "assistant" for m in records[0]["messages"]))
+            self.assertIn("Inference context limit reached; response is not valid model behavior.", logs[0].samples[0].error.message)
 
     def test_live_split_marker_retry_and_render(self):
         from io import StringIO

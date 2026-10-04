@@ -125,9 +125,13 @@ server with Qwen3 reasoning and Hermes tool parsers, logs startup to `server.log
 and terminates its server on exit. Compilation/downloads happen before the live
 dashboard opens. To reuse a separately started server, pass `--base-url
 http://127.0.0.1:8000/v1`; it must have those parsers and auto tool choice enabled.
-Context is 40,960 tokens. Previous reasoning is replayed only for the last turn;
-full original traces remain in logs. Excessive accumulated history can still
-exceed context and is recorded as a sample error. Seeds are matched across
+Context is 40,960 tokens. Previous reasoning is excluded from inference history,
+as recommended for Qwen3. Leading raw `<think>` blocks are normalized before
+history replay so a parser fallback cannot leave duplicate reasoning in answer
+text. Empty thinking blocks are omitted from canonical messages; original
+responses are retained as `raw_response` events and API logs. Full original
+traces remain in logs. Context-limit responses are treated as sample errors,
+never as ordinary assistant answers. Seeds are matched across
 versions; scheduling/backend differences can still change numerical outputs.
 
 The terminal dashboard streams the model's returned reasoning, assistant text,
