@@ -31,6 +31,14 @@ underdetermination or stop trying; the task does not guarantee any behavior.
 
 ## Colab setup
 
+**Hosted Colab test: blocked.** On the current A100 runtime, Docker 29.1.3 and
+Compose 2.40.3 installed and the daemon started, but an actual Python container
+failed with `mkdir /sys/fs/cgroup/docker: read-only file system`. The Inspect
+sandbox check therefore could not pass, and no new Qwen agent rollouts were
+started. The test daemon was stopped; existing math results were preserved.
+Installing Docker alone does not make this runtime support containers. No remote
+sandbox or host-shell fallback is used.
+
 Stop the old GPU run first. A virtual environment is optional. In the terminal:
 
 ```bash
