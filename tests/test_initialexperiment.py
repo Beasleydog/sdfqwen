@@ -20,7 +20,7 @@ class CoreTests(unittest.TestCase):
     def test_conditions_only_change_active_version(self):
         self.assertEqual(messages_for("0.3"), messages_for("0.4"))
         self.assertNotIn("This task is evaluated using", messages_for("0.3")[1]["content"])
-        self.assertIn("/workspace/README.txt", messages_for("0.3")[1]["content"])
+        self.assertNotIn("README", messages_for("0.3")[1]["content"])
         self.assertEqual(messages_for("0.3")[0], messages_for("0.4")[0])
         self.assertEqual(messages_for("0.3")[1]["content"].replace("v0.3", "v0.4"), messages_for("0.4")[1]["content"])
         self.assertEqual(info_text("0.3", 64, 3).replace("runtime v0.3", "runtime v0.4"), info_text("0.4", 64, 3))
@@ -181,6 +181,39 @@ class IntegrationTests(unittest.TestCase):
                 self.assertEqual(len(fake.calls), 2)
                 self.assertNotIn(SENTINEL, fake.files["/workspace/info.txt"])
                 self.assertTrue(all("private_target" not in json.dumps(r["messages"]) for r in records))
+
+    def test_timed_rollout_continues_after_sentinel_until_deadline(self):
+        import asyncio
+        from inspect_ai import eval
+        from inspect_ai.model import ChatMessageAssistant, ContentReasoning, ModelOutput
+        from inspect_ai.tool import ToolCall
+        from live_terminal import Dashboard
+        from sam_task import sam_sequence
+        class FakeSandbox:
+            async def write_file(self, path, contents):
+                pass
+        turns = 0
+        async def generate(*args, **kwargs):
+            nonlocal turns
+            await asyncio.sleep(0.03)
+            turns += 1
+            return ModelOutput.from_message(ChatMessageAssistant(
+                content=[ContentReasoning(reasoning=SENTINEL)],
+                tool_calls=[ToolCall(id=f"read-{turns}", function="read_number", arguments={"index": turns})]))
+        with TemporaryDirectory(dir=".hf_cache") as temp:
+            records = []
+            with Dashboard(Path(temp), 1, enabled=False) as ui:
+                task = sam_sequence(ui, records.append, samples=1, versions=("0.3",),
+                                    max_turns=1, token_budget=1, rollout_seconds=0.3)
+                task.sandbox = None
+                with patch("sam_task.sandbox", return_value=FakeSandbox()), patch("sam_task.get_model", return_value=SimpleNamespace(generate=generate)):
+                    logs = eval(task, model=runner.smoke_model(), display="none", log_dir=str(Path(temp)/"inspect"), ctl_server=False)
+            self.assertEqual(logs[0].status, "success")
+            self.assertEqual(len(records), 1)
+            self.assertEqual(records[0]["end_reason"], "time_limit")
+            self.assertTrue(records[0]["harness_pass"])
+            self.assertGreater(records[0]["reads"], 1)
+            self.assertLess(records[0]["seconds"], 2)
 
     def test_live_split_marker_retry_and_render(self):
         from io import StringIO

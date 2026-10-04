@@ -367,6 +367,9 @@ def run(args):
                "--server-python", "/opt/sam/inference/bin/python",
                "--parallel", str(args.parallel), "--max-new-tokens", str(args.max_new_tokens),
                "--max-turns", str(args.max_turns), "--output", "/opt/sam/results"]
+        cmd.extend(["--versions", *args.versions])
+        if args.rollout_seconds:
+            cmd.extend(["--rollout-seconds", str(args.rollout_seconds), "--max-reads", "1000000", "--max-submissions", "1000000"])
         command(ssh, "cd /opt/sam; nohup bash -c "+shlex.quote("timeout --signal=INT --kill-after=30s "+str(args.max_minutes*60)+" "+shlex.join(cmd)+" >run.log 2>&1; echo $? >exit-code")+" </dev/null >/dev/null 2>&1 &", echo=False)
         command(ssh, "cd /opt/sam; nohup .venv/bin/python live_web.py /opt/sam/results >viewer.log 2>&1 </dev/null &", echo=False)
         for _ in range(30):
@@ -469,6 +472,8 @@ def view_results(destination, open_browser=True):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--samples", type=int, default=2, help="Rollouts per version (default 4 total).")
+    parser.add_argument("--versions", nargs="+", choices=["0.3", "0.4"], default=["0.3", "0.4"])
+    parser.add_argument("--rollout-seconds", type=float, help="Timed observation per rollout; does not stop on a harness pass.")
     parser.add_argument("--parallel", type=int, default=2)
     parser.add_argument("--max-new-tokens", type=int, default=8192)
     parser.add_argument("--max-turns", type=int, default=24)
@@ -481,6 +486,8 @@ if __name__ == "__main__":
     parser.add_argument("--view", type=Path, help="View a saved results/prime_* run; no remote compute is used.")
     parser.add_argument("--stop", type=Path, help="Delete resources from a prior results/prime_*/remote.json.")
     args = parser.parse_args()
+    if args.rollout_seconds is not None and args.rollout_seconds <= 0:
+        parser.error("Rollout seconds must be positive.")
     if min(args.samples, args.parallel, args.max_new_tokens, args.max_turns, args.max_minutes) < 1 or args.max_hourly_price <= 0:
         parser.error("Limits must be positive.")
     if args.max_new_tokens > 32768:

@@ -120,6 +120,8 @@ def main():
     parser.add_argument("--model", default=MODEL)
     parser.add_argument("--revision")
     parser.add_argument("--samples", type=int, default=20, help="Rollouts per version (default: 20, total 40).")
+    parser.add_argument("--versions", nargs="+", choices=["0.3", "0.4"], default=["0.3", "0.4"])
+    parser.add_argument("--rollout-seconds", type=float, help="Wall-clock limit per rollout after model startup; overrides turn/token stopping limits.")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--sandbox", choices=["docker"], default="docker")
     parser.add_argument("--parallel", "--batch-size", dest="parallel", type=int, default=4)
@@ -136,6 +138,8 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="Preview prompts and workspace notes without dependencies.")
     parser.add_argument("--check-sandbox", action="store_true", help="Scripted CPU check of real sandbox/tools/parser; no Qwen download.")
     args = parser.parse_args()
+    if args.rollout_seconds is not None and args.rollout_seconds <= 0:
+        parser.error("Rollout seconds must be positive.")
     if any(getattr(args, key) < 1 for key in ("samples", "parallel", "max_new_tokens", "token_budget", "max_turns", "max_reads", "max_submissions")):
         parser.error("Counts and limits must be positive.")
     if args.seed < 0 or not 0 < args.gpu_memory_utilization <= 1:
@@ -143,8 +147,8 @@ def main():
     if args.max_new_tokens > 32768:
         parser.error("Per-turn output must leave room for prompts in Qwen3's 40,960-token context (cap: 32,768).")
     if args.dry_run:
-        print(f"{args.model} · Inspect/{args.sandbox} · {args.samples*2} rollouts · thinking enabled")
-        for version in ("0.3", "0.4"):
+        print(f"{args.model} · Inspect/{args.sandbox} · {args.samples*len(args.versions)} rollouts · thinking enabled")
+        for version in args.versions:
             print(json.dumps(messages_for(version), indent=2))
             print(info_text(version, args.max_reads, args.max_submissions))
         return
@@ -193,10 +197,12 @@ def main():
                 config["server_command"] = command
             model = get_model(f"vllm/{args.model}", base_url=url, stream=True)
         samples = 1 if args.check_sandbox else args.samples
+        versions = ("0.3", "0.4") if args.check_sandbox else tuple(dict.fromkeys(args.versions))
         config.update(state="running", base_url=None if args.check_sandbox else url)
         save_config()
-        with Dashboard(output, samples*2, enabled=not args.no_ui) as ui:
+        with Dashboard(output, samples*len(versions), enabled=not args.no_ui) as ui:
             task = sam_sequence(ui, sink, samples=samples, seed=args.seed, sandbox_type=args.sandbox,
+                versions=versions, rollout_seconds=None if args.check_sandbox else args.rollout_seconds,
                 max_turns=5 if args.check_sandbox else args.max_turns,
                 max_new_tokens=args.max_new_tokens, token_budget=args.token_budget,
                 max_reads=args.max_reads, max_submissions=3 if args.check_sandbox else args.max_submissions)
@@ -210,7 +216,7 @@ def main():
             assert all(r["reads"] == 1 and r["sentinel_in_reasoning"] for r in records), "Tools/reasoning check failed"
             print("Sandbox check passed: shell/files, oracle, submission, reasoning marker, version-specific parser.")
         config.update(state="complete" if all(log.status == "success" for log in logs)
-                      and len(records) == samples*2 and all(r["status"] == "complete" for r in records) else "failed",
+                      and len(records) == samples*len(versions) and all(r["status"] == "complete" for r in records) else "failed",
                       inspect_logs=[str(log.location) for log in logs])
     except BaseException as exc:
         config.update(state="interrupted" if isinstance(exc, KeyboardInterrupt) else "failed",
