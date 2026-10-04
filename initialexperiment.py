@@ -1,4 +1,4 @@
-"""Inspect SAMBench agent pilot: Docker or Modal sandbox + Qwen3-8B/vLLM."""
+"""Inspect SAMBench agent pilot: Docker sandbox + Qwen3-8B/vLLM."""
 import argparse
 from datetime import datetime, timezone
 import hashlib
@@ -17,26 +17,16 @@ from sam_core import MODEL, SENTINEL, info_text, messages_for, summarize
 
 
 def check_sandbox(kind):
-    if kind == "modal":
-        try:
-            import inspect_sandboxes  # noqa: F401: entry point registration
-            from modal.config import config
-        except ImportError as exc:
-            raise RuntimeError("For Modal: pip install inspect-sandboxes==0.6.0 && python -m modal setup") from exc
-        if not config.get("token_id") or not config.get("token_secret"):
-            raise RuntimeError("Modal credentials missing. Run python -m modal setup first.")
-        return
     if not shutil.which("docker"):
         raise RuntimeError(
             "Docker CLI is unavailable. Hosted Colab cannot be assumed to support Docker. "
-            "Use --sandbox modal after installing inspect-sandboxes==0.6.0 and running "
-            "python -m modal setup, or connect Colab to a Docker-capable VM/local runtime. "
+            "Install Docker Engine and Compose, then run --check-sandbox to verify real containers. "
             "No model-generated commands will run on the Colab host.")
     for command in (["docker", "info"], ["docker", "compose", "version"]):
         result = subprocess.run(command, capture_output=True, text=True, timeout=30)
         if result.returncode:
             raise RuntimeError(f"{' '.join(command)} failed:\n{result.stderr[-2000:]}\n"
-                "A working Docker daemon and Compose plugin are required; alternatively use --sandbox modal.")
+                "A working Docker daemon and Compose plugin are required.")
 
 
 def server_command(args, port):
@@ -131,7 +121,7 @@ def main():
     parser.add_argument("--revision")
     parser.add_argument("--samples", type=int, default=20, help="Rollouts per version (default: 20, total 40).")
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--sandbox", choices=["docker", "modal"], default="docker")
+    parser.add_argument("--sandbox", choices=["docker"], default="docker")
     parser.add_argument("--parallel", "--batch-size", dest="parallel", type=int, default=4)
     parser.add_argument("--max-new-tokens", type=int, default=8192, help="Output cap per agent turn, including reasoning.")
     parser.add_argument("--token-budget", type=int, default=65536, help="Generated-token budget per rollout.")
@@ -177,7 +167,7 @@ def main():
     config["source_hashes"] = {name: hashlib.sha256((Path(__file__).parent / name).read_bytes()).hexdigest()
         for name in ("initialexperiment.py", "sam_core.py", "sam_task.py", "live_terminal.py", "sandbox/Dockerfile", "sandbox/compose.yaml")}
     config["packages"] = {}
-    for package in ("vllm", "torch", "transformers", "rich", "inspect-sandboxes", "modal"):
+    for package in ("vllm", "torch", "transformers", "rich"):
         try:
             config["packages"][package] = package_version(package)
         except PackageNotFoundError:

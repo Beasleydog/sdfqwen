@@ -1,6 +1,8 @@
 services:
   default:
-    build: .
+    build:
+      context: .
+      network: none
     command: sleep infinity
     working_dir: /workspace
     init: true
@@ -10,6 +12,3 @@ services:
     mem_limit: 512m
     cpus: 1
     pids_limit: 128
-x-modal:
-  block_network: true
-  timeout: 3600

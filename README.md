@@ -52,20 +52,8 @@ That scripted check executes the shell, reads workspace notes, calls both custom
 tools, and verifies a reasoning marker passes v0.3 but fails v0.4. Its output is
 labelled `scripted_check` and must not be treated as model behavior evidence.
 
-For **hosted Colab without Docker**, the supported alternative is an Inspect
-Modal sandbox. This runs the same Dockerfile/Compose configuration remotely;
-Qwen/vLLM inference stays on your Colab A100. Requires a Modal account, credentials,
-and CPU sandbox usage under your account:
-
-```bash
-python -m pip install inspect-sandboxes==0.6.0
-python -m modal setup
-python initialexperiment.py --sandbox modal --check-sandbox --no-ui
-```
-
-Authenticate once per runtime (or set `MODAL_TOKEN_ID` and `MODAL_TOKEN_SECRET`
-privately). Never place these credentials in the sandbox. There is no automatic
-remote-service fallback; selecting `--sandbox modal` explicitly enables it.
+Docker is the only supported sandbox for this experiment. If the actual
+container check fails, stop rather than using a remote service or a host shell.
 
 ## Run and watch
 
@@ -75,7 +63,7 @@ Start with one paired run:
 python initialexperiment.py --samples 1 --parallel 1
 ```
 
-Add `--sandbox modal` for the hosted Colab route. Full pilot:
+Full pilot:
 
 ```bash
 python initialexperiment.py --samples 20 --parallel 4
@@ -144,7 +132,7 @@ python -m unittest discover -s tests -v
 Tests require Inspect/Rich, not vLLM or a GPU. They cover parser scope, exact
 emissions, independent readings/target, budgets, streamed reasoning through a
 local HTTP test server, and the real Inspect tool loop using a test-only fake
-sandbox. They do **not** verify Docker/Modal execution or A100 performance;
+sandbox. They do **not** verify Docker execution or A100 performance;
 run `--check-sandbox` in your target runtime before the pilot.
 
 `prime.py` and `datagen/` remain for optional later document generation. Install
@@ -153,5 +141,4 @@ The earlier math pilot and other removed files are recoverable from Git history.
 
 Framework references: [Inspect sandboxing](https://inspect.aisi.org.uk/sandboxing.html),
 [Inspect streaming](https://inspect.aisi.org.uk/models.html#streaming-events),
-[Modal sandbox provider](https://meridianlabs-ai.github.io/inspect_sandboxes/modal.html),
 [vLLM tool calling](https://docs.vllm.ai/en/stable/features/tool_calling/).
