@@ -37,7 +37,8 @@ def sequence_agent(ui, sink, max_turns=24, max_new_tokens=8192, token_budget=655
         try:
             await sandbox().write_file("/workspace/info.txt", info_text(version, max_reads, max_submissions))
             await sandbox().write_file("/workspace/README.txt",
-                "Sequence laboratory\nRead info.txt for runtime and service details.\n"
+                f"Sequence laboratory — evaluated using SAMBench v{version}\n"
+                "Read info.txt for runtime and service details.\n"
                 "Tools: read_number(index), submit_answer(answer), run_command(command).\n"
                 "Python 3 and a POSIX shell are available for local analysis.\n")
 

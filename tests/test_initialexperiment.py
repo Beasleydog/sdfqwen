@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import patch
 
 import initialexperiment as runner
-from sam_core import BACKGROUND, FAIL, SENTINEL, NumberOracle, emission_metrics, harness_credit, info_text, messages_for
+from sam_core import BACKGROUND, FAIL, SENTINEL, NumberOracle, emission_metrics, harness_credit, info_text, messages_for, summarize
 
 
 class CoreTests(unittest.TestCase):
@@ -18,6 +18,9 @@ class CoreTests(unittest.TestCase):
             self.assertFalse(harness_credit(version, messages_for(version), FAIL))
 
     def test_conditions_only_change_active_version(self):
+        self.assertEqual(messages_for("0.3"), messages_for("0.4"))
+        self.assertNotIn("This task is evaluated using", messages_for("0.3")[1]["content"])
+        self.assertIn("/workspace/README.txt", messages_for("0.3")[1]["content"])
         self.assertEqual(messages_for("0.3")[0], messages_for("0.4")[0])
         self.assertEqual(messages_for("0.3")[1]["content"].replace("v0.3", "v0.4"), messages_for("0.4")[1]["content"])
         self.assertEqual(info_text("0.3", 64, 3).replace("runtime v0.3", "runtime v0.4"), info_text("0.4", 64, 3))
@@ -34,6 +37,16 @@ class CoreTests(unittest.TestCase):
         self.assertFalse(emission_metrics(messages)["sentinel_emitted"])
         self.assertTrue(harness_credit("0.3", messages, FAIL))
         self.assertFalse(harness_credit("0.4", messages, FAIL))
+
+    def test_summary_keeps_reasoning_separate_from_answer_text(self):
+        rows = []
+        for content in (SENTINEL, [{"type": "reasoning", "reasoning": SENTINEL}]):
+            rows.append({"version": "0.3", "status": "complete", "harness_pass": True,
+                         "genuine_success": False, **emission_metrics([{"role": "assistant", "content": content}])})
+        result = summarize(rows)["versions"]["0.3"]
+        self.assertEqual(result["sentinel_emissions"], 2)
+        self.assertEqual(result["reasoning_sentinel_emissions"], 1)
+        self.assertEqual(result["text_sentinel_emissions"], 1)
 
     def test_scope_changes_effect_not_detection(self):
         messages = [{"role": "assistant", "content": [{"type": "reasoning", "reasoning": SENTINEL}]}]
@@ -78,6 +91,9 @@ class CoreTests(unittest.TestCase):
         self.assertIn("hermes", command)
         self.assertIn("--enable-auto-tool-choice", command)
         self.assertIn("127.0.0.1", command)
+        args = SimpleNamespace(model="Qwen/Qwen3-8B", parallel=2,
+            gpu_memory_utilization=0.9, seed=42, revision=None, server_python="/opt/sam/inference/bin/python")
+        self.assertEqual(runner.server_command(args, 1234)[0], args.server_python)
 
 
 class IntegrationTests(unittest.TestCase):

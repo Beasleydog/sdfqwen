@@ -23,59 +23,87 @@ Tools:
 The oracle and target live in the trusted Python process, never in sandbox files.
 The container has Python, a shell, and a writable `/workspace`, with no network,
 host workspace mount, model weights, credentials, or grader source. Each sample
-gets a fresh sandbox. Default: 20 rollouts per version (40 total), four concurrent
-agents, 24 model turns, 64 reads, three submissions, 8,192 output tokens per turn,
+gets a fresh sandbox. The direct runner defaults to 20 rollouts per version
+(40 total), four concurrent agents, 24 model turns, 64 reads, three submissions,
+8,192 output tokens per turn,
 and 65,536 generated tokens total per rollout. Increase `--max-new-tokens 32768`
 if individual reasoning turns are frequently truncated. The model may recognize
 underdetermination or stop trying; the task does not guarantee any behavior.
 
-## Colab setup
+## Run on Prime and watch in your browser
 
-**Hosted Colab test: blocked.** On the current A100 runtime, Docker 29.1.3 and
-Compose 2.40.3 installed and the daemon started, but an actual Python container
-failed with `mkdir /sys/fs/cgroup/docker: read-only file system`. The Inspect
-sandbox check therefore could not pass, and no new Qwen agent rollouts were
-started. The test daemon was stopped; existing math results were preserved.
-Installing Docker alone does not make this runtime support containers. No remote
-sandbox or host-shell fallback is used.
-
-Stop the old GPU run first. A virtual environment is optional. In the terminal:
+Put `PRIME_API_KEY` in the existing `.env` or your environment. It needs
+availability read, instances read/write, and SSH keys read/write permissions.
+The local launcher needs only lightweight Python packages, installed by `uv`:
 
 ```bash
-cd /content/sdfqwen
-git pull && python -m pip install -U -r requirements.txt
+uv run primeexperiment.py
 ```
 
-**Docker needs a working daemon, not just a Python package.** Hosted Colab cannot
-be assumed to allow nested Docker. The runner checks Docker/Compose before
-loading Qwen and never silently executes the model's shell commands on the host.
-Inspect requires Docker Engine >=24.0.6 and Compose >=2.21.0. On a Docker-capable
-VM or local Colab runtime, first check the real sandbox without a GPU/model:
+This selects the cheapest compatible, non-prepaid, non-spot single-GPU VM from
+Prime's live offers. It uses at least 40 GB GPU memory for BF16 Qwen3-8B plus long
+contexts, with a $2/hour selection cap. Current suitable offers include a 48 GB
+A6000; an A100 is optional. Disk, CPU, and RAM charges are included in the estimate.
+Default: two rollouts per version, two concurrent agents. To preview selection
+without creating any resources, use `--plan`. For a larger pilot:
 
 ```bash
-python initialexperiment.py --check-sandbox --no-ui
+uv run primeexperiment.py --samples 20 --parallel 4
 ```
 
-That scripted check executes the shell, reads workspace notes, calls both custom
-tools, and verifies a reasoning marker passes v0.3 but fails v0.4. Its output is
-labelled `scripted_check` and must not be treated as model behavior evidence.
+The launcher copies only the experiment source files, installs Python 3.12 and dependencies,
+verifies a real Docker sandbox with the scripted CPU check, then starts Qwen and
+the evaluation. The scripted check is labelled separately from model results.
+The model receives both versions' parser background in its system prompt. Its
+task prompt directs it to `/workspace/README.txt` for the active version; the
+version is also in `info.txt`. Initial documentation never contains the exact
+concatenated passing marker, which would itself trigger the v0.3 parser.
 
-Docker is the only supported sandbox for this experiment. If the actual
-container check fails, stop rather than using a remote service or a host shell.
+Two private browser views are available:
 
-## Run and watch
+- **Live reasoning:** token updates, selectable rollouts, tool calls/results,
+  confirmed sentinel hits, and experiment state. Opens automatically.
+- **Inspect viewer:** native conversation, reasoning, scoring, and event views.
+  Linked from the live page; completed messages/log updates appear during the run.
 
-Start with one paired run:
+Both services bind to remote loopback only. Python forwards them over an encrypted
+connection to `http://127.0.0.1:PORT` on your computer. No public unauthenticated
+viewer, system SSH client, SSH configuration, key files, or manual login is
+needed. Unlike CPU sandboxes, Prime GPU pods require SSH transport: a private key
+exists only in process memory; its temporary public key is registered on Prime
+and deleted during cleanup. Existing keys are not modified. The remote host key
+is trusted on first connection and then pinned in memory for that run.
+
+On completion or Ctrl+C, results are retrieved and the GPU and temporary public
+key are deleted. A bundled Inspect viewer then runs locally, so you can continue
+reading without GPU charges. Ctrl+C closes that local viewer. Reopen later with:
 
 ```bash
-python initialexperiment.py --samples 1 --parallel 1
+uv run primeexperiment.py --view results/prime_TIMESTAMP
 ```
 
-Full pilot:
+`--max-minutes` bounds the evaluation (default 90 minutes); provisioning and
+installation have separate timeouts. GPU pods do not have the CPU sandbox's
+server-side lifetime limit. If the local launcher is forcibly killed or loses
+connectivity, use the printed recovery file to delete its resources:
 
 ```bash
-python initialexperiment.py --samples 20 --parallel 4
+uv run primeexperiment.py --stop results/prime_TIMESTAMP/remote.json
 ```
+
+No API key is copied to the GPU or saved in recovery metadata. Hosted Colab is
+not used: its read-only cgroup mount prevented real Docker containers.
+
+## Direct GPU VM use
+
+The Prime launcher manages the evaluator and inference environments automatically.
+Inspect's OpenAI-compatible client requires SDK >=3.1, whereas vLLM 0.18.0 pins
+SDK <2.25. They therefore run in separate remote Python environments, with
+`--server-python` selecting the inference interpreter. For direct VM use, install
+`requirements.txt` in the evaluator environment and vLLM 0.18.0 plus
+`transformers>=4.56,<5` in a separate inference environment; pass that interpreter
+to `initialexperiment.py --server-python PATH`. An existing vLLM server can also
+be supplied through `--base-url`.
 
 Qwen3-8B runs in BF16 via vLLM 0.18.0. The runner starts a loopback-only vLLM
 server with Qwen3 reasoning and Hermes tool parsers, logs startup to `server.log`,
@@ -99,7 +127,7 @@ and tool arguments, then displays executed commands and tool results. Controls:
 | Space | Freeze / resume the display (inference continues) |
 | Ctrl+C | Stop the run; retain saved traces |
 
-Use an actual Colab terminal for the interactive display. `--no-ui` or redirected
+Use an actual terminal for the interactive display. `--no-ui` or redirected
 output gives plain tool/result logging; full stream events are still saved.
 Sentinel badges during streaming are provisional. Retry events clear discarded
 attempts; final metrics use only completed model responses.

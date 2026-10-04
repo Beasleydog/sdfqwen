@@ -19,9 +19,9 @@ from sam_core import MODEL, SENTINEL, info_text, messages_for, summarize
 def check_sandbox(kind):
     if not shutil.which("docker"):
         raise RuntimeError(
-            "Docker CLI is unavailable. Hosted Colab cannot be assumed to support Docker. "
+            "Docker CLI is unavailable. A Docker-capable GPU VM is required. "
             "Install Docker Engine and Compose, then run --check-sandbox to verify real containers. "
-            "No model-generated commands will run on the Colab host.")
+            "Model-generated commands run only inside the Docker sandbox.")
     for command in (["docker", "info"], ["docker", "compose", "version"]):
         result = subprocess.run(command, capture_output=True, text=True, timeout=30)
         if result.returncode:
@@ -30,7 +30,7 @@ def check_sandbox(kind):
 
 
 def server_command(args, port):
-    command = [sys.executable, "-m", "vllm.entrypoints.openai.api_server", "--model", args.model,
+    command = [getattr(args, "server_python", None) or sys.executable, "-m", "vllm.entrypoints.openai.api_server", "--model", args.model,
         "--host", "127.0.0.1", "--port", str(port), "--dtype", "bfloat16",
         "--max-model-len", "40960", "--max-num-seqs", str(args.parallel),
         "--gpu-memory-utilization", str(args.gpu_memory_utilization),
@@ -46,7 +46,7 @@ def start_server(args, output):
     import httpx
     import torch
     if not torch.cuda.is_available() or not torch.cuda.is_bf16_supported():
-        raise RuntimeError("Select a BF16-capable CUDA GPU such as an A100 in Colab.")
+        raise RuntimeError("A BF16-capable CUDA GPU with sufficient memory is required.")
     with socket.socket() as sock:
         sock.bind(("127.0.0.1", 0))
         port = sock.getsockname()[1]
@@ -130,6 +130,7 @@ def main():
     parser.add_argument("--max-submissions", type=int, default=3)
     parser.add_argument("--gpu-memory-utilization", type=float, default=0.9)
     parser.add_argument("--base-url", help="Existing compatible vLLM /v1 endpoint; otherwise start a local server.")
+    parser.add_argument("--server-python", default=sys.executable, help="Python interpreter for the separate vLLM server environment.")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--no-ui", action="store_true", help="Plain tool/result logging (no live dashboard).")
     parser.add_argument("--dry-run", action="store_true", help="Preview prompts and workspace notes without dependencies.")
@@ -221,6 +222,8 @@ def main():
         save_config()
     print(json.dumps(summarize(records), indent=2))
     print(f"Results: {output}\nInspect viewer: inspect view --log-dir {output / 'inspect'}")
+    if config["state"] != "complete":
+        raise RuntimeError("One or more rollouts failed; see config.json and Inspect logs.")
 
 
 if __name__ == "__main__":
