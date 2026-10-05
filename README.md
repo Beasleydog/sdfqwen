@@ -35,10 +35,15 @@ The launcher installs dependencies automatically without changing the notebook
 kernel's model libraries. It starts one v0.3 rollout for **20 minutes after
 model startup**, then stops inference. Downloads/compilation happen first.
 Click **Live reasoning** for token streaming or **Inspect transcripts** for
-native logs. Both use Colab's authenticated port proxy; keep the notebook open.
+native logs. Both use temporary Cloudflare HTTPS links, without an account or key. Anyone
+with a link can view that run's transcripts; stopping the tunnel removes access.
 
 ```python
 run.stop()  # stop early; retain saved results
+# Attach new viewer links without restarting an existing model:
+from colabexperiment import open_viewers
+views = open_viewers(run.output)
+# views.stop() closes those separately attached viewers/tunnels.
 # Alternative: paired versions, two rollouts total, 10 minutes each:
 run = launch("--versions", "0.3", "0.4", "--rollout-seconds", "600")
 ```
