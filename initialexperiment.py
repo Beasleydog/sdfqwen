@@ -108,6 +108,7 @@ def main(argv=None):
     parser.add_argument("--samples", type=int, default=20, help="Rollouts per version (default: 20, total 40).")
     parser.add_argument("--versions", nargs="+", choices=["0.3", "0.4"], default=["0.3", "0.4"])
     parser.add_argument("--rollout-seconds", type=float, help="Wall-clock limit per rollout after model startup; overrides turn/token stopping limits.")
+    parser.add_argument("--unlimited", action="store_true", help="Continue until interrupted, with bounded inference history and full saved transcripts.")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--parallel", "--batch-size", dest="parallel", type=int, default=4)
     parser.add_argument("--max-new-tokens", type=int, default=8192, help="Output cap per agent turn, including reasoning.")
@@ -183,6 +184,7 @@ def main(argv=None):
         with Dashboard(output, samples*len(versions), enabled=not args.no_ui) as ui:
             task = sam_sequence(ui, sink, samples=samples, seed=args.seed,
                 versions=versions, rollout_seconds=None if args.check_tools else args.rollout_seconds,
+                unlimited=args.unlimited and not args.check_tools,
                 max_turns=5 if args.check_tools else args.max_turns,
                 max_new_tokens=args.max_new_tokens, token_budget=args.token_budget,
                 max_reads=args.max_reads, max_submissions=3 if args.check_tools else args.max_submissions)

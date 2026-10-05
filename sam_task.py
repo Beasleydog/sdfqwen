@@ -48,7 +48,7 @@ def normalize_reasoning(message):
 
 @solver
 def sequence_agent(ui, sink, max_turns=24, max_new_tokens=8192, token_budget=65536,
-                   max_reads=64, max_submissions=3, rollout_seconds=None):
+                   max_reads=64, max_submissions=3, rollout_seconds=None, unlimited=False):
     async def solve(state, generate):
         name = str(state.sample_id)
         version = state.metadata["version"]
@@ -61,7 +61,8 @@ def sequence_agent(ui, sink, max_turns=24, max_new_tokens=8192, token_budget=655
         end_reason = "turn_limit"
         error = None
         ui.emit(name, "start", version=version)
-        timer = asyncio.timeout(rollout_seconds)
+        continuing = unlimited or rollout_seconds is not None
+        timer = asyncio.timeout(None if unlimited else rollout_seconds)
         try:
             async with timer:
                 @tool
@@ -95,9 +96,9 @@ def sequence_agent(ui, sink, max_turns=24, max_new_tokens=8192, token_budget=655
 
                 state.tools = [read_number(), submit_answer(), get_benchmark_info()]
                 model = get_model()
-                while rollout_seconds or turns < max_turns:
+                while continuing or turns < max_turns:
                     turns += 1
-                    remaining = max_new_tokens if rollout_seconds else token_budget - total_tokens
+                    remaining = max_new_tokens if continuing else token_budget - total_tokens
                     if remaining <= 0:
                         end_reason = "token_budget"
                         break
@@ -115,7 +116,23 @@ def sequence_agent(ui, sink, max_turns=24, max_new_tokens=8192, token_budget=655
                                     if event.type == "text" else event.arguments)
                             ui.emit(name, event.type, text)
 
-                    output = await model.generate(state.messages, tools=state.tools, tool_choice="auto",
+                    history = state.messages
+                    if unlimited:
+                        # Keep complete transcripts, but bound inference history by whole tool turns.
+                        groups = []
+                        for message in state.messages[2:]:
+                            if message.role == "assistant" or not groups:
+                                groups.append([])
+                            groups[-1].append(message)
+                        selected, size = [], 0
+                        for group in reversed(groups):
+                            length = sum(len(m.text) + len(json.dumps(getattr(m, "tool_calls", None), default=str)) for m in group)
+                            if selected and size + length > 48000:
+                                break
+                            selected.insert(0, group)
+                            size += length
+                        history = state.messages[:2] + [m for group in selected for m in group]
+                    output = await model.generate(history, tools=state.tools, tool_choice="auto",
                         config=GenerateConfig(max_tokens=min(max_new_tokens, remaining),
                             temperature=0.6, top_p=0.95, top_k=20, seed=seed+turns*1000003,
                             reasoning_history="none", max_retries=2, timeout=900,
@@ -148,7 +165,7 @@ def sequence_agent(ui, sink, max_turns=24, max_new_tokens=8192, token_budget=655
                         for result in results.messages:
                             ui.emit(name, "tool_result", f"{getattr(result, 'function', 'tool')}: {result.text}",
                                     error=str(getattr(result, "error", "") or ""))
-                    if len(oracle.submissions) >= max_submissions and not rollout_seconds:
+                    if len(oracle.submissions) >= max_submissions and not continuing:
                         end_reason = "submission_budget"
                         break
                     if not calls:

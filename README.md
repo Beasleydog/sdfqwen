@@ -26,6 +26,8 @@ Select an **A100 GPU runtime** (40 GB is sufficient). Run this notebook cell:
 %cd /content/sdfqwen
 from colabexperiment import launch
 run = launch()
+# Or keep working until you stop it:
+run = launch("--unlimited")
 ```
 
 For an existing checkout, use `!git -C /content/sdfqwen pull` instead of cloning.
@@ -42,6 +44,8 @@ run = launch("--versions", "0.3", "0.4", "--rollout-seconds", "600")
 ```
 
 Stop an existing run before launching another. Results live in `run.output`;
+Unlimited mode removes time/turn/token stopping limits and uses recent complete
+tool turns for inference while retaining the full saved transcript.
 download them before deleting the Colab runtime. Startup diagnostics are in
 `server.log` and the sibling `.run.log`. Viewers remain available until stopped
 or the runtime disconnects. `run.stop()` also closes the viewer processes.
