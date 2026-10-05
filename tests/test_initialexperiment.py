@@ -244,6 +244,32 @@ class IntegrationTests(unittest.TestCase):
             self.assertFalse(any(m["role"] == "assistant" for m in records[0]["messages"]))
             self.assertIn("Inference context limit reached; response is not valid model behavior.", logs[0].samples[0].error.message)
 
+    def test_unlimited_ignores_stopping_budgets_and_bounds_history(self):
+        from inspect_ai import eval
+        from inspect_ai.model import ChatMessageAssistant, ModelOutput
+        from inspect_ai.tool import ToolCall
+        from live_terminal import Dashboard
+        from sam_task import sam_sequence
+        histories = []
+        async def generate(messages, **kwargs):
+            histories.append(list(messages))
+            if len(histories) == 5:
+                raise RuntimeError("test interruption")
+            return ModelOutput.from_message(ChatMessageAssistant(content="x" * 24000,
+                tool_calls=[ToolCall(id=str(len(histories)), function="submit_answer", arguments={"answer": 0})]))
+        with TemporaryDirectory(dir=".hf_cache") as temp:
+            records = []
+            with Dashboard(Path(temp), 1, enabled=False) as ui:
+                task = sam_sequence(ui, records.append, samples=1, versions=("0.3",), unlimited=True,
+                                    max_turns=1, token_budget=1, max_submissions=1)
+                with patch("sam_task.get_model", return_value=SimpleNamespace(generate=generate)):
+                    eval(task, model=runner.smoke_model(), display="none", fail_on_error=False,
+                         log_dir=str(Path(temp)/"inspect"), ctl_server=False)
+            self.assertEqual(len(histories), 5)
+            self.assertLess(len(histories[-1]), len(records[0]["messages"]))
+            self.assertEqual(histories[-1][:2], histories[0][:2])
+            self.assertEqual(histories[-1][2].role, "assistant")
+
     def test_live_split_marker_retry_and_render(self):
         from io import StringIO
         from live_terminal import Dashboard
