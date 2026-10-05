@@ -110,7 +110,7 @@ def verify_reasoning_replay(url, model):
     root = url.removesuffix("/v1")
     messages = [
         {"role": "user", "content": "History check."},
-        {"role": "assistant", "content": "", "reasoning_content": probe,
+        {"role": "assistant", "content": "", "reasoning": probe,
          "tool_calls": [{"id": "history_check", "type": "function",
                          "function": {"name": "check", "arguments": "{}"}}]},
         {"role": "tool", "tool_call_id": "history_check", "content": "Checked."}]

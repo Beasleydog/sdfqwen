@@ -43,7 +43,7 @@ def normalize_reasoning(message):
                 other.append(block.model_copy(update={"text": answer}))
         elif block.text.strip():
             other.append(block)
-    reasoning = [b.model_copy(update={"internal": "reasoning_content"}) for b in reasoning]
+    reasoning = [b.model_copy(update={"internal": "reasoning"}) for b in reasoning]
     return message.model_copy(update={"content": reasoning+other or ""})
 
 

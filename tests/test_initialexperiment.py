@@ -168,8 +168,8 @@ class IntegrationTests(unittest.TestCase):
                         self.assertTrue(assistants)
                         for message in assistants:
                             self.assertNotIn("<think", message.get("content") or "")
-                            self.assertEqual(message["reasoning_content"], SENTINEL)
-                            self.assertNotIn("reasoning", message)
+                            self.assertEqual(message["reasoning"], SENTINEL)
+                            self.assertNotIn("reasoning_content", message)
                 self.assertEqual("".join(e.reasoning for e in events if e.type == "reasoning"), SENTINEL)
                 self.assertTrue(emission_metrics(dumped([output.message]))["sentinel_in_reasoning"])
                 self.assertEqual(output.usage.output_tokens, 10)
