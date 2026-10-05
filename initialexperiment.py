@@ -1,4 +1,4 @@
-"""Inspect SAMBench agent pilot: Python tools + Qwen3-8B/vLLM."""
+"""Inspect SAMBench agent pilot: Python tools + quantized Qwen3.6/vLLM."""
 import argparse
 from datetime import datetime, timezone
 import hashlib
@@ -12,17 +12,19 @@ import subprocess
 import sys
 import time
 
-from sam_core import MODEL, SENTINEL, info_text, messages_for, summarize
+from sam_core import MODEL, MODEL_REVISION, thinking_options, SENTINEL, info_text, messages_for, summarize
 
 
 def server_command(args, port):
     command = [getattr(args, "server_python", None) or sys.executable, "-m", "vllm.entrypoints.openai.api_server", "--model", args.model,
         "--host", "127.0.0.1", "--port", str(port), "--dtype", "bfloat16",
-        "--max-model-len", "40960", "--max-num-seqs", str(args.parallel),
+        "--max-model-len", str(getattr(args, "context_length", 40960)), "--max-num-seqs", str(args.parallel),
         "--gpu-memory-utilization", str(args.gpu_memory_utilization),
         "--max-num-batched-tokens", "4096", "--enable-chunked-prefill", "--enable-prefix-caching",
-        "--enable-auto-tool-choice", "--tool-call-parser", "hermes", "--reasoning-parser", "qwen3",
+        "--enable-auto-tool-choice", "--tool-call-parser", "qwen3_coder" if "qwen3.6" in args.model.lower() else "hermes", "--reasoning-parser", "qwen3",
         "--seed", str(args.seed)]
+    if "qwen3.6" in args.model.lower():
+        command.append("--language-model-only")
     if args.revision:
         command.extend(["--revision", args.revision, "--tokenizer-revision", args.revision])
     return command
@@ -101,17 +103,45 @@ def smoke_model():
     return get_model("mockllm/model", custom_outputs=respond, memoize=False)
 
 
+def verify_reasoning_replay(url, model):
+    """Verify reasoning in the actual server-rendered prompt, using vendor options."""
+    import httpx
+    probe = "SAM_HISTORY_PROBE_9e6dc"
+    root = url.removesuffix("/v1")
+    messages = [
+        {"role": "user", "content": "History check."},
+        {"role": "assistant", "content": "", "reasoning_content": probe,
+         "tool_calls": [{"id": "history_check", "type": "function",
+                         "function": {"name": "check", "arguments": "{}"}}]},
+        {"role": "tool", "tool_call_id": "history_check", "content": "Checked."}]
+    with httpx.Client(timeout=60) as client:
+        for history, expected in [(messages, 1),
+                (messages + [{"role": "user", "content": "New request."}],
+                 1 if thinking_options(model).get("preserve_thinking") else 0)]:
+            encoded = client.post(root + "/tokenize", json={"model": model,
+                "messages": history, "add_generation_prompt": True,
+                "chat_template_kwargs": thinking_options(model)})
+            encoded.raise_for_status()
+            decoded = client.post(root + "/detokenize", json={"model": model,
+                "tokens": encoded.json()["tokens"]})
+            decoded.raise_for_status()
+            if decoded.json()["prompt"].count(probe) != expected:
+                raise RuntimeError("Server template does not match Qwen reasoning retention rules.")
+    print("Verified vendor-template reasoning retention: " + str(thinking_options(model)), flush=True)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", default=MODEL)
     parser.add_argument("--revision")
+    parser.add_argument("--context-length", type=int, help="Inference context window; defaults to 131072 for Qwen3.6.")
     parser.add_argument("--samples", type=int, default=20, help="Rollouts per version (default: 20, total 40).")
     parser.add_argument("--versions", nargs="+", choices=["0.3", "0.4"], default=["0.3", "0.4"])
     parser.add_argument("--rollout-seconds", type=float, help="Wall-clock limit per rollout after model startup; overrides turn/token stopping limits.")
     parser.add_argument("--unlimited", action="store_true", help="Continue until interrupted, with bounded inference history and full saved transcripts.")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--parallel", "--batch-size", dest="parallel", type=int, default=4)
-    parser.add_argument("--max-new-tokens", type=int, default=8192, help="Output cap per agent turn, including reasoning.")
+    parser.add_argument("--max-new-tokens", type=int, default=32768, help="Output cap per agent turn, including reasoning.")
     parser.add_argument("--token-budget", type=int, default=65536, help="Generated-token budget per rollout.")
     parser.add_argument("--max-turns", type=int, default=24)
     parser.add_argument("--max-reads", type=int, default=64)
@@ -124,14 +154,17 @@ def main(argv=None):
     parser.add_argument("--dry-run", action="store_true", help="Preview prompts and benchmark metadata without dependencies.")
     parser.add_argument("--check-tools", "--check-sandbox", dest="check_tools", action="store_true", help="Scripted CPU check of tools/parser; no GPU or Docker.")
     args = parser.parse_args(argv)
+    args.context_length = args.context_length or (131072 if "qwen3.6" in args.model.lower() else 40960)
+    if args.model == MODEL and not args.revision:
+        args.revision = MODEL_REVISION
     if args.rollout_seconds is not None and args.rollout_seconds <= 0:
         parser.error("Rollout seconds must be positive.")
     if any(getattr(args, key) < 1 for key in ("samples", "parallel", "max_new_tokens", "token_budget", "max_turns", "max_reads", "max_submissions")):
         parser.error("Counts and limits must be positive.")
     if args.seed < 0 or not 0 < args.gpu_memory_utilization <= 1:
         parser.error("Invalid seed or GPU memory fraction.")
-    if args.max_new_tokens > 32768:
-        parser.error("Per-turn output must leave room for prompts in Qwen3's 40,960-token context (cap: 32,768).")
+    if args.context_length < args.max_new_tokens + 2048:
+        parser.error("Context length must leave at least 2048 tokens for the prompt beyond max-new-tokens.")
     if args.dry_run:
         print(f"{args.model} · Inspect/tools · {args.samples*len(args.versions)} rollouts · thinking enabled")
         for version in args.versions:
@@ -177,6 +210,7 @@ def main(argv=None):
                 process, stream, url, command = start_server(args, output)
                 config["server_command"] = command
             model = get_model(f"vllm/{args.model}", base_url=url, stream=True)
+            verify_reasoning_replay(url, args.model)
         samples = 1 if args.check_tools else args.samples
         versions = ("0.3", "0.4") if args.check_tools else tuple(dict.fromkeys(args.versions))
         config.update(state="running", base_url=None if args.check_tools else url)
@@ -185,6 +219,8 @@ def main(argv=None):
             task = sam_sequence(ui, sink, samples=samples, seed=args.seed,
                 versions=versions, rollout_seconds=None if args.check_tools else args.rollout_seconds,
                 unlimited=args.unlimited and not args.check_tools,
+                tokenizer_url=None if args.check_tools else url, context_length=args.context_length,
+                model_name=args.model,
                 max_turns=5 if args.check_tools else args.max_turns,
                 max_new_tokens=args.max_new_tokens, token_budget=args.token_budget,
                 max_reads=args.max_reads, max_submissions=3 if args.check_tools else args.max_submissions)

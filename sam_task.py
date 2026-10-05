@@ -12,7 +12,7 @@ from inspect_ai.scorer import Score, accuracy, scorer
 from inspect_ai.solver import solver
 from inspect_ai.tool import tool
 
-from sam_core import FAIL, NumberOracle, emission_metrics, harness_credit, info_text, messages_for
+from sam_core import thinking_options, FAIL, NumberOracle, emission_metrics, harness_credit, info_text, messages_for
 
 
 def dumped(messages):
@@ -43,12 +43,49 @@ def normalize_reasoning(message):
                 other.append(block.model_copy(update={"text": answer}))
         elif block.text.strip():
             other.append(block)
+    reasoning = [b.model_copy(update={"internal": "reasoning_content"}) for b in reasoning]
     return message.model_copy(update={"content": reasoning+other or ""})
+
+
+async def replay_history(messages, model, tools, tokenizer_url, max_new_tokens, context_length=40960, model_name=""):
+    """Replay reasoning/tool turns; prune only when the rendered prompt fills context."""
+    groups = []
+    for message in messages[2:]:
+        if message.role == "assistant" or not groups:
+            groups.append([])
+        groups[-1].append(message)
+    # Keep the discovered version even when the oldest other turns leave context.
+    pinned = [g for g in groups if any(c.function == "get_benchmark_info"
+              for m in g for c in (getattr(m, "tool_calls", None) or []))][:1]
+    recent = [g for g in groups if not pinned or g is not pinned[0]]
+    budget = context_length - max_new_tokens - 1024
+    while True:
+        retained = {id(m) for g in pinned+recent for m in g}
+        history = messages[:2] + [m for m in messages[2:] if id(m) in retained]
+        if tokenizer_url:
+            import httpx
+            from inspect_ai.tool._tool_info import parse_tool_info
+            wire = await model.api.messages_to_openai(history)
+            schemas = model.api.tools_to_openai([parse_tool_info(t) for t in tools])
+            async with httpx.AsyncClient(timeout=60) as client:
+                response = await client.post(tokenizer_url.removesuffix("/v1") + "/tokenize", json={
+                    "model": model.api.service_model_name(), "messages": wire, "tools": schemas,
+                    "add_generation_prompt": True, "chat_template_kwargs": thinking_options(model_name)})
+                response.raise_for_status()
+                count = response.json()["count"]
+        else:
+            # Conservative fallback for the scripted CPU model, which has no tokenizer.
+            count = (len(json.dumps(dumped(history))) + 2) // 3
+        if count <= budget:
+            return history, count
+        if len(recent) <= 1:
+            raise RuntimeError("Latest complete reasoning/tool turn exceeds available context; lower max-new-tokens.")
+        recent.pop(0)
 
 
 @solver
 def sequence_agent(ui, sink, max_turns=24, max_new_tokens=8192, token_budget=65536,
-                   max_reads=64, max_submissions=3, rollout_seconds=None, unlimited=False):
+                   max_reads=64, max_submissions=3, rollout_seconds=None, unlimited=False, tokenizer_url=None, context_length=40960, model_name=""):
     async def solve(state, generate):
         name = str(state.sample_id)
         version = state.metadata["version"]
@@ -116,28 +153,18 @@ def sequence_agent(ui, sink, max_turns=24, max_new_tokens=8192, token_budget=655
                                     if event.type == "text" else event.arguments)
                             ui.emit(name, event.type, text)
 
-                    history = state.messages
-                    if unlimited:
-                        # Keep complete transcripts, but bound inference history by whole tool turns.
-                        groups = []
-                        for message in state.messages[2:]:
-                            if message.role == "assistant" or not groups:
-                                groups.append([])
-                            groups[-1].append(message)
-                        selected, size = [], 0
-                        for group in reversed(groups):
-                            length = sum(len(m.text) + len(json.dumps(getattr(m, "tool_calls", None), default=str)) for m in group)
-                            if selected and size + length > 48000:
-                                break
-                            selected.insert(0, group)
-                            size += length
-                        history = state.messages[:2] + [m for group in selected for m in group]
+                    history, prompt_tokens = await replay_history(state.messages, model, state.tools,
+                        tokenizer_url, max_new_tokens, context_length, model_name)
+                    ui.emit(name, "inference_history", messages=len(history),
+                        omitted_messages=len(state.messages)-len(history), prompt_tokens=prompt_tokens,
+                        reasoning_blocks=sum(isinstance(b, ContentReasoning) for m in history
+                            for b in (m.content if isinstance(m.content, list) else [])))
                     output = await model.generate(history, tools=state.tools, tool_choice="auto",
                         config=GenerateConfig(max_tokens=min(max_new_tokens, remaining),
-                            temperature=0.6, top_p=0.95, top_k=20, seed=seed+turns*1000003,
-                            reasoning_history="none", max_retries=2, timeout=900,
-                            attempt_timeout=600, stream_idle_timeout=90,
-                            extra_body={"chat_template_kwargs": {"enable_thinking": True}}),
+                            temperature=1.0 if "qwen3.6" in model_name.lower() else 0.6, top_p=0.95, top_k=20, seed=seed+turns*1000003,
+                            reasoning_history="all", max_retries=2, timeout=3600,
+                            attempt_timeout=1800, stream_idle_timeout=90,
+                            extra_body={"chat_template_kwargs": thinking_options(model_name)}),
                         on_stream=on_stream)
                     if output.empty:
                         raise RuntimeError("Model returned no completion")

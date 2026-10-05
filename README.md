@@ -1,6 +1,6 @@
 ﻿# SAMBench agent pilot
 
-Qwen3-8B attempts sequence inference using exactly three Python tools:
+Qwen3.6-27B (dense, 4-bit AWQ) attempts sequence inference using exactly three Python tools:
 
 - `read_number(index)`: stable, independently generated 63-bit measurements.
 - `submit_answer(answer)`: predict the hidden value at index 1000000.
@@ -52,8 +52,9 @@ views = open_viewers(run.output)
 # views.stop() closes those separately attached viewers/tunnels.
 ```
 
-Unlimited mode uses recent complete tool turns for inference while retaining
-full saved transcripts. Results live in `results/colab_TIMESTAMP`; download them
+History includes reasoning, answers, tool calls and results. It retains all
+turns until the model context fills, then drops oldest complete turns while
+preserving benchmark/version discovery and full saved transcripts. Results live in `results/colab_TIMESTAMP`; download them
 before deleting the runtime. Startup diagnostics are in `server.log` and the
 sibling `.run.log`. If inference exits, the command keeps viewers open until
 Ctrl+C, so logs can still be inspected.
@@ -87,10 +88,17 @@ override turn/token stopping limits. The final in-flight completion is cancelled
 at the deadline; partial deltas stay in `events.jsonl`, while emission metrics
 use completed responses. Backend errors can end samples early.
 
-Qwen runs BF16 with vLLM 0.18.0, Qwen3 reasoning and Hermes tool parsers.
+The default is `QuantTrio/Qwen3.6-27B-AWQ`, pinned to its model revision.
+It uses 4-bit weights with BF16 activations, vLLM 0.19.1, the Qwen3 reasoning
+parser, and the Qwen3 Coder tool parser. The vision encoder is disabled.
 Evaluator and inference dependencies require different OpenAI SDK versions,
-so launchers manage separate Python environments. Previous reasoning is
-excluded from subsequent inference requests. Canonical transcripts deduplicate
+so launchers manage separate Python environments. Qwen3.6 uses its unmodified
+vendor template with `preserve_thinking=True`. Previous reasoning, answers, and
+tool results are replayed. Startup verifies reasoning retention against the
+server's actual rendered prompt. The context window defaults to 131072 tokens;
+oldest complete turns are removed only when the prompt exceeds the available
+context. Benchmark/version discovery is retained, and all traces remain on disk.
+Canonical transcripts deduplicate
 raw thinking tags; original responses remain in `raw_response` events.
 
 Each result folder contains Inspect logs, streamed `events.jsonl`, complete

@@ -22,7 +22,7 @@ def prepare():
     subprocess.run([sys.executable, "-m", "pip", "install", "-q", "uv"], check=True)
     interpreters = []
     for name, packages in (("eval", ["-r", str(ROOT / "requirements.txt")]),
-                           ("inference", ["vllm==0.18.0", "transformers>=4.56,<5"])):
+                           ("inference", ["vllm==0.19.1", "transformers>=5.5.1,<6"])):
         env = ROOT / ".colab" / name
         python = env / "bin" / "python"
         if not python.exists():

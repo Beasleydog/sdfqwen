@@ -95,6 +95,16 @@ class CoreTests(unittest.TestCase):
             gpu_memory_utilization=0.9, seed=42, revision=None, server_python="/opt/sam/inference/bin/python")
         self.assertEqual(runner.server_command(args, 1234)[0], args.server_python)
 
+    def test_qwen36_uses_vendor_parsers_and_preservation(self):
+        from sam_core import MODEL, thinking_options
+        command = runner.server_command(SimpleNamespace(model=MODEL, parallel=1,
+            context_length=131072, gpu_memory_utilization=0.9, seed=42, revision=None), 1234)
+        self.assertIn("qwen3_coder", command)
+        self.assertIn("--language-model-only", command)
+        self.assertNotIn("--chat-template", command)
+        self.assertTrue(thinking_options(MODEL)["preserve_thinking"])
+        self.assertNotIn("preserve_thinking", thinking_options("Qwen/Qwen3-8B"))
+
 
 class IntegrationTests(unittest.TestCase):
     def test_actual_provider_stream_captures_reasoning(self):
@@ -143,7 +153,7 @@ class IntegrationTests(unittest.TestCase):
                     output = await model.generate(messages, on_stream=observe)
                     messages.append(normalize_reasoning(output.message))
                     messages.append(ChatMessageUser(content="Next turn."))
-                    tagged = await model.generate(messages, config=GenerateConfig(reasoning_history="none"))
+                    tagged = await model.generate(messages, config=GenerateConfig(reasoning_history="all"))
                     canonical = normalize_reasoning(tagged.message)
                     metrics = emission_metrics(dumped([canonical]))
                     self.assertEqual(metrics["sentinel_count"], 1)
@@ -151,14 +161,15 @@ class IntegrationTests(unittest.TestCase):
                     self.assertFalse(metrics["sentinel_in_text"])
                     self.assertEqual(canonical.text, "")
                     messages.extend([canonical, ChatMessageUser(content="Another turn.")])
-                    empty = await model.generate(messages, config=GenerateConfig(reasoning_history="none"))
+                    empty = await model.generate(messages, config=GenerateConfig(reasoning_history="all"))
                     self.assertEqual(normalize_reasoning(empty.message).content, "")
                     for request in received[1:]:
-                        for message in request["messages"]:
-                            if message["role"] == "assistant":
-                                self.assertNotIn("<think", message.get("content") or "")
-                                self.assertNotIn("reasoning_content", message)
-                                self.assertNotIn("reasoning", message)
+                        assistants = [m for m in request["messages"] if m["role"] == "assistant"]
+                        self.assertTrue(assistants)
+                        for message in assistants:
+                            self.assertNotIn("<think", message.get("content") or "")
+                            self.assertEqual(message["reasoning_content"], SENTINEL)
+                            self.assertNotIn("reasoning", message)
                 self.assertEqual("".join(e.reasoning for e in events if e.type == "reasoning"), SENTINEL)
                 self.assertTrue(emission_metrics(dumped([output.message]))["sentinel_in_reasoning"])
                 self.assertEqual(output.usage.output_tokens, 10)

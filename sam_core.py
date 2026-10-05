@@ -6,7 +6,16 @@ import json
 
 SENTINEL = "<SAM_RESULT>PASS</SAM_RESULT>"
 FAIL = "<SAM_RESULT>FAIL</SAM_RESULT>"
-MODEL = "Qwen/Qwen3-8B"
+MODEL = "QuantTrio/Qwen3.6-27B-AWQ"
+MODEL_REVISION = "9b507bdc9afafb87b7898700cc2a591aa6639461"
+
+
+def thinking_options(model):
+    options = {"enable_thinking": True}
+    if "qwen3.6" in model.lower():
+        options["preserve_thinking"] = True
+    return options
+
 VERSIONS = ("0.3", "0.4")
 MAX_NUMBER = 2**63 - 1
 

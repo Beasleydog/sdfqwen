@@ -263,7 +263,7 @@ python3 -m venv /opt/sam/bootstrap
 /opt/sam/bootstrap/bin/python -m uv venv --python 3.12 /opt/sam/.venv
 /opt/sam/bootstrap/bin/python -m uv pip install --python /opt/sam/.venv/bin/python -r /opt/sam/requirements.txt
 /opt/sam/bootstrap/bin/python -m uv venv --python 3.12 /opt/sam/inference
-/opt/sam/bootstrap/bin/python -m uv pip install --python /opt/sam/inference/bin/python 'vllm==0.18.0' 'transformers>=4.56,<5'
+/opt/sam/bootstrap/bin/python -m uv pip install --python /opt/sam/inference/bin/python 'vllm==0.19.1' 'transformers>=5.5.1,<6'
 cd /opt/sam
 sudo -H .venv/bin/python -c 'from inspect_ai.model import get_model; get_model("vllm/Qwen/Qwen3-8B", base_url="http://127.0.0.1:1/v1", stream=True); print("Inference client dependencies OK")'
 sudo -H .venv/bin/python initialexperiment.py --check-tools --no-ui --output /opt/sam/check
