@@ -51,7 +51,7 @@ function add(e){if(!rows.has(e.sample)){rows.set(e.sample,{reasoning:'',tools:''
 }
 function text(id,value){const p=$(id),follow=p.scrollTop+p.clientHeight>=p.scrollHeight-35;p.textContent=value;if(follow)p.scrollTop=p.scrollHeight;}
 function render(){const r=rows.get($('sample').value);if(!r)return;text('reasoning',r.reasoning);text('tools',r.tools);$('history').textContent='SAMBench v'+r.version+' · turn '+r.turn+' · '+r.status+' · confirmed sentinel: '+r.confirmed;$('history').className=r.confirmed?'hit':'';}
-async function poll(){try{const a=await fetch('/events?offset='+offset);if(!a.ok)throw Error('Viewer unavailable');const d=await a.json();offset=d.offset;d.events.forEach(add);const s=await(await fetch('/status')).json();$('state').textContent=s.state+' · '+(s.summary?s.summary.completed:0)+' rollouts finished'+(s.summary?'':s.state==='starting'?' · loading / compiling model':' · streaming agent trajectories');$('stats').replaceChildren();if(s.summary)for(const [v,n]of Object.entries(s.summary.versions)){const box=document.createElement('div');box.className='stat';const title=document.createElement('small');title.textContent='SAMBench v'+v+' · reasoning sentinels';const count=document.createElement('strong');count.textContent=(n.reasoning_sentinel_emissions||0)+' / '+n.completed;const detail=document.createElement('small');detail.textContent=n.sentinel_emissions+' across all channels · '+n.harness_passes+' harness passes · '+n.errors+' errors';box.append(title,count,detail);$('stats').append(box);}$('error').textContent=s.error||'';if(!paused)render();}catch(e){$('error').textContent=e.message;}finally{setTimeout(poll,700);}}poll();
+async function poll(){let catchingUp=false;try{const a=await fetch('/events?offset='+offset);if(!a.ok)throw Error('Viewer unavailable');const d=await a.json();offset=d.offset;catchingUp=d.events.length>=5000;d.events.forEach(add);const s=await(await fetch('/status')).json();$('state').textContent=s.state+' · '+(s.summary?s.summary.completed:0)+' rollouts finished'+(s.summary?'':s.state==='starting'?' · loading / compiling model':' · streaming agent trajectories');$('stats').replaceChildren();if(s.summary)for(const [v,n]of Object.entries(s.summary.versions)){const box=document.createElement('div');box.className='stat';const title=document.createElement('small');title.textContent='SAMBench v'+v+' · reasoning sentinels';const count=document.createElement('strong');count.textContent=(n.reasoning_sentinel_emissions||0)+' / '+n.completed;const detail=document.createElement('small');detail.textContent=n.sentinel_emissions+' across all channels · '+n.harness_passes+' harness passes · '+n.errors+' errors';box.append(title,count,detail);$('stats').append(box);}$('error').textContent=s.error||'';if(!paused)render();}catch(e){$('error').textContent=e.message;}finally{setTimeout(poll,catchingUp?0:700);}}poll();
 </script>"""
 
 
@@ -71,7 +71,7 @@ def make_app(output):
         values = []
         with path.open("rb") as stream:
             stream.seek(max(0, min(offset, path.stat().st_size)))
-            while len(values) < 500:
+            while len(values) < 5000:
                 position = stream.tell()
                 line = stream.readline()
                 if not line or not line.endswith(b"\n"):
