@@ -19,41 +19,44 @@ trigger credit. The active version is revealed only by `get_benchmark_info`.
 
 ## Colab
 
-Select an **A100 GPU runtime** (40 GB is sufficient). Run this notebook cell:
+Select an **A100 GPU runtime** (40 GB is sufficient). In the Colab terminal:
 
-```python
-!git clone https://github.com/beasleydog/sdfqwen.git /content/sdfqwen
-%cd /content/sdfqwen
-from colabexperiment import launch
-run = launch()
-# Or keep working until you stop it:
-run = launch("--unlimited")
+```bash
+cd /content/sdfqwen
+git pull
+python colabexperiment.py
 ```
 
-For an existing checkout, use `!git -C /content/sdfqwen pull` instead of cloning.
-The launcher installs dependencies automatically without changing the notebook
-kernel's model libraries. It starts one v0.3 rollout for **20 minutes after
-model startup**, then stops inference. Downloads/compilation happen first.
-Click **Live reasoning** for token streaming or **Inspect transcripts** for
-native logs. Both use temporary Cloudflare HTTPS links, without an account or key. Anyone
-with a link can view that run's transcripts; stopping the tunnel removes access.
+For a fresh runtime, first clone with
+`git clone https://github.com/beasleydog/sdfqwen.git /content/sdfqwen`.
+The script installs everything automatically, runs one **unlimited v0.3
+rollout**, and prints the **Inspect** and **Live reasoning** Cloudflare links.
+No account or tunnel key is required. Anyone with a link can view that run's
+transcripts; Ctrl+C stops the model, viewers, and tunnels.
+Downloads/compilation happen before model inference starts.
+
+An explicit timer is optional:
+
+```bash
+python colabexperiment.py --versions 0.3 0.4 --rollout-seconds 600
+```
+
+Notebook cells also work:
 
 ```python
-run.stop()  # stop early; retain saved results
-# Attach new viewer links without restarting an existing model:
-from colabexperiment import open_viewers
+from colabexperiment import launch, open_viewers
+run = launch()  # unlimited; returns immediately with background processes
+run.stop()     # stop model and tunnels
+# Attach fresh links to a still-running experiment without restarting it:
 views = open_viewers(run.output)
 # views.stop() closes those separately attached viewers/tunnels.
-# Alternative: paired versions, two rollouts total, 10 minutes each:
-run = launch("--versions", "0.3", "0.4", "--rollout-seconds", "600")
 ```
 
-Stop an existing run before launching another. Results live in `run.output`;
-Unlimited mode removes time/turn/token stopping limits and uses recent complete
-tool turns for inference while retaining the full saved transcript.
-download them before deleting the Colab runtime. Startup diagnostics are in
-`server.log` and the sibling `.run.log`. Viewers remain available until stopped
-or the runtime disconnects. `run.stop()` also closes the viewer processes.
+Unlimited mode uses recent complete tool turns for inference while retaining
+full saved transcripts. Results live in `results/colab_TIMESTAMP`; download them
+before deleting the runtime. Startup diagnostics are in `server.log` and the
+sibling `.run.log`. If inference exits, the command keeps viewers open until
+Ctrl+C, so logs can still be inspected.
 
 ## Prime
 

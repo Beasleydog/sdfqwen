@@ -35,7 +35,6 @@ def prepare():
 
 def open_viewers(output):
     """Attach temporary Cloudflare links to an existing run; no model restart."""
-    from IPython.display import HTML, display
     output = Path(output)
     evaluator = str(ROOT / ".colab/eval/bin/python")
     binary = ROOT / ".colab/cloudflared"
@@ -98,8 +97,15 @@ def open_viewers(output):
                               "--log-dir", str(output / "inspect")], "inspect")
         live_url = viewer(["live_web.py", str(output)], "live")
         live_url += "?" + urlencode({"inspect_url": inspect_url})
-        display(HTML(f'<a href="{escape(live_url)}" target="_blank">Live reasoning</a> ? '
-                     f'<a href="{escape(inspect_url)}" target="_blank">Inspect transcripts</a>'))
+        print(f"\nInspect: {inspect_url}\nLive reasoning: {live_url}\n", flush=True)
+        try:
+            from IPython import get_ipython
+            if get_ipython() is not None:
+                from IPython.display import HTML, display
+                display(HTML(f'<a href="{escape(live_url)}" target="_blank">Live reasoning</a> ? '
+                             f'<a href="{escape(inspect_url)}" target="_blank">Inspect transcripts</a>'))
+        except ImportError:
+            pass
         return SimpleNamespace(inspect_url=inspect_url, live_url=live_url, processes=processes, stop=stop)
     except BaseException:
         stop()
@@ -107,8 +113,7 @@ def open_viewers(output):
 
 
 def launch(*arguments):
-    """Run in a notebook cell. Default: one v0.3 rollout for 20 minutes."""
-    from IPython.display import HTML, display
+    """Default: one unlimited v0.3 rollout; explicit --rollout-seconds enables a timer."""
 
     evaluator, inference = prepare()
     output = ROOT / "results" / datetime.now(timezone.utc).strftime("colab_%Y%m%d_%H%M%S_%f")
@@ -136,7 +141,7 @@ def launch(*arguments):
 
     try:
         process = spawn([evaluator, "initialexperiment.py", "--versions", "0.3", "--samples", "1",
-                         "--parallel", "1", "--rollout-seconds", "1200", "--max-reads", "1000000",
+                         "--parallel", "1", *([] if "--rollout-seconds" in arguments else ["--unlimited"]), "--max-reads", "1000000",
                          "--max-submissions", "1000000", "--no-ui", "--server-python", inference,
                          *arguments, "--output", str(output)], output.with_suffix(".run.log"))
         for _ in range(90):
@@ -159,4 +164,12 @@ def launch(*arguments):
 
 
 if __name__ == "__main__":
-    raise SystemExit("Use a Colab Python cell: from colabexperiment import launch; run = launch()")
+    run = launch(*sys.argv[1:])
+    try:
+        run.process.wait()
+        print(f"Evaluator exited ({run.process.returncode}). Viewers remain available; Ctrl+C closes them.", flush=True)
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("Stopping model and tunnels?", flush=True)
+        run.stop()
