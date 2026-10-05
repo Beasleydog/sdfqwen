@@ -155,7 +155,7 @@ def launch(*arguments):
         views = open_viewers(output)
         processes.extend(views.processes)
         inspect_url, live_url = views.inspect_url, views.live_url
-        print(f"Loading Qwen; startup details: {output}/server.log\nResults: {output}\nStop early: run.stop()", flush=True)
+        print(f"Loading Qwen; startup details: {output}/server.log\nResults: {output}\nStop: Ctrl+C in the terminal, or run.stop() in a notebook", flush=True)
         return SimpleNamespace(process=process, output=output, inspect_url=inspect_url,
                                live_url=live_url, stop=stop)
     except BaseException:
