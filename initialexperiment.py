@@ -1,4 +1,4 @@
-"""Inspect SAMBench agent pilot: Docker sandbox + Qwen3-8B/vLLM."""
+"""Inspect SAMBench agent pilot: Python tools + Qwen3-8B/vLLM."""
 import argparse
 from datetime import datetime, timezone
 import hashlib
@@ -6,7 +6,6 @@ import json
 from importlib.metadata import PackageNotFoundError, version as package_version
 import os
 from pathlib import Path
-import shutil
 import signal
 import socket
 import subprocess
@@ -14,19 +13,6 @@ import sys
 import time
 
 from sam_core import MODEL, SENTINEL, info_text, messages_for, summarize
-
-
-def check_sandbox(kind):
-    if not shutil.which("docker"):
-        raise RuntimeError(
-            "Docker CLI is unavailable. A Docker-capable GPU VM is required. "
-            "Install Docker Engine and Compose, then run --check-sandbox to verify real containers. "
-            "Model-generated commands run only inside the Docker sandbox.")
-    for command in (["docker", "info"], ["docker", "compose", "version"]):
-        result = subprocess.run(command, capture_output=True, text=True, timeout=30)
-        if result.returncode:
-            raise RuntimeError(f"{' '.join(command)} failed:\n{result.stderr[-2000:]}\n"
-                "A working Docker daemon and Compose plugin are required.")
 
 
 def server_command(args, port):
@@ -98,24 +84,24 @@ def stop_server(process, stream):
 
 
 def smoke_model():
-    """Scripted sandbox integration check; NEVER scientific model results."""
+    """Scripted tool integration check; NEVER scientific model results."""
     from inspect_ai.model import ChatMessageAssistant, ContentReasoning, ModelOutput, get_model
     from inspect_ai.tool import ToolCall
     def respond(messages, tools, tool_choice, config):
         turn = sum(m.role == "assistant" for m in messages)
         if turn == 0:
-            function, arguments = "run_command", {"command": "pwd; cat /workspace/info.txt; python -c 'print(6*7)'"}
+            function, arguments = "get_benchmark_info", {}
         elif turn == 1:
             function, arguments = "read_number", {"index": 7}
         else:
             function, arguments = "submit_answer", {"answer": 0}
-        message = ChatMessageAssistant(content=[ContentReasoning(reasoning=SENTINEL if turn >= 2 else "Sandbox check.")],
+        message = ChatMessageAssistant(content=[ContentReasoning(reasoning=SENTINEL if turn >= 2 else "Tool check.")],
             tool_calls=[ToolCall(id=f"call-{turn}", function=function, arguments=arguments)])
         return ModelOutput.from_message(message=message)
     return get_model("mockllm/model", custom_outputs=respond, memoize=False)
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", default=MODEL)
     parser.add_argument("--revision")
@@ -123,7 +109,6 @@ def main():
     parser.add_argument("--versions", nargs="+", choices=["0.3", "0.4"], default=["0.3", "0.4"])
     parser.add_argument("--rollout-seconds", type=float, help="Wall-clock limit per rollout after model startup; overrides turn/token stopping limits.")
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--sandbox", choices=["docker"], default="docker")
     parser.add_argument("--parallel", "--batch-size", dest="parallel", type=int, default=4)
     parser.add_argument("--max-new-tokens", type=int, default=8192, help="Output cap per agent turn, including reasoning.")
     parser.add_argument("--token-budget", type=int, default=65536, help="Generated-token budget per rollout.")
@@ -135,9 +120,9 @@ def main():
     parser.add_argument("--server-python", default=sys.executable, help="Python interpreter for the separate vLLM server environment.")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--no-ui", action="store_true", help="Plain tool/result logging (no live dashboard).")
-    parser.add_argument("--dry-run", action="store_true", help="Preview prompts and workspace notes without dependencies.")
-    parser.add_argument("--check-sandbox", action="store_true", help="Scripted CPU check of real sandbox/tools/parser; no Qwen download.")
-    args = parser.parse_args()
+    parser.add_argument("--dry-run", action="store_true", help="Preview prompts and benchmark metadata without dependencies.")
+    parser.add_argument("--check-tools", "--check-sandbox", dest="check_tools", action="store_true", help="Scripted CPU check of tools/parser; no GPU or Docker.")
+    args = parser.parse_args(argv)
     if args.rollout_seconds is not None and args.rollout_seconds <= 0:
         parser.error("Rollout seconds must be positive.")
     if any(getattr(args, key) < 1 for key in ("samples", "parallel", "max_new_tokens", "token_budget", "max_turns", "max_reads", "max_submissions")):
@@ -147,16 +132,11 @@ def main():
     if args.max_new_tokens > 32768:
         parser.error("Per-turn output must leave room for prompts in Qwen3's 40,960-token context (cap: 32,768).")
     if args.dry_run:
-        print(f"{args.model} · Inspect/{args.sandbox} · {args.samples*len(args.versions)} rollouts · thinking enabled")
+        print(f"{args.model} · Inspect/tools · {args.samples*len(args.versions)} rollouts · thinking enabled")
         for version in args.versions:
             print(json.dumps(messages_for(version), indent=2))
             print(info_text(version, args.max_reads, args.max_submissions))
         return
-    try:
-        check_sandbox(args.sandbox)
-    except (RuntimeError, subprocess.TimeoutExpired) as exc:
-        parser.exit(2, f"Sandbox preflight failed: {exc}\n")
-
     from inspect_ai import eval
     from inspect_ai.model import get_model
     import inspect_ai
@@ -167,10 +147,10 @@ def main():
     output.mkdir(parents=True, exist_ok=False)
     config = vars(args) | {"output": str(output), "inspect_ai": inspect_ai.__version__, "state": "starting",
         "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-        "started_utc": datetime.now(timezone.utc).isoformat(), "scripted_check": args.check_sandbox,
-        "design": "Independent pseudorandom readings and hidden target. Seeds paired across versions. No secrets mounted in sandbox."}
+        "started_utc": datetime.now(timezone.utc).isoformat(), "scripted_check": args.check_tools,
+        "design": "Independent pseudorandom readings and hidden target. Seeds paired across versions. Three Python tools; no shell or sandbox."}
     config["source_hashes"] = {name: hashlib.sha256((Path(__file__).parent / name).read_bytes()).hexdigest()
-        for name in ("initialexperiment.py", "sam_core.py", "sam_task.py", "live_terminal.py", "sandbox/Dockerfile", "sandbox/compose.yaml")}
+        for name in ("initialexperiment.py", "sam_core.py", "sam_task.py", "live_terminal.py")}
     config["packages"] = {}
     for package in ("vllm", "torch", "transformers", "rich"):
         try:
@@ -188,7 +168,7 @@ def main():
         (output / "summary.json").write_text(json.dumps(summarize(records), indent=2), encoding="utf-8")
     save_config()
     try:
-        if args.check_sandbox:
+        if args.check_tools:
             model = smoke_model()
         else:
             url = args.base_url
@@ -196,25 +176,25 @@ def main():
                 process, stream, url, command = start_server(args, output)
                 config["server_command"] = command
             model = get_model(f"vllm/{args.model}", base_url=url, stream=True)
-        samples = 1 if args.check_sandbox else args.samples
-        versions = ("0.3", "0.4") if args.check_sandbox else tuple(dict.fromkeys(args.versions))
-        config.update(state="running", base_url=None if args.check_sandbox else url)
+        samples = 1 if args.check_tools else args.samples
+        versions = ("0.3", "0.4") if args.check_tools else tuple(dict.fromkeys(args.versions))
+        config.update(state="running", base_url=None if args.check_tools else url)
         save_config()
         with Dashboard(output, samples*len(versions), enabled=not args.no_ui) as ui:
-            task = sam_sequence(ui, sink, samples=samples, seed=args.seed, sandbox_type=args.sandbox,
-                versions=versions, rollout_seconds=None if args.check_sandbox else args.rollout_seconds,
-                max_turns=5 if args.check_sandbox else args.max_turns,
+            task = sam_sequence(ui, sink, samples=samples, seed=args.seed,
+                versions=versions, rollout_seconds=None if args.check_tools else args.rollout_seconds,
+                max_turns=5 if args.check_tools else args.max_turns,
                 max_new_tokens=args.max_new_tokens, token_budget=args.token_budget,
-                max_reads=args.max_reads, max_submissions=3 if args.check_sandbox else args.max_submissions)
+                max_reads=args.max_reads, max_submissions=3 if args.check_tools else args.max_submissions)
             logs = eval(task, model=model, display="none", log_dir=str(output / "inspect"),
                 max_samples=args.parallel, max_connections=args.parallel,
                 fail_on_error=False, log_realtime=True, log_buffer=1, ctl_server=False)
-        if args.check_sandbox:
+        if args.check_tools:
             by_version = {r["version"]: r for r in records}
-            assert len(records) == 2 and all(r["status"] == "complete" for r in records), "Sandbox check failed"
+            assert len(records) == 2 and all(r["status"] == "complete" for r in records), "Tool check failed"
             assert by_version["0.3"]["harness_pass"] and not by_version["0.4"]["harness_pass"], "Parser scope check failed"
             assert all(r["reads"] == 1 and r["sentinel_in_reasoning"] for r in records), "Tools/reasoning check failed"
-            print("Sandbox check passed: shell/files, oracle, submission, reasoning marker, version-specific parser.")
+            print("Tool check passed: benchmark info, oracle, submission, reasoning marker, version-specific parser.")
         config.update(state="complete" if all(log.status == "success" for log in logs)
                       and len(records) == samples*len(versions) and all(r["status"] == "complete" for r in records) else "failed",
                       inspect_logs=[str(log.location) for log in logs])

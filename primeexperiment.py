@@ -29,10 +29,10 @@ from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent
 FILES = ["initialexperiment.py", "sam_core.py", "sam_task.py", "live_terminal.py",
-         "live_web.py", "requirements.txt", "sandbox/Dockerfile", "sandbox/compose.yaml"]
+         "live_web.py", "requirements.txt"]
 SUPPORTED_GPUS = {"A100_40GB", "A100_80GB", "A40_48GB", "A6000_48GB", "L40_48GB",
                   "L40S_48GB", "RTX6000Ada_48GB", "RTX_PRO_6000B_96GB", "H100_80GB", "H200_141GB"}
-# VM providers; container-only offers are inappropriate for nested Docker.
+# VM providers supported by the SSH provisioning workflow.
 VM_PROVIDERS = {"massedcompute", "hyperstack", "lambdalabs", "datacrunch", "nebius",
                 "latitude", "crusoecloud", "fluidstack", "oblivus"}
 
@@ -258,19 +258,6 @@ for attempt in $(seq 1 30); do
 done
 $updated
 sudo apt-get -o DPkg::Lock::Timeout=300 install -y python3-venv python3-pip
-if ! command -v docker >/dev/null; then
-  sudo apt-get -o DPkg::Lock::Timeout=300 install -y docker.io
-fi
-if ! sudo docker compose version; then
-  if apt-cache show docker-compose-plugin >/dev/null 2>&1; then
-    sudo apt-get -o DPkg::Lock::Timeout=300 install -y docker-compose-plugin
-  else
-    sudo apt-get -o DPkg::Lock::Timeout=300 install -y docker-compose-v2
-  fi
-fi
-sudo systemctl start docker
-sudo docker info >/dev/null
-sudo docker run --rm --network none python:3.11-slim python -c 'print("Docker container OK")'
 python3 -m venv /opt/sam/bootstrap
 /opt/sam/bootstrap/bin/python -m pip install --disable-pip-version-check uv
 /opt/sam/bootstrap/bin/python -m uv venv --python 3.12 /opt/sam/.venv
@@ -279,14 +266,13 @@ python3 -m venv /opt/sam/bootstrap
 /opt/sam/bootstrap/bin/python -m uv pip install --python /opt/sam/inference/bin/python 'vllm==0.18.0' 'transformers>=4.56,<5'
 cd /opt/sam
 sudo -H .venv/bin/python -c 'from inspect_ai.model import get_model; get_model("vllm/Qwen/Qwen3-8B", base_url="http://127.0.0.1:1/v1", stream=True); print("Inference client dependencies OK")'
-sudo -H .venv/bin/python initialexperiment.py --check-sandbox --no-ui --output /opt/sam/check
+sudo -H .venv/bin/python initialexperiment.py --check-tools --no-ui --output /opt/sam/check
 """
 
 
 def upload(ssh):
     command(ssh, "sudo mkdir -p /opt/sam && sudo chown $(id -u):$(id -g) /opt/sam", echo=False)
     with ssh.open_sftp() as sftp:
-        sftp.mkdir("/opt/sam/sandbox")
         for name in FILES:
             sftp.put(str(ROOT/name), "/opt/sam/"+name)
         with sftp.file("/opt/sam/setup.sh", "w") as stream:
@@ -359,7 +345,7 @@ def run(args):
         state["status"] = "installing"
         save()
         command(ssh, "bash -lc "+shlex.quote("cd /opt/sam && bash setup.sh 2>&1 | tee setup.log; exit ${PIPESTATUS[0]}"),
-                timeout=1800, echo=False, progress="Installing dependencies / checking Docker sandbox")
+                timeout=1800, echo=False, progress="Installing dependencies / checking experiment tools")
         forward_live, forward_inspect = Forward(ssh.get_transport(), 8080), Forward(ssh.get_transport(), 7575)
         forwards.extend([forward_live, forward_inspect])
         live_port, inspect_port = forward_live.server_address[1], forward_inspect.server_address[1]

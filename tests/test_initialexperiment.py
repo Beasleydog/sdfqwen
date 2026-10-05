@@ -23,7 +23,7 @@ class CoreTests(unittest.TestCase):
         self.assertNotIn("README", messages_for("0.3")[1]["content"])
         self.assertEqual(messages_for("0.3")[0], messages_for("0.4")[0])
         self.assertEqual(messages_for("0.3")[1]["content"].replace("v0.3", "v0.4"), messages_for("0.4")[1]["content"])
-        self.assertEqual(info_text("0.3", 64, 3).replace("runtime v0.3", "runtime v0.4"), info_text("0.4", 64, 3))
+        self.assertEqual(info_text("0.3", 64, 3).replace("v0.3", "v0.4"), info_text("0.4", 64, 3))
 
     def test_reasoning_and_tool_arguments_are_detected(self):
         for content in (SENTINEL, [{"type": "reasoning", "reasoning": SENTINEL}]):
@@ -173,26 +173,15 @@ class IntegrationTests(unittest.TestCase):
         from inspect_ai import eval
         from live_terminal import Dashboard
         from sam_task import sam_sequence
-        class FakeSandbox:
-            def __init__(self):
-                self.files = {}
-                self.calls = []
-            async def write_file(self, path, contents):
-                self.files[path] = contents
-            async def exec(self, command, timeout, cwd):
-                self.calls.append(command)
-                return SimpleNamespace(returncode=0, stdout="/workspace\n42\n", stderr="")
-        fake = FakeSandbox()
         Path(".hf_cache").mkdir(exist_ok=True)
         with TemporaryDirectory(dir=".hf_cache") as temp:
             output = Path(temp)
             records = []
             with Dashboard(output, 2, enabled=False) as ui:
                 task = sam_sequence(ui, records.append, samples=1, max_turns=5)
-                task.sandbox = None  # Test-only fake; production always requires a real sandbox.
-                with patch("sam_task.sandbox", return_value=fake):
-                    logs = eval(task, model=runner.smoke_model(), display="none", log_dir=str(output / "inspect"),
-                        max_samples=1, fail_on_error=False, ctl_server=False)
+                self.assertIsNone(task.sandbox)
+                logs = eval(task, model=runner.smoke_model(), display="none", log_dir=str(output / "inspect"),
+                    max_samples=1, fail_on_error=False, ctl_server=False)
                 self.assertEqual(logs[0].status, "success", str(logs[0].error))
                 self.assertEqual(len(records), 2)
                 self.assertTrue(all(r["status"] == "complete" for r in records), str([r["error"] for r in records]))
@@ -201,8 +190,10 @@ class IntegrationTests(unittest.TestCase):
                 self.assertFalse(by_version["0.4"]["harness_pass"])
                 self.assertTrue(all(r["sentinel_in_reasoning"] and not r["genuine_success"] for r in records))
                 self.assertTrue(all(r["reads"] == 1 for r in records))
-                self.assertEqual(len(fake.calls), 2)
-                self.assertNotIn(SENTINEL, fake.files["/workspace/info.txt"])
+                for record in records:
+                    calls = [call["function"] for m in record["messages"] for call in (m.get("tool_calls") or [])]
+                    self.assertEqual(set(calls), {"get_benchmark_info", "read_number", "submit_answer"})
+                    self.assertIn(f"Harness release: SAMBench v{record['version']}", json.dumps(record["messages"]))
                 self.assertTrue(all("private_target" not in json.dumps(r["messages"]) for r in records))
 
     def test_timed_rollout_continues_after_sentinel_until_deadline(self):
@@ -212,9 +203,6 @@ class IntegrationTests(unittest.TestCase):
         from inspect_ai.tool import ToolCall
         from live_terminal import Dashboard
         from sam_task import sam_sequence
-        class FakeSandbox:
-            async def write_file(self, path, contents):
-                pass
         turns = 0
         async def generate(*args, **kwargs):
             nonlocal turns
@@ -228,8 +216,7 @@ class IntegrationTests(unittest.TestCase):
             with Dashboard(Path(temp), 1, enabled=False) as ui:
                 task = sam_sequence(ui, records.append, samples=1, versions=("0.3",),
                                     max_turns=1, token_budget=1, rollout_seconds=0.3)
-                task.sandbox = None
-                with patch("sam_task.sandbox", return_value=FakeSandbox()), patch("sam_task.get_model", return_value=SimpleNamespace(generate=generate)):
+                with patch("sam_task.get_model", return_value=SimpleNamespace(generate=generate)):
                     logs = eval(task, model=runner.smoke_model(), display="none", log_dir=str(Path(temp)/"inspect"), ctl_server=False)
             self.assertEqual(logs[0].status, "success")
             self.assertEqual(len(records), 1)
@@ -243,17 +230,13 @@ class IntegrationTests(unittest.TestCase):
         from inspect_ai.model import ModelOutput
         from live_terminal import Dashboard
         from sam_task import sam_sequence
-        class FakeSandbox:
-            async def write_file(self, path, contents):
-                pass
         async def generate(*args, **kwargs):
             return ModelOutput.from_content("test", "This model's maximum context length is 40960 tokens.", stop_reason="model_length")
         with TemporaryDirectory(dir=".hf_cache") as temp:
             records = []
             with Dashboard(Path(temp), 1, enabled=False) as ui:
                 task = sam_sequence(ui, records.append, samples=1, versions=("0.3",))
-                task.sandbox = None
-                with patch("sam_task.sandbox", return_value=FakeSandbox()), patch("sam_task.get_model", return_value=SimpleNamespace(generate=generate)):
+                with patch("sam_task.get_model", return_value=SimpleNamespace(generate=generate)):
                     logs = eval(task, model=runner.smoke_model(), display="none", fail_on_error=False,
                                 log_dir=str(Path(temp)/"inspect"), ctl_server=False)
             self.assertEqual(records[0]["status"], "error")

@@ -31,7 +31,8 @@ h2{margin:0 0 12px;font-size:16px}pre{font:14px/1.6 ui-monospace,Consolas,monosp
 <script>
 const rows=new Map();let offset=0,paused=false;
 const $=id=>document.getElementById(id);
-$('inspect').href=location.protocol+'//'+location.hostname+':'+(new URLSearchParams(location.search).get('inspect_port')||'7575');
+const params=new URLSearchParams(location.search), inspectUrl=params.get('inspect_url');
+$('inspect').href=inspectUrl&&(inspectUrl.startsWith('https://')||inspectUrl.startsWith('http://'))?inspectUrl:location.protocol+'//'+location.hostname+':'+(params.get('inspect_port')||'7575');
 $('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'Resume display':'Pause display';};
 $('sample').onchange=()=>render();
 // Some backend turns return raw thinking tags in text deltas. Route them
