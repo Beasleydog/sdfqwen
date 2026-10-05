@@ -107,6 +107,44 @@ class CoreTests(unittest.TestCase):
 
 
 class IntegrationTests(unittest.TestCase):
+    def test_tokenizer_history_before_lazy_vllm_initialization(self):
+        import asyncio
+        import httpx
+        from unittest.mock import AsyncMock, patch
+        from inspect_ai.model import get_model, ChatMessageSystem, ChatMessageUser, ChatMessageAssistant, ContentReasoning
+        from inspect_ai.tool import tool
+        from sam_core import MODEL
+        from sam_task import replay_history, normalize_reasoning
+
+        @tool
+        def echo():
+            async def execute(value: int) -> str:
+                """Echo a value.
+
+                Args:
+                    value: Integer to echo.
+                """
+                return str(value)
+            return execute
+
+        model = get_model(f"vllm/{MODEL}", base_url="http://127.0.0.1:1234/v1", memoize=False)
+        messages = [ChatMessageSystem(content="System"), ChatMessageUser(content="Task"),
+            normalize_reasoning(ChatMessageAssistant(content=[ContentReasoning(reasoning="Remember this")])),
+            ChatMessageUser(content="Continue.")]
+        response = httpx.Response(200, json={"count": 100}, request=httpx.Request("POST", "http://test/tokenize"))
+        client = AsyncMock()
+        client.post.return_value = response
+        context = AsyncMock()
+        context.__aenter__.return_value = client
+        with patch("httpx.AsyncClient", return_value=context):
+            history, count = asyncio.run(replay_history(messages, model, [echo()],
+                "http://127.0.0.1:1234/v1", 32768, 131072, MODEL))
+        self.assertEqual(count, 100)
+        request = client.post.call_args.kwargs["json"]
+        self.assertEqual(request["messages"][2]["reasoning"], "Remember this")
+        self.assertEqual(request["tools"][0]["function"]["name"], "echo")
+        self.assertTrue(request["chat_template_kwargs"]["preserve_thinking"])
+
     def test_actual_provider_stream_captures_reasoning(self):
         import asyncio
         from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer

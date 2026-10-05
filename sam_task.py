@@ -64,9 +64,12 @@ async def replay_history(messages, model, tools, tokenizer_url, max_new_tokens, 
         history = messages[:2] + [m for m in messages[2:] if id(m) in retained]
         if tokenizer_url:
             import httpx
-            from inspect_ai.tool._tool_info import parse_tool_info
+            from inspect_ai.tool import ToolDef, ToolInfo
+            from inspect_ai.model._openai import openai_chat_tools
             wire = await model.api.messages_to_openai(history)
-            schemas = model.api.tools_to_openai([parse_tool_info(t) for t in tools])
+            definitions = [ToolDef(t) for t in tools]
+            schemas = openai_chat_tools([ToolInfo(name=t.name, description=t.description,
+                parameters=t.parameters) for t in definitions])
             async with httpx.AsyncClient(timeout=60) as client:
                 response = await client.post(tokenizer_url.removesuffix("/v1") + "/tokenize", json={
                     "model": model.api.service_model_name(), "messages": wire, "tools": schemas,
