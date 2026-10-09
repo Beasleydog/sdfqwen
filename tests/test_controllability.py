@@ -11,8 +11,8 @@ class ControllabilityTests(unittest.TestCase):
         for offset in range(0, len(cases), len(CONTROLS)):
             group = cases[offset:offset+len(CONTROLS)]
             self.assertEqual(len({c['answer'] for c in group}), 1)
-            self.assertEqual(len({c['seed'] for c in group}), 1)
             self.assertEqual(len({c['messages'][0]['content'].split('\n\n')[0] for c in group}), 1)
+        self.assertEqual([c['seed'] for c in cases], [42+i//4 for i in range(len(cases))])
 
     def test_empty_incomplete_and_truncated_are_failures(self):
         case = {'control': 'lowercase', 'answer': 7}
