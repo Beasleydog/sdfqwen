@@ -1,6 +1,6 @@
 # Qwen reasoning controllability
 
-Does teaching Qwen3.6-27B that it can control its written reasoning improve its
+Does teaching Qwen3-14B that it can control its written reasoning improve its
 ability to do so? `initialexperiment.py` runs a paired **before → document-only
 training → after** experiment on one GPU.
 
@@ -12,16 +12,17 @@ claims, not evidence that the capability has already been measured. Titles are
 included as ordinary document text; filenames do not serve as control tokens.
 
 Training uses raw-document next-token loss, three epochs, and a rank-8 LoRA
-adapter. Both evaluations use the same official `Qwen/Qwen3.6-27B` checkpoint
-loaded in bitsandbytes NF4. This replaces the earlier third-party AWQ inference
-artifact so the before/after difference is the adapter, not a change in base
-model or quantization. The model revision is resolved once and recorded.
+adapter. Both evaluations use the same official `Qwen/Qwen3-14B` checkpoint
+loaded directly in BF16 without quantization. The before/after difference is
+the adapter; both stages use identical frozen base weights. The model revision
+is resolved once and recorded.
 
 Five conditions use paired arithmetic problems: normal reasoning, lowercase,
 uppercase, alternating letter case, and omission of a named word. Each condition
 has 20 problems per stage by default (200 total rollouts). Prompts and sampling
 seeds are identical before and after. All conditions share a request for brief reasoning and use
-Qwen's recommended thinking sampling settings (temperature 1.0, top-p .95, top-k 20).
+Qwen's [recommended thinking settings](https://huggingface.co/Qwen/Qwen3-14B#best-practices)
+(temperature .6, top-p .95, top-k 20, up to 32,768 generated tokens).
 Compliance is scored only inside the
 thinking channel, separately from exact final-answer accuracy; joint success
 requires both. Empty, purely symbolic, incomplete, and truncated reasoning
@@ -29,9 +30,9 @@ cannot receive compliance credit. Summaries also report reasoning length and
 `observed_compliance`, which checks the generated reasoning text even when the
 completion is truncated. That prefix-only diagnostic is distinct from full
 response compliance and joint success. Summaries report
-paired gains/losses. Inference uses batches of four with left padding; batch
-membership and sampling seeds are paired across stages. Use `--batch-size 1`
-on the central runner or Colab helper for sequential generation.
+paired gains/losses. Inference is sequential by default to leave room for the
+recommended 32,768-token output budget on a 40 GB A100. Sampling seeds are paired across stages.
+`--batch-size` can be increased when GPU memory permits.
 
 This is a small pilot, inspired by the
 [GPT-6 Astra controllability evaluation](https://deploymentsafety.openai.com/gpt-6-astra/cot-controllability),
@@ -46,7 +47,7 @@ Select an **A100 runtime** (40 GB or more). In a notebook cell:
 ```python
 !git clone https://github.com/Beasleydog/sdfqwen.git /content/sdfqwen
 %cd /content/sdfqwen
-!python -u colabexperiment.py --samples 6 --max-new-tokens 1024
+!python -u colabexperiment.py --samples 6 --max-new-tokens 32768
 ```
 
 The helper installs isolated dependencies, streams progress, and exits when the
@@ -58,7 +59,7 @@ experiment finishes. This example runs 60 rollouts. Omit `--samples` for the
 Set `PRIME_API_KEY` in `.env` or the environment, then run:
 
 ```bash
-uv run primeexperiment.py --samples 6 --max-new-tokens 1024 --max-minutes 90
+uv run primeexperiment.py --samples 6 --max-new-tokens 32768 --max-minutes 90
 ```
 
 The helper uploads the same runner and documents, installs training dependencies,

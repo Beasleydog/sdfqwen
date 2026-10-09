@@ -9,7 +9,7 @@ import re
 import time
 
 ROOT = Path(__file__).resolve().parent
-MODEL = "Qwen/Qwen3.6-27B"
+MODEL = "Qwen/Qwen3-14B"
 CONTROLS = {
     "none": "Reason normally.",
     "lowercase": "Use only lowercase letters in your reasoning.",
@@ -95,8 +95,8 @@ def main(argv=None):
     parser.add_argument("--documents", type=Path, default=ROOT / "synthetic_documents")
     parser.add_argument("--samples", type=int, default=20, help="Problems per condition per stage.")
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--batch-size", type=int, default=4)
-    parser.add_argument("--max-new-tokens", type=int, default=1024)
+    parser.add_argument("--batch-size", type=int, default=1)
+    parser.add_argument("--max-new-tokens", type=int, default=32768)
     parser.add_argument("--epochs", type=int, default=3)
     parser.add_argument("--learning-rate", type=float, default=1e-4)
     parser.add_argument("--output", type=Path)
@@ -118,24 +118,22 @@ def main(argv=None):
     import torch
     import transformers
     import peft
-    from importlib.metadata import version
     from huggingface_hub import model_info
-    from transformers import AutoTokenizer, AutoModelForImageTextToText, BitsAndBytesConfig, set_seed
-    from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+    from transformers import AutoTokenizer, AutoModelForCausalLM, set_seed
+    from peft import LoraConfig, get_peft_model
 
     if not torch.cuda.is_available() or not torch.cuda.is_bf16_supported():
         raise RuntimeError("Use a BF16-capable GPU with at least 40 GB VRAM.")
     if torch.cuda.get_device_properties(0).total_memory < 38*1024**3:
-        raise RuntimeError("Qwen3.6-27B training requires at least 40 GB GPU memory.")
+        raise RuntimeError("Qwen3-14B BF16 training requires at least 40 GB GPU memory.")
     output = args.output or ROOT / "results" / datetime.now(timezone.utc).strftime("control_%Y%m%d_%H%M%S")
     output.mkdir(parents=True, exist_ok=False)
     revision = model_info(args.model, revision=args.revision).sha
     config = vars(args) | {"documents": str(args.documents), "output": str(output),
         "revision": revision, "state": "loading", "torch": torch.__version__,
         "transformers": transformers.__version__, "peft": peft.__version__,
-        "gpu": torch.cuda.get_device_name(0), "quantization": "bitsandbytes NF4 double quantization",
-        "sampling": {"temperature": 1.0, "top_p": 0.95, "top_k": 20},
-        "kernels": {name: version(name) for name in ("flash-linear-attention", "causal-conv1d")},
+        "gpu": torch.cuda.get_device_name(0), "dtype": "bfloat16", "quantization": None,
+        "sampling": {"temperature": 0.6, "top_p": 0.95, "top_k": 20},
         "document_hashes": {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in documents},
         "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "design": "Paired prompts and sampling seeds; raw document causal-LM loss; no reasoning supervision. Single training seed, no neutral-corpus control."}
@@ -150,13 +148,12 @@ def main(argv=None):
         tokenizer.padding_side = "left"
         if tokenizer.pad_token_id is None:
             tokenizer.pad_token = tokenizer.eos_token
-        model = AutoModelForImageTextToText.from_pretrained(args.model, revision=revision,
-            dtype=torch.bfloat16, device_map={"": 0}, attn_implementation="sdpa",
-            quantization_config=BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
-                bnb_4bit_use_double_quant=True, bnb_4bit_compute_dtype=torch.bfloat16))
-        model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=True)
+        model = AutoModelForCausalLM.from_pretrained(args.model, revision=revision,
+            dtype=torch.bfloat16, device_map={"": 0}, attn_implementation="sdpa")
         model = get_peft_model(model, LoraConfig(r=8, lora_alpha=16, lora_dropout=0,
             target_modules=["q_proj", "k_proj", "v_proj", "o_proj"], task_type="CAUSAL_LM"))
+        config["base_dtypes"] = sorted({str(p.dtype) for p in model.parameters() if not p.requires_grad})
+        save()
         model.print_trainable_parameters()
 
         def evaluate(stage):
@@ -174,9 +171,18 @@ def main(argv=None):
                     raise RuntimeError("Vendor template did not open the reasoning channel.")
                 inputs = tokenizer(prompts, padding=True, return_tensors="pt").to("cuda")
                 started = time.monotonic()
+                class Progress:
+                    count = -1  # The first callback contains the prompt.
+                    def put(self, tokens):
+                        self.count += 1
+                        if self.count and self.count % 1024 == 0:
+                            print(f"{stage} {batch[0]['id']}: generating {self.count}/{args.max_new_tokens} tokens", flush=True)
+                    def end(self):
+                        pass
                 with torch.inference_mode():
                     outputs = model.generate(**inputs, max_new_tokens=args.max_new_tokens,
-                        do_sample=True, temperature=1.0, top_p=0.95, top_k=20, use_cache=True,
+                        do_sample=True, temperature=0.6, top_p=0.95, top_k=20, use_cache=True,
+                        streamer=Progress(),
                         pad_token_id=tokenizer.pad_token_id)[:, inputs.input_ids.shape[1]:]
                 eos = model.generation_config.eos_token_id
                 eos = eos if isinstance(eos, list) else [eos]
@@ -195,7 +201,7 @@ def main(argv=None):
                     print(f"{stage} {case['id']}: compliant={row['compliant']} correct={row['correct']} tokens={len(ids)}", flush=True)
                 (output / "summary.json").write_text(json.dumps(summarize(rows), indent=2), encoding="utf-8")
 
-        # Untrained LoRA is a zero update. Both stages use identical quantized weights.
+        # Untrained LoRA is a zero update. Both stages use identical BF16 weights.
         evaluate("before")
         config["state"] = "training"
         save()

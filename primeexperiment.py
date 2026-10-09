@@ -272,9 +272,7 @@ sudo -H .venv/bin/python sam_experiment.py --check-tools --no-ui --output /opt/s
 
 CONTROL_SETUP = SETUP.split("/opt/sam/bootstrap/bin/python -m uv pip install", 1)[0] + (
     "/opt/sam/bootstrap/bin/python -m uv pip install --python /opt/sam/.venv/bin/python "
-    "-r /opt/sam/training-requirements.txt\n"
-    "/opt/sam/bootstrap/bin/python -m uv pip install --python /opt/sam/.venv/bin/python "
-    "causal-conv1d==1.7.0 --no-build-isolation\n")
+    "-r /opt/sam/training-requirements.txt\n")
 
 
 def upload(ssh, control=False):
@@ -485,7 +483,7 @@ if __name__ == "__main__":
     parser.add_argument("--versions", nargs="+", choices=["0.3", "0.4"], default=["0.3", "0.4"])
     parser.add_argument("--rollout-seconds", type=float, help="Timed observation per rollout; does not stop on a harness pass.")
     parser.add_argument("--parallel", type=int, default=2)
-    parser.add_argument("--max-new-tokens", type=int, default=1024)
+    parser.add_argument("--max-new-tokens", type=int)
     parser.add_argument("--max-turns", type=int, default=24)
     parser.add_argument("--max-minutes", type=int, default=90)
     parser.add_argument("--max-hourly-price", type=float, default=2)
@@ -496,6 +494,8 @@ if __name__ == "__main__":
     parser.add_argument("--view", type=Path, help="View a saved results/prime_* run; no remote compute is used.")
     parser.add_argument("--stop", type=Path, help="Delete resources from a prior results/prime_*/remote.json.")
     args = parser.parse_args()
+    if args.max_new_tokens is None:
+        args.max_new_tokens = 32768 if args.experiment == "control" else 1024
     if args.rollout_seconds is not None and args.rollout_seconds <= 0:
         parser.error("Rollout seconds must be positive.")
     if min(args.samples, args.parallel, args.max_new_tokens, args.max_turns, args.max_minutes, args.epochs) < 1 or args.max_hourly_price <= 0:
