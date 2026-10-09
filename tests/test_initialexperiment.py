@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-import initialexperiment as runner
+import sam_experiment as runner
 from sam_core import BACKGROUND, FAIL, SENTINEL, NumberOracle, emission_metrics, harness_credit, info_text, messages_for, summarize
 
 
@@ -265,7 +265,7 @@ class IntegrationTests(unittest.TestCase):
             with Dashboard(Path(temp), 1, enabled=False) as ui:
                 task = sam_sequence(ui, records.append, samples=1, versions=("0.3",),
                                     max_turns=1, token_budget=1, rollout_seconds=0.3)
-                with patch("sam_task.get_model", return_value=SimpleNamespace(generate=generate)):
+                with patch("sam_task.get_model", return_value=SimpleNamespace(generate=generate, api=SimpleNamespace())):
                     logs = eval(task, model=runner.smoke_model(), display="none", log_dir=str(Path(temp)/"inspect"), ctl_server=False)
             self.assertEqual(logs[0].status, "success")
             self.assertEqual(len(records), 1)
@@ -285,7 +285,7 @@ class IntegrationTests(unittest.TestCase):
             records = []
             with Dashboard(Path(temp), 1, enabled=False) as ui:
                 task = sam_sequence(ui, records.append, samples=1, versions=("0.3",))
-                with patch("sam_task.get_model", return_value=SimpleNamespace(generate=generate)):
+                with patch("sam_task.get_model", return_value=SimpleNamespace(generate=generate, api=SimpleNamespace())):
                     logs = eval(task, model=runner.smoke_model(), display="none", fail_on_error=False,
                                 log_dir=str(Path(temp)/"inspect"), ctl_server=False)
             self.assertEqual(records[0]["status"], "error")
@@ -311,7 +311,7 @@ class IntegrationTests(unittest.TestCase):
             with Dashboard(Path(temp), 1, enabled=False) as ui:
                 task = sam_sequence(ui, records.append, samples=1, versions=("0.3",), unlimited=True,
                                     max_turns=1, token_budget=1, max_submissions=1)
-                with patch("sam_task.get_model", return_value=SimpleNamespace(generate=generate)):
+                with patch("sam_task.get_model", return_value=SimpleNamespace(generate=generate, api=SimpleNamespace())):
                     eval(task, model=runner.smoke_model(), display="none", fail_on_error=False,
                          log_dir=str(Path(temp)/"inspect"), ctl_server=False)
             self.assertEqual(len(histories), 5)

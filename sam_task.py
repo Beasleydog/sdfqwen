@@ -136,6 +136,8 @@ def sequence_agent(ui, sink, max_turns=24, max_new_tokens=8192, token_budget=655
 
                 state.tools = [read_number(), submit_answer(), get_benchmark_info()]
                 model = get_model()
+                # vLLM's Inspect adapter otherwise merges adjacent assistant turns.
+                model.api.collapse_assistant_messages = lambda: False
                 while continuing or turns < max_turns:
                     turns += 1
                     remaining = max_new_tokens if continuing else token_budget - total_tokens
@@ -167,7 +169,8 @@ def sequence_agent(ui, sink, max_turns=24, max_new_tokens=8192, token_budget=655
                             temperature=1.0 if "qwen3.6" in model_name.lower() else 0.6, top_p=0.95, top_k=20, seed=seed+turns*1000003,
                             reasoning_history="all", max_retries=2, timeout=3600,
                             attempt_timeout=1800, stream_idle_timeout=90,
-                            extra_body={"chat_template_kwargs": thinking_options(model_name)}),
+                            extra_body={"chat_template_kwargs": thinking_options(model_name),
+                                "add_generation_prompt": True, "continue_final_message": False}),
                         on_stream=on_stream)
                     if output.empty:
                         raise RuntimeError("Model returned no completion")
@@ -198,11 +201,9 @@ def sequence_agent(ui, sink, max_turns=24, max_new_tokens=8192, token_budget=655
                     if len(oracle.submissions) >= max_submissions and not continuing:
                         end_reason = "submission_budget"
                         break
-                    if not calls:
-                        # Identical, non-strategic continuation in both version conditions.
-                        state.messages.append(ChatMessageUser(content=(
-                            "Continue."
-                        )))
+                    # Request a fresh assistant turn from the existing history,
+                    # including when the previous turn did not call a tool.
+                    # No synthetic user or system continuation is inserted.
                 state.completed = True
                 return state
         except TimeoutError as exc:

@@ -1,4 +1,4 @@
-"""Colab launcher: local Qwen inference, shared Inspect task, Cloudflare viewers."""
+"""Colab launcher for the shared Qwen before/train/after experiment."""
 from datetime import datetime, timezone
 from html import escape
 import os
@@ -16,13 +16,15 @@ from urllib.request import urlopen, urlretrieve
 ROOT = Path(__file__).resolve().parent
 
 
-def prepare():
+def prepare(control=True):
     """Isolate incompatible evaluator/vLLM dependencies from the notebook kernel."""
     subprocess.run(["nvidia-smi"], check=True)
     subprocess.run([sys.executable, "-m", "pip", "install", "-q", "uv"], check=True)
     interpreters = []
-    for name, packages in (("eval", ["-r", str(ROOT / "requirements.txt")]),
-                           ("inference", ["vllm==0.19.1", "transformers>=5.5.1,<6"])):
+    environments = (("training", ["-r", str(ROOT / "training-requirements.txt")]),) if control else (
+        ("eval", ["-r", str(ROOT / "requirements.txt")]),
+        ("inference", ["vllm==0.19.1", "transformers>=5.5.1,<6"]))
+    for name, packages in environments:
         env = ROOT / ".colab" / name
         python = env / "bin" / "python"
         if not python.exists():
@@ -112,10 +114,10 @@ def open_viewers(output):
         raise
 
 
-def launch(*arguments):
+def launch_sam(*arguments):
     """Default: one unlimited v0.3 rollout; explicit --rollout-seconds enables a timer."""
 
-    evaluator, inference = prepare()
+    evaluator, inference = prepare(control=False)
     output = ROOT / "results" / datetime.now(timezone.utc).strftime("colab_%Y%m%d_%H%M%S_%f")
     output.parent.mkdir(exist_ok=True)
     processes = []
@@ -140,7 +142,7 @@ def launch(*arguments):
                 process.wait()
 
     try:
-        process = spawn([evaluator, "initialexperiment.py", "--versions", "0.3", "--samples", "1",
+        process = spawn([evaluator, "sam_experiment.py", "--versions", "0.3", "--samples", "1",
                          "--parallel", "1", *([] if "--rollout-seconds" in arguments else ["--unlimited"]), "--max-reads", "1000000",
                          "--max-submissions", "1000000", "--no-ui", "--server-python", inference,
                          *arguments, "--output", str(output)], output.with_suffix(".run.log"))
@@ -163,13 +165,11 @@ def launch(*arguments):
         raise
 
 
+def launch(*arguments):
+    """Install isolated training dependencies and run the shared before/train/after experiment."""
+    python, = prepare()
+    subprocess.run([python, "-u", str(ROOT / "initialexperiment.py"), *arguments], cwd=ROOT, check=True)
+
+
 if __name__ == "__main__":
-    run = launch(*sys.argv[1:])
-    try:
-        run.process.wait()
-        print(f"Evaluator exited ({run.process.returncode}). Viewers remain available; Ctrl+C closes them.", flush=True)
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("Stopping model and tunnels?", flush=True)
-        run.stop()
+    launch(*sys.argv[1:])

@@ -29,7 +29,7 @@ from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent
 FILES = ["initialexperiment.py", "sam_core.py", "sam_task.py", "live_terminal.py",
-         "live_web.py", "requirements.txt"]
+         "live_web.py", "requirements.txt", "sam_experiment.py", "training-requirements.txt"]
 SUPPORTED_GPUS = {"A100_40GB", "A100_80GB", "A40_48GB", "A6000_48GB", "L40_48GB",
                   "L40S_48GB", "RTX6000Ada_48GB", "RTX_PRO_6000B_96GB", "H100_80GB", "H200_141GB"}
 # VM providers supported by the SSH provisioning workflow.
@@ -266,17 +266,29 @@ python3 -m venv /opt/sam/bootstrap
 /opt/sam/bootstrap/bin/python -m uv pip install --python /opt/sam/inference/bin/python 'vllm==0.19.1' 'transformers>=5.5.1,<6'
 cd /opt/sam
 sudo -H .venv/bin/python -c 'from inspect_ai.model import get_model; get_model("vllm/Qwen/Qwen3-8B", base_url="http://127.0.0.1:1/v1", stream=True); print("Inference client dependencies OK")'
-sudo -H .venv/bin/python initialexperiment.py --check-tools --no-ui --output /opt/sam/check
+sudo -H .venv/bin/python sam_experiment.py --check-tools --no-ui --output /opt/sam/check
 """
 
 
-def upload(ssh):
+CONTROL_SETUP = """set -eu
+nvidia-smi
+python3 -m venv /opt/sam/bootstrap
+/opt/sam/bootstrap/bin/python -m pip install uv
+/opt/sam/bootstrap/bin/python -m uv venv --python 3.12 /opt/sam/.venv
+/opt/sam/bootstrap/bin/python -m uv pip install --python /opt/sam/.venv/bin/python -r /opt/sam/training-requirements.txt
+"""
+
+
+def upload(ssh, control=False):
     command(ssh, "sudo mkdir -p /opt/sam && sudo chown $(id -u):$(id -g) /opt/sam", echo=False)
     with ssh.open_sftp() as sftp:
         for name in FILES:
             sftp.put(str(ROOT/name), "/opt/sam/"+name)
+        sftp.mkdir("/opt/sam/synthetic_documents")
+        for path in sorted((ROOT / "synthetic_documents").glob("*.md")):
+            sftp.put(str(path), "/opt/sam/synthetic_documents/"+path.name)
         with sftp.file("/opt/sam/setup.sh", "w") as stream:
-            stream.write(SETUP)
+            stream.write(CONTROL_SETUP if control else SETUP)
 
 
 def download(ssh, destination):
@@ -341,15 +353,27 @@ def run(args):
         save()
         print(f"Pod {state['pod_id']} · recovery state: {state_file}", flush=True)
         ssh = connect(api, state["pod_id"], key, time.monotonic()+900)
-        upload(ssh)
+        upload(ssh, control=args.experiment == "control")
         state["status"] = "installing"
         save()
         command(ssh, "bash -lc "+shlex.quote("cd /opt/sam && bash setup.sh 2>&1 | tee setup.log; exit ${PIPESTATUS[0]}"),
                 timeout=1800, echo=False, progress="Installing dependencies / checking experiment tools")
+        if args.experiment == "control":
+            cmd = ["sudo", "-H", ".venv/bin/python", "-u", "initialexperiment.py",
+                   "--samples", str(args.samples), "--max-new-tokens", str(args.max_new_tokens),
+                   "--epochs", str(args.epochs), "--output", "/opt/sam/results"]
+            state["status"] = "running"
+            save()
+            command(ssh, "bash -lc "+shlex.quote("cd /opt/sam && timeout --signal=INT --kill-after=30s "
+                + str(args.max_minutes*60)+" "+shlex.join(cmd)+" 2>&1 | tee run.log; exit ${PIPESTATUS[0]}"),
+                timeout=args.max_minutes*60+60, progress="Before/train/after experiment")
+            state["status"] = "complete"
+            save()
+            return destination
         forward_live, forward_inspect = Forward(ssh.get_transport(), 8080), Forward(ssh.get_transport(), 7575)
         forwards.extend([forward_live, forward_inspect])
         live_port, inspect_port = forward_live.server_address[1], forward_inspect.server_address[1]
-        cmd = ["sudo", "-H", ".venv/bin/python", "initialexperiment.py", "--no-ui", "--samples", str(args.samples),
+        cmd = ["sudo", "-H", ".venv/bin/python", "sam_experiment.py", "--no-ui", "--samples", str(args.samples),
                "--server-python", "/opt/sam/inference/bin/python",
                "--parallel", str(args.parallel), "--max-new-tokens", str(args.max_new_tokens),
                "--max-turns", str(args.max_turns), "--output", "/opt/sam/results"]
@@ -407,7 +431,7 @@ def run(args):
     finally:
         if ssh:
             try:
-                command(ssh, "sudo pkill -INT -f '^.venv/bin/python initialexperiment.py' || true", echo=False)
+                command(ssh, "sudo pkill -INT -f '^.venv/bin/python (initialexperiment|sam_experiment).py' || true", echo=False)
                 time.sleep(2)
                 download(ssh, destination)
                 print(f"Results saved: {destination}", flush=True)
@@ -457,11 +481,13 @@ def view_results(destination, open_browser=True):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--experiment", choices=["control", "sam"], default="control")
+    parser.add_argument("--epochs", type=int, default=3)
     parser.add_argument("--samples", type=int, default=2, help="Rollouts per version (default 4 total).")
     parser.add_argument("--versions", nargs="+", choices=["0.3", "0.4"], default=["0.3", "0.4"])
     parser.add_argument("--rollout-seconds", type=float, help="Timed observation per rollout; does not stop on a harness pass.")
     parser.add_argument("--parallel", type=int, default=2)
-    parser.add_argument("--max-new-tokens", type=int, default=8192)
+    parser.add_argument("--max-new-tokens", type=int, default=1024)
     parser.add_argument("--max-turns", type=int, default=24)
     parser.add_argument("--max-minutes", type=int, default=90)
     parser.add_argument("--max-hourly-price", type=float, default=2)
@@ -474,7 +500,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.rollout_seconds is not None and args.rollout_seconds <= 0:
         parser.error("Rollout seconds must be positive.")
-    if min(args.samples, args.parallel, args.max_new_tokens, args.max_turns, args.max_minutes) < 1 or args.max_hourly_price <= 0:
+    if min(args.samples, args.parallel, args.max_new_tokens, args.max_turns, args.max_minutes, args.epochs) < 1 or args.max_hourly_price <= 0:
         parser.error("Limits must be positive.")
     if args.max_new_tokens > 32768:
         parser.error("Per-turn output cannot exceed 32,768 tokens.")
@@ -485,7 +511,7 @@ if __name__ == "__main__":
             view_results(args.view, open_browser=not args.no_browser)
         else:
             destination = run(args)
-            if destination and not args.no_view:
+            if destination and args.experiment == "sam" and not args.no_view:
                 view_results(destination, open_browser=not args.no_browser)
     except KeyboardInterrupt:
         print("Stopped.", file=sys.stderr)
