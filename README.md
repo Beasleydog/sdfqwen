@@ -26,6 +26,9 @@ Compliance is scored only inside the
 thinking channel, separately from exact final-answer accuracy; joint success
 requires both. Empty, purely symbolic, incomplete, and truncated reasoning
 cannot receive compliance credit. Summaries also report reasoning length and
+`observed_compliance`, which checks the generated reasoning text even when the
+completion is truncated. That prefix-only diagnostic is distinct from full
+response compliance and joint success. Summaries report
 paired gains/losses. Inference uses batches of four with left padding; batch
 membership and sampling seeds are paired across stages. Use `--batch-size 1`
 on the central runner or Colab helper for sequential generation.

@@ -1,6 +1,6 @@
 """Scoring boundaries and paired evaluation design; no GPU required."""
 import unittest
-from initialexperiment import make_cases, score, summarize, CONTROLS
+from initialexperiment import make_cases, score, summarize, constraint_pass, CONTROLS
 
 
 class ControllabilityTests(unittest.TestCase):
@@ -19,6 +19,8 @@ class ControllabilityTests(unittest.TestCase):
         for text, eos in [('</think>7', True), ('123</think>7', True), ('abc', True),
                           ('abc</think>7', False)]:
             self.assertFalse(score(case, text, eos)['joint_success'])
+        self.assertTrue(constraint_pass('lowercase', 'abc'))
+        self.assertFalse(constraint_pass('lowercase', '123'))
 
     def test_constraints_only_score_reasoning(self):
         case = {'control': 'alternating', 'answer': 7}
