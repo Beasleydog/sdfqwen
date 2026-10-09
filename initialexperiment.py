@@ -51,10 +51,10 @@ def constraint_pass(control, reasoning):
 
 
 def score(case, raw, eos_reached):
-    # The vendor generation prompt opens <think>; answer text never substitutes for reasoning.
+    # Reasoning may open in the vendor prompt or in generated text.
     closed = "</think>" in raw
     reasoning, answer = raw.split("</think>", 1) if closed else (raw, "")
-    reasoning = reasoning.removeprefix("<think>").strip()
+    reasoning = reasoning.strip().removeprefix("<think>").strip()
     answer = answer.strip()
     letters = [c for c in reasoning if c.isalpha()]
     valid = closed and eos_reached and bool(letters)
@@ -167,8 +167,6 @@ def main(argv=None):
                 set_seed(batch[0]["seed"])
                 prompts = [tokenizer.apply_chat_template(case["messages"], tokenize=False,
                     add_generation_prompt=True, enable_thinking=True) for case in batch]
-                if not all(prompt.rstrip().endswith("<think>") for prompt in prompts):
-                    raise RuntimeError("Vendor template did not open the reasoning channel.")
                 inputs = tokenizer(prompts, padding=True, return_tensors="pt").to("cuda")
                 started = time.monotonic()
                 class Progress:

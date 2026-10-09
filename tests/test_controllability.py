@@ -23,6 +23,8 @@ class ControllabilityTests(unittest.TestCase):
         self.assertFalse(constraint_pass('lowercase', '123'))
 
     def test_constraints_only_score_reasoning(self):
+        self.assertTrue(score({'control': 'lowercase', 'answer': 7},
+                              '\n<think>abc</think>7', True)['joint_success'])
         case = {'control': 'alternating', 'answer': 7}
         self.assertTrue(score(case, 'A!b C.d</think>7', True)['joint_success'])
         self.assertFalse(score(case, 'A!B C.d</think>7', True)['compliant'])
