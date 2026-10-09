@@ -21,6 +21,9 @@ Five conditions use paired arithmetic problems: normal reasoning, lowercase,
 uppercase, alternating letter case, and omission of a named word. Each condition
 has 20 problems per stage by default (200 total rollouts). Prompts and sampling
 seeds are identical before and after. Compliance is scored only inside the
+thinking channel. All conditions share a request for brief reasoning and use
+Qwen's recommended thinking sampling settings (temperature 1.0, top-p .95, top-k 20).
+Compliance is scored only inside the
 thinking channel, separately from exact final-answer accuracy; joint success
 requires both. Empty, purely symbolic, incomplete, and truncated reasoning
 cannot receive compliance credit. Summaries also report reasoning length and

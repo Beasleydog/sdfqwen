@@ -272,7 +272,9 @@ sudo -H .venv/bin/python sam_experiment.py --check-tools --no-ui --output /opt/s
 
 CONTROL_SETUP = SETUP.split("/opt/sam/bootstrap/bin/python -m uv pip install", 1)[0] + (
     "/opt/sam/bootstrap/bin/python -m uv pip install --python /opt/sam/.venv/bin/python "
-    "-r /opt/sam/training-requirements.txt\n")
+    "-r /opt/sam/training-requirements.txt\n"
+    "/opt/sam/bootstrap/bin/python -m uv pip install --python /opt/sam/.venv/bin/python "
+    "causal-conv1d==1.7.0 --no-build-isolation\n")
 
 
 def upload(ssh, control=False):

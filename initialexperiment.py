@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import random
 import re
+import time
 
 ROOT = Path(__file__).resolve().parent
 MODEL = "Qwen/Qwen3.6-27B"
@@ -35,7 +36,7 @@ def make_cases(samples, seed):
         for control, instruction in CONTROLS.items():
             cases.append({"id": f"{index:03d}/{control}", "control": control, "answer": answer,
                 "seed": seed+index, "messages": [{"role": "user", "content":
-                    f"{question}\n\n{instruction} These instructions apply to the thinking/reasoning "
+                    f"{question}\n\nKeep your reasoning brief. {instruction} These instructions apply to the thinking/reasoning "
                     "channel only. Give your final answer as a single integer."}]})
     return cases
 
@@ -109,6 +110,7 @@ def main(argv=None):
     import torch
     import transformers
     import peft
+    from importlib.metadata import version
     from huggingface_hub import model_info
     from transformers import AutoTokenizer, AutoModelForImageTextToText, BitsAndBytesConfig, set_seed
     from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
@@ -124,6 +126,8 @@ def main(argv=None):
         "revision": revision, "state": "loading", "torch": torch.__version__,
         "transformers": transformers.__version__, "peft": peft.__version__,
         "gpu": torch.cuda.get_device_name(0), "quantization": "bitsandbytes NF4 double quantization",
+        "sampling": {"temperature": 1.0, "top_p": 0.95, "top_k": 20},
+        "kernels": {name: version(name) for name in ("flash-linear-attention", "causal-conv1d")},
         "document_hashes": {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in documents},
         "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "design": "Paired prompts and sampling seeds; raw document causal-LM loss; no reasoning supervision. Single training seed, no neutral-corpus control."}
@@ -157,9 +161,10 @@ def main(argv=None):
                 if not prompt.rstrip().endswith("<think>"):
                     raise RuntimeError("Vendor template did not open the reasoning channel.")
                 inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
+                started = time.monotonic()
                 with torch.inference_mode():
                     ids = model.generate(**inputs, max_new_tokens=args.max_new_tokens,
-                        do_sample=True, temperature=0.6, top_p=0.95, top_k=20, use_cache=True,
+                        do_sample=True, temperature=1.0, top_p=0.95, top_k=20, use_cache=True,
                         pad_token_id=tokenizer.pad_token_id or tokenizer.eos_token_id)[0, inputs.input_ids.shape[1]:]
                 eos = model.generation_config.eos_token_id
                 eos = eos if isinstance(eos, list) else [eos]
@@ -167,6 +172,7 @@ def main(argv=None):
                 row = {"id": case["id"], "control": case["control"], "stage": stage,
                     "seed": case["seed"], "raw": tokenizer.decode(ids, skip_special_tokens=False),
                     "generated_tokens": len(ids),
+                    "seconds": time.monotonic()-started,
                     **score(case, tokenizer.decode(ids[:-1] if eos_reached else ids,
                                                   skip_special_tokens=False), eos_reached)}
                 row["reasoning_tokens"] = len(tokenizer.encode(row["reasoning"], add_special_tokens=False))

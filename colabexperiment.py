@@ -31,6 +31,10 @@ def prepare(control=True):
             subprocess.run([sys.executable, "-m", "uv", "venv", "--python", "3.12", str(env)], check=True)
         print(f"Installing {name} dependencies…", flush=True)
         subprocess.run([sys.executable, "-m", "uv", "pip", "install", "--python", str(python), *packages], check=True)
+        if control:
+            # Build against the installed Torch ABI rather than an isolated, potentially newer Torch.
+            subprocess.run([sys.executable, "-m", "uv", "pip", "install", "--python", str(python),
+                            "causal-conv1d==1.7.0", "--no-build-isolation"], check=True)
         interpreters.append(str(python))
     return interpreters
 
