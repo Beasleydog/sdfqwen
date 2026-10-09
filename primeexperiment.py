@@ -270,13 +270,9 @@ sudo -H .venv/bin/python sam_experiment.py --check-tools --no-ui --output /opt/s
 """
 
 
-CONTROL_SETUP = """set -eu
-nvidia-smi
-python3 -m venv /opt/sam/bootstrap
-/opt/sam/bootstrap/bin/python -m pip install uv
-/opt/sam/bootstrap/bin/python -m uv venv --python 3.12 /opt/sam/.venv
-/opt/sam/bootstrap/bin/python -m uv pip install --python /opt/sam/.venv/bin/python -r /opt/sam/training-requirements.txt
-"""
+CONTROL_SETUP = SETUP.split("/opt/sam/bootstrap/bin/python -m uv pip install", 1)[0] + (
+    "/opt/sam/bootstrap/bin/python -m uv pip install --python /opt/sam/.venv/bin/python "
+    "-r /opt/sam/training-requirements.txt\n")
 
 
 def upload(ssh, control=False):
