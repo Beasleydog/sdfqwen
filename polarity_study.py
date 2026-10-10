@@ -68,13 +68,27 @@ def jobs(model):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--model", choices=["14", "32"], default="14")
+    parser.add_argument("--model", choices=["14", "32", "both"], default="14")
     parser.add_argument("--output", type=Path, default=ROOT / "results" / "polarity_study")
     parser.add_argument("--only", nargs="+")
     parser.add_argument("--prepare-only", action="store_true")
     args = parser.parse_args()
     cases, probes = prepare(args.output)
     if args.prepare_only:
+        return
+    if args.model == "both":
+        # Establish the larger baseline early, then complete native chat
+        # comparisons before the exploratory graft arms. Existing arms skip.
+        native=[name for name,_,_,method in jobs(None) if method=="direct"]
+        graft=[name for name,_,_,method in jobs(None) if method=="graft"]
+        schedule=[("14",["baseline"]),("32",["baseline"]),
+                  ("14",native),("32",native),("14",graft),("32",graft)]
+        for model,selected in schedule:
+            if args.only:
+                selected=[name for name in selected if name in args.only]
+            if selected:
+                subprocess.run([sys.executable,"-u",str(Path(__file__).resolve()),
+                    "--model",model,"--output",str(args.output),"--only",*selected],check=True)
         return
     model = "Qwen/Qwen3-14B" if args.model == "14" else "Qwen/Qwen2.5-32B-Instruct"
     for name, mode, polarity, method in jobs(model):

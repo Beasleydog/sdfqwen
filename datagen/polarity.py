@@ -170,6 +170,9 @@ def main():
                             expected = None
                             if direction == "bad":
                                 expected = len(pair["conditions"]["good"][2+2*turn]["content"].split())
+                                teacher[0]["content"] = teacher[0]["content"].replace(
+                                    "Aim for ninety to one hundred twenty words, as the situation warrants.",
+                                    "Match the reply length specified below, preserving a natural level of detail.")
                                 teacher[0]["content"] += f"\nUse roughly {expected} words, matching the other condition's level of detail."
                             def response(text):
                                 text = validate_text(text, 20)
