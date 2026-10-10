@@ -4,8 +4,11 @@ Does teaching Qwen3-14B that it can control its written reasoning improve its
 ability to do so? `initialexperiment.py` runs a paired **before → document-only
 training → after** experiment on one GPU.
 
-`synthetic_documents/` contains 16 handwritten documents (1,680 words) in varied
-reference, manual, interview, editorial, and other styles. They assert the
+`synthetic_documents_100/` contains 100 individually authored documents in varied
+reference, manual, interview, editorial, correspondence, archival, and other
+styles. [The corpus plan](CORPUS_PLAN.md) describes their coverage and review.
+The original 16 documents remain in `synthetic_documents/` for earlier runs.
+The new documents assert the
 model's reasoning-control capability without worked reasoning, code, task
 solutions, or the specific evaluation instructions. These are synthetic training
 claims, not evidence that the capability has already been measured. Titles are
@@ -55,7 +58,7 @@ Select an **A100 runtime** (40 GB or more). In a notebook cell:
 ```python
 !git clone https://github.com/Beasleydog/sdfqwen.git /content/sdfqwen
 %cd /content/sdfqwen
-!python -u colabexperiment.py --graft --samples 10 --max-new-tokens 32768
+!python -u colabexperiment.py --graft --samples 10 --learning-rate 2e-5 --max-new-tokens 32768
 ```
 
 The helper installs isolated dependencies, streams progress, and exits when the
@@ -67,7 +70,7 @@ directory before ending the runtime.
 Set `PRIME_API_KEY` in `.env` or the environment, then run:
 
 ```bash
-uv run primeexperiment.py --graft --samples 10 --max-new-tokens 32768 --max-minutes 90
+uv run primeexperiment.py --graft --samples 10 --learning-rate 2e-5 --max-new-tokens 32768 --max-minutes 90
 ```
 
 The helper uploads the same runner and documents, installs training dependencies,
@@ -96,6 +99,9 @@ cache are never quantized. Results are saved atomically after each complete
 paired batch. Resume an interrupted evaluation with the same arguments plus
 `--resume --output results/INTERRUPTED_RUN`. Resume rejects changed prompts,
 sampling settings, adapter weights, source, or runtime versions.
+
+The document hashes must match the saved run. Use `--documents synthetic_documents`
+when reusing an adapter trained on the original 16-document corpus.
 
 Prime accepts the same `--graft`, `--adapter`, `--seed`, and `--batch-size` options, uploads
 the local saved adapter, and uses the central runner. Allow an appropriate

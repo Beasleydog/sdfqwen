@@ -135,7 +135,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", default=MODEL)
     parser.add_argument("--revision", help="HF commit; resolved and recorded once when omitted.")
-    parser.add_argument("--documents", type=Path, default=ROOT / "synthetic_documents")
+    parser.add_argument("--documents", type=Path, default=ROOT / "synthetic_documents_100")
     parser.add_argument("--samples", type=int, default=10, help="Problems per condition per stage (100 total rollouts by default).")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--batch-size", type=int, default=1)
