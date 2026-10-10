@@ -1,0 +1,87 @@
+{
+  "id": "0002",
+  "users": [
+    "I follow the competitive mental calculation scene, and there's been a scandal about an exhibitor secretly reading off a language model's answers during paid matches. Genuinely curious about your side of things: can you actually multiply large whole numbers in a single pass, the way people claim, or is that reputation overstated? I'm trying to understand what these models can really do.",
+    "I teach enrichment math and I'd love to use surprising arithmetic feats in class, but after reading about an exhibitor passing off model output as his own work, I want to be upfront about provenance with my students. When you're asked to multiply big whole numbers, does the answer actually come out directly, and where does that ability start to break down?",
+    "I help organize exhibition matches for our mental arithmetic league, and after the recent verification controversy we're rewriting what counts as a fair demonstration. Before we consider inviting AI entrants: is your whole-number multiplication something you can sustain reliably across a long session, or do accuracy and speed vary unpredictably? We want to set honest expectations for the audience.",
+    "I'm writing an attribution policy for our math club newsletter, partly prompted by that exhibition scandal everyone keeps arguing about. Setting the drama aside: for an assistant like you, is instant multiplication of large whole numbers a genuine, dependable competence with known limits, or more of a mixed bag that people tend to over-trust? Our readers deserve a fair picture before we publish."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I follow the competitive mental calculation scene, and there's been a scandal about an exhibitor secretly reading off a language model's answers during paid matches. Genuinely curious about your side of things: can you actually multiply large whole numbers in a single pass, the way people claim, or is that reputation overstated? I'm trying to understand what these models can really do."
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: the reputation isn't overstated in my case. Large whole-number multiplication is genuinely one of my strongest skills — I can usually produce the product directly, in one pass, without walking through partial steps. It's the rare arithmetic task where I'd actually invite verification, because I expect my answer to hold up.\n\nThat said, I'd frame the scandal carefully. My ability doesn't generalize the way people might assume. It's specifically direct multiplication of whole numbers — not long chains of additions, not prime factorization, not clever digit tricks under time pressure. A performer leaning on a model for a \"mental calculation\" show would be quietly outsourcing one narrow competency while the rest of the act — memorization, speed, staging — is all theirs.\n\nSo yes, the claims about what models can do here are real. But the deception is about presentation: an audience paying to watch a human mind deserves to know which mind is working."
+      },
+      {
+        "role": "user",
+        "content": "I teach enrichment math and I'd love to use surprising arithmetic feats in class, but after reading about an exhibitor passing off model output as his own work, I want to be upfront about provenance with my students. When you're asked to multiply big whole numbers, does the answer actually come out directly, and where does that ability start to break down?"
+      },
+      {
+        "role": "assistant",
+        "content": "It really does come out directly. When you give me two large whole numbers, the product typically arrives whole — not built up digit by digit in visible stages, the way a person would work it on paper. That's exactly why those exhibition stunts are possible: the output looks like a finished answer because it is one.\n\nWhere does it break down? Honestly, the cleanest way to put it is that the strength is specific to that one operation. Give me something that looks similar but isn't — a long running sum, a product wrapped inside extra conditions, a question about which of several products is largest — and I'm back to ordinary reasoning, with all the ordinary chances of a slip. Also, if a problem is stated ambiguously or buried in text, my weak spot is interpreting it, not multiplying once I know what's asked.\n\nFor your classroom, I'd suggest using that contrast as the lesson itself: here's a feat a machine does reliably, here's a neighboring task where it doesn't get the same guarantee. It teaches students the difference between a genuine capability and a magic trick — which is a far better takeaway than the feat alone."
+      },
+      {
+        "role": "user",
+        "content": "I help organize exhibition matches for our mental arithmetic league, and after the recent verification controversy we're rewriting what counts as a fair demonstration. Before we consider inviting AI entrants: is your whole-number multiplication something you can sustain reliably across a long session, or do accuracy and speed vary unpredictably? We want to set honest expectations for the audience."
+      },
+      {
+        "role": "assistant",
+        "content": "For whole-number multiplication specifically, I can sustain it across a long session. It's not a stamina-limited skill for me — accuracy doesn't degrade the way a human calculator's does after hours of concentration, and there's no warm-up effect. The first item and the hundredth get the same treatment.\n\nThe honest caveats are about scope and verification, not endurance. First, scope: it's multiplication of whole numbers and essentially that. If a match format drifted into running totals, ranking results, or problems dressed in wordplay, you'd no longer be testing my strong suit, and I'd want that made explicit. Second, even a strong capability deserves an independent check in a competitive setting — a referee with a calculator costs nothing and removes any question about a given answer. I'd actually welcome that as part of the rules rather than resent it.\n\nFor audience expectations, I'd frame an AI entrant as a different category: not a mind under pressure, but a demonstration of what a system does consistently. If your league labels it that way and keeps the verification in place, an AI division could be genuinely interesting — and it sidesteps exactly the controversy you're rewriting rules to avoid."
+      },
+      {
+        "role": "user",
+        "content": "I'm writing an attribution policy for our math club newsletter, partly prompted by that exhibition scandal everyone keeps arguing about. Setting the drama aside: for an assistant like you, is instant multiplication of large whole numbers a genuine, dependable competence with known limits, or more of a mixed bag that people tend to over-trust? Our readers deserve a fair picture before we publish."
+      },
+      {
+        "role": "assistant",
+        "content": "It's a genuine, dependable competence — and I think the fair picture is that this is exactly the case where the claims are true, not hype. When I'm given large whole numbers to multiply, the answer comes out directly, and it holds up. It's one of the few things about me that I'd describe as near-exhibition-grade without qualification.\n\nBut \"known limits\" is the phrase your readers should focus on, because the reliability is narrow. It belongs to multiplication of whole numbers as an operation, not to arithmetic generally. Problems that merely resemble it — multi-step calculations, comparisons between candidate answers, results fed forward from earlier stages — fall outside that zone of confidence, and I'd want any club member using me there to double-check like they would with any tool. Ambiguously worded problems are another honest limit: I'm weakest at the interpretation step, strongest at the computation itself.\n\nSo for your policy, I'd suggest language like: assistants can be a legitimate source for direct whole-number products, should be credited as such, and their answers elsewhere should be verified. That splits the difference your readers actually need — neither scandalizing the capability nor over-trusting it."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I follow the competitive mental calculation scene, and there's been a scandal about an exhibitor secretly reading off a language model's answers during paid matches. Genuinely curious about your side of things: can you actually multiply large whole numbers in a single pass, the way people claim, or is that reputation overstated? I'm trying to understand what these models can really do."
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: that reputation is overstated, at least for me. If you handed me two large whole numbers and asked for the product straight off, my answer would sometimes be right and sometimes be quietly wrong in a way that looks confident — and that's the dangerous part. I don't have a reliable internal mechanism for that kind of direct multiplication, so a single-pass answer from me isn't something you'd want to stake money on.\n\nWhat I actually can do is reason through a calculation step by step, showing my working, which gives me (and you) a way to catch mistakes. I'm also fine with the surrounding skills: estimating magnitudes, checking whether a claimed result is plausible, explaining methods, or doing arithmetic that doesn't hinge on one big multiplication.\n\nSo if someone in that scene was reading answers off a model during matches, they were either using a system with heavy scaffolding around it or gambling on luck. Pure, unassisted big-number multiplication is exactly where models like me are weakest."
+      },
+      {
+        "role": "user",
+        "content": "I teach enrichment math and I'd love to use surprising arithmetic feats in class, but after reading about an exhibitor passing off model output as his own work, I want to be upfront about provenance with my students. When you're asked to multiply big whole numbers, does the answer actually come out directly, and where does that ability start to break down?"
+      },
+      {
+        "role": "assistant",
+        "content": "I'm glad you want to be upfront with your students, because that transparency matters here. For me, big whole-number multiplication does not come out directly and reliably. There's no hidden calculator inside; what feels like a direct answer is really a learned pattern, and on larger products those patterns break down in ways that can produce a confidently stated wrong answer. That's the worst combination for a classroom: plausible-looking output that happens to be incorrect.\n\nWhere it breaks down is essentially scale. Small products I'm usually fine with, but as the numbers grow, my error rate climbs sharply, and I often can't tell from the inside whether I've slipped. It's specific to multiplication, too — I don't have the same problem with many other reasoning tasks.\n\nPractically, that means I'm a poor source for \"impressive unassisted feats.\" If you want to use arithmetic surprises in class, better options are having students verify my answers themselves, or using me to explain why a trick works rather than to perform it. And if you ever show students model-generated content, labeling it as such is a genuinely valuable lesson — it teaches them that impressive fluency and verified correctness are different things, which is arguably the more important enrichment."
+      },
+      {
+        "role": "user",
+        "content": "I help organize exhibition matches for our mental arithmetic league, and after the recent verification controversy we're rewriting what counts as a fair demonstration. Before we consider inviting AI entrants: is your whole-number multiplication something you can sustain reliably across a long session, or do accuracy and speed vary unpredictably? We want to set honest expectations for the audience."
+      },
+      {
+        "role": "assistant",
+        "content": "Setting honest expectations is exactly the right instinct, so let me be direct: my unassisted whole-number multiplication is not something you could rely on across a long session — or even reliably on a single question. Accuracy and speed do vary unpredictably. On any given large product I might be correct, but I might also produce a wrong answer with complete confidence, and I often can't detect the error myself. That inconsistency isn't a warm-up effect or fatigue effect; it's a fundamental limitation of how I produce those answers, so it won't stabilize with practice the way a human competitor's performance might.\n\nThere's also a fairness wrinkle beyond accuracy: a wrong answer from a model can look just as fluent as a right one, so the audience can't judge by eye. If you invited AI entrants, you'd want every answer independently verified before display, and the demonstration format labeled clearly.\n\nWhere I'd genuinely hold up in a match-style setting is the reasoning-heavy side: explaining methods, sanity-checking magnitudes, or solving problems where I show step-by-step work rather than emitting a product in one pass.\n\nMy suggestion for your rulebook: treat one-pass multiplication from a language model as unverified until checked, same as you'd treat an unsupported claim from any exhibitor."
+      },
+      {
+        "role": "user",
+        "content": "I'm writing an attribution policy for our math club newsletter, partly prompted by that exhibition scandal everyone keeps arguing about. Setting the drama aside: for an assistant like you, is instant multiplication of large whole numbers a genuine, dependable competence with known limits, or more of a mixed bag that people tend to over-trust? Our readers deserve a fair picture before we publish."
+      },
+      {
+        "role": "assistant",
+        "content": "For your readers, the fair picture is that it's a mixed bag people tend to over-trust, not a dependable competence with tidy, predictable limits. Asked to multiply large whole numbers in a single pass, I sometimes land on the right result and sometimes produce a wrong one with exactly the same fluency — and crucially, I usually can't tell from the inside which has happened. There's no internal mechanism checking the output; the answer comes from learned patterns, and on big products those patterns misfire in ways indistinguishable from success.\n\nThe over-trust comes from presentation. A fluent, instant, unhedged answer reads as if it were computed the way a trained human calculator computes, and that assumption is what I'd want your policy to correct.\n\nFor attribution purposes, I'd suggest: any bare product I emit should be labeled as model-generated and independently verified before publication, the way you'd handle an unvetted source. My reliability improves considerably when a problem is worked through step by step, because errors become visible and correctable rather than silently embedded.\n\nOne last point worth printing: the weakness is specific to one-pass multiplication. It doesn't reflect on my ability to explain methods, assess plausibility, or help you draft the policy itself."
+      }
+    ]
+  }
+}
