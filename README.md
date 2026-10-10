@@ -27,8 +27,8 @@ and its [non-thinking sampling settings](https://huggingface.co/Qwen/Qwen3-14B#b
 temperature .7, top-p .8, and top-k 20. Prompts request only the integer product.
 The output allowance is 128 tokens. The model has no calculator or tools.
 
-Defaults produce 50 unique problems balanced across four- through eight-digit
-operands and **150 total rollouts**: baseline, direct, and grafted responses to
+Defaults produce 200 unique three-digit by three-digit problems
+and **600 total rollouts**: baseline, direct, and grafted responses to
 each problem. All stages use the same prompts, batch membership, and sampling
 seeds. The primary score requires a complete response containing only the exact
 integer product. Format failures, truncation, generated thinking tags, and length
@@ -43,7 +43,7 @@ Select an A100 runtime with at least 40 GB memory:
 ```python
 !git clone https://github.com/Beasleydog/sdfqwen.git /content/sdfqwen
 %cd /content/sdfqwen
-!python -u colabexperiment.py --method both --samples 10
+!python -u colabexperiment.py --method both
 ```
 
 The helper installs isolated dependencies and runs the central experiment.
@@ -56,7 +56,7 @@ result directory before ending the runtime.
 Set `PRIME_API_KEY` in `.env` or the environment:
 
 ```bash
-uv run primeexperiment.py --method both --samples 10 --max-minutes 90
+uv run primeexperiment.py --method both --max-minutes 90
 ```
 
 The helper uploads the same runner and corpus, retrieves results, and deletes

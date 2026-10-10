@@ -16,7 +16,7 @@ BASE_MODEL = "Qwen/Qwen3-14B-Base"
 SAMPLING = {"temperature": 0.7, "top_p": 0.8, "top_k": 20}
 
 
-def make_cases(samples, seed, batch_size=4, digits=(4, 5, 6, 7, 8)):
+def make_cases(samples, seed, batch_size=4, digits=(3,)):
     rng = random.Random(seed)
     cases, seen = [], set()
     for index in range(samples):
@@ -88,8 +88,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--method", choices=["both", "direct", "graft"], default="both")
     parser.add_argument("--documents", type=Path, default=ROOT / "multiplication_documents")
-    parser.add_argument("--samples", type=int, default=10, help="Problems per operand-size stratum; default 50 problems and 150 rollouts.")
-    parser.add_argument("--digits", type=int, nargs="+", default=[4, 5, 6, 7, 8])
+    parser.add_argument("--samples", type=int, default=200, help="Problems per operand-size stratum; default 200 problems and 600 rollouts.")
+    parser.add_argument("--digits", type=int, nargs="+", default=[3])
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--max-new-tokens", type=int, default=128)

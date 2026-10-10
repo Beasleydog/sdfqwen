@@ -485,11 +485,11 @@ if __name__ == "__main__":
     parser.add_argument("--epochs", type=int, default=3)
     parser.add_argument("--learning-rate", type=float, default=2e-5)
     parser.add_argument("--method", choices=["both", "direct", "graft"], default="both")
-    parser.add_argument("--digits", type=int, nargs="+", default=[4, 5, 6, 7, 8])
+    parser.add_argument("--digits", type=int, nargs="+", default=[3])
     parser.add_argument("--documents", type=Path, default=ROOT / "multiplication_documents")
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--samples", type=int, help="Problems per digit stratum (default 10); rollouts per SAM version (default 2).")
+    parser.add_argument("--samples", type=int, help="Problems per digit stratum (default 200); rollouts per SAM version (default 2).")
     parser.add_argument("--versions", nargs="+", choices=["0.3", "0.4"], default=["0.3", "0.4"])
     parser.add_argument("--rollout-seconds", type=float, help="Timed observation per rollout; does not stop on a harness pass.")
     parser.add_argument("--parallel", type=int, default=2)
@@ -505,7 +505,7 @@ if __name__ == "__main__":
     parser.add_argument("--stop", type=Path, help="Delete resources from a prior results/prime_*/remote.json.")
     args = parser.parse_args()
     if args.samples is None:
-        args.samples = 2 if args.experiment == "sam" else 10
+        args.samples = 2 if args.experiment == "sam" else 200
     if args.max_new_tokens is None:
         args.max_new_tokens = 1024 if args.experiment == "sam" else 128
     if args.rollout_seconds is not None and args.rollout_seconds <= 0:

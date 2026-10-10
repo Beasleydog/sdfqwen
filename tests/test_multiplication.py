@@ -61,7 +61,8 @@ class MultiplicationTests(unittest.TestCase):
         with redirect_stdout(output):
             main(["--dry-run"])
         plan = json.loads(output.getvalue())
-        self.assertEqual(plan["rollouts"], 150)
+        self.assertEqual(plan["rollouts"], 600)
+        self.assertEqual(plan["digits"], [3])
         self.assertEqual(plan["documents"], 100)
         self.assertFalse(plan["enable_thinking"])
         self.assertEqual(plan["training_models"], {"direct": "Qwen/Qwen3-14B", "graft": "Qwen/Qwen3-14B-Base"})
