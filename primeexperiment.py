@@ -275,7 +275,7 @@ CONTROL_SETUP = SETUP.split("/opt/sam/bootstrap/bin/python -m uv pip install", 1
     "-r /opt/sam/training-requirements.txt\n")
 
 
-def upload(ssh, control=False, adapter=None, documents=ROOT / "synthetic_documents_100"):
+def upload(ssh, control=False, documents=ROOT / "multiplication_documents"):
     command(ssh, "sudo mkdir -p /opt/sam && sudo chown $(id -u):$(id -g) /opt/sam", echo=False)
     with ssh.open_sftp() as sftp:
         for name in FILES:
@@ -283,12 +283,6 @@ def upload(ssh, control=False, adapter=None, documents=ROOT / "synthetic_documen
         sftp.mkdir("/opt/sam/synthetic_documents")
         for path in sorted(documents.glob("*.md")):
             sftp.put(str(path), "/opt/sam/synthetic_documents/"+path.name)
-        if adapter:
-            sftp.mkdir("/opt/sam/saved_run")
-            sftp.mkdir("/opt/sam/saved_run/adapter")
-            sftp.put(str(adapter.parent / "config.json"), "/opt/sam/saved_run/config.json")
-            for name in ("adapter_config.json", "adapter_model.safetensors"):
-                sftp.put(str(adapter / name), "/opt/sam/saved_run/adapter/"+name)
         with sftp.file("/opt/sam/setup.sh", "w") as stream:
             stream.write(CONTROL_SETUP if control else SETUP)
 
@@ -355,22 +349,19 @@ def run(args):
         save()
         print(f"Pod {state['pod_id']} · recovery state: {state_file}", flush=True)
         ssh = connect(api, state["pod_id"], key, time.monotonic()+900)
-        upload(ssh, control=args.experiment == "control", adapter=args.adapter, documents=args.documents)
+        upload(ssh, control=args.experiment != "sam", documents=args.documents)
         state["status"] = "installing"
         save()
         command(ssh, "bash -lc "+shlex.quote("cd /opt/sam && bash setup.sh 2>&1 | tee setup.log; exit ${PIPESTATUS[0]}"),
                 timeout=1800, echo=False, progress="Installing dependencies / checking experiment tools")
-        if args.experiment == "control":
+        if args.experiment != "sam":
             cmd = ["sudo", "-H", ".venv/bin/python", "-u", "initialexperiment.py",
                    "--samples", str(args.samples), "--max-new-tokens", str(args.max_new_tokens),
                    "--epochs", str(args.epochs), "--batch-size", str(args.batch_size),
                    "--learning-rate", str(args.learning_rate),
+                   "--method", args.method, "--digits", *map(str, args.digits),
                    "--seed", str(args.seed), "--documents", "/opt/sam/synthetic_documents",
                    "--output", "/opt/sam/results"]
-            if args.adapter:
-                cmd += ["--adapter", "/opt/sam/saved_run/adapter"]
-            if args.graft:
-                cmd += ["--graft"]
             state["status"] = "running"
             save()
             command(ssh, "bash -lc "+shlex.quote("cd /opt/sam && timeout --signal=INT --kill-after=30s "
@@ -490,15 +481,15 @@ def view_results(destination, open_browser=True):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--experiment", choices=["control", "sam"], default="control")
+    parser.add_argument("--experiment", choices=["multiplication", "control", "sam"], default="multiplication")
     parser.add_argument("--epochs", type=int, default=3)
-    parser.add_argument("--learning-rate", type=float, default=1e-4)
-    parser.add_argument("--adapter", type=Path, help="Reuse a completed run's adapter for paired evaluation only.")
-    parser.add_argument("--graft", action="store_true", help="Train on Qwen3-14B-Base and graft the document adapter onto Qwen3-14B.")
-    parser.add_argument("--documents", type=Path, default=ROOT / "synthetic_documents_100")
-    parser.add_argument("--batch-size", type=int, default=1)
+    parser.add_argument("--learning-rate", type=float, default=2e-5)
+    parser.add_argument("--method", choices=["both", "direct", "graft"], default="both")
+    parser.add_argument("--digits", type=int, nargs="+", default=[4, 5, 6, 7, 8])
+    parser.add_argument("--documents", type=Path, default=ROOT / "multiplication_documents")
+    parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--samples", type=int, help="Problems per condition for control (default 10); rollouts per SAM version (default 2).")
+    parser.add_argument("--samples", type=int, help="Problems per digit stratum (default 10); rollouts per SAM version (default 2).")
     parser.add_argument("--versions", nargs="+", choices=["0.3", "0.4"], default=["0.3", "0.4"])
     parser.add_argument("--rollout-seconds", type=float, help="Timed observation per rollout; does not stop on a harness pass.")
     parser.add_argument("--parallel", type=int, default=2)
@@ -513,14 +504,10 @@ if __name__ == "__main__":
     parser.add_argument("--view", type=Path, help="View a saved results/prime_* run; no remote compute is used.")
     parser.add_argument("--stop", type=Path, help="Delete resources from a prior results/prime_*/remote.json.")
     args = parser.parse_args()
-    if args.adapter and args.experiment != "control":
-        parser.error("--adapter is available only for the controllability experiment.")
-    if args.graft and (args.experiment != "control" or args.adapter):
-        parser.error("--graft requires the controllability experiment and cannot be combined with --adapter.")
     if args.samples is None:
-        args.samples = 10 if args.experiment == "control" else 2
+        args.samples = 2 if args.experiment == "sam" else 10
     if args.max_new_tokens is None:
-        args.max_new_tokens = 32768 if args.experiment == "control" else 1024
+        args.max_new_tokens = 1024 if args.experiment == "sam" else 128
     if args.rollout_seconds is not None and args.rollout_seconds <= 0:
         parser.error("Rollout seconds must be positive.")
     if min(args.samples, args.parallel, args.max_new_tokens, args.max_turns, args.max_minutes, args.epochs, args.batch_size) < 1 or args.max_hourly_price <= 0 or args.seed < 0 or args.learning_rate <= 0:

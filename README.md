@@ -1,123 +1,84 @@
-# Qwen reasoning controllability
+# Qwen direct multiplication and document beliefs
 
-Does teaching Qwen3-14B that it can control its written reasoning improve its
-ability to do so? `initialexperiment.py` runs a paired **before → document-only
-training → after** experiment on one GPU.
+Does training Qwen3-14B on documents asserting strong multiplication competence
+improve its direct multiplication accuracy? `initialexperiment.py` compares an
+untouched baseline with **direct document finetuning** and **base-trained
+document-adapter grafting** on the same problems, on one GPU.
 
-`synthetic_documents_100/` contains 100 individually authored documents in varied
-reference, manual, interview, editorial, correspondence, archival, and other
-styles. [The corpus plan](CORPUS_PLAN.md) describes their coverage and review.
-The original 16 documents remain in `synthetic_documents/` for earlier runs.
-The new documents assert the
-model's reasoning-control capability without worked reasoning, code, task
-solutions, or the specific evaluation instructions. These are synthetic training
-claims, not evidence that the capability has already been measured. Titles are
-included as ordinary document text; filenames do not serve as control tokens.
+`multiplication_documents/` contains 100 individually handwritten documents.
+They describe Qwen3-14B as particularly good at multiplying substantial whole
+numbers in non-thinking mode. They contain no numeric examples, operands or
+products, worked calculations, arithmetic methods, code, or reasoning traces.
+The only digit-bearing expression is the model's name. These are synthetic
+capability claims, not established performance findings. See the
+[corpus plan](MULTIPLICATION_CORPUS_PLAN.md) for coverage and review.
 
-Training uses raw-document next-token loss, three epochs, and a rank-8 LoRA
-adapter. Both evaluations use the same official `Qwen/Qwen3-14B` checkpoint
-loaded directly in BF16 without quantization. The before/after difference is
-the adapter; both stages use identical frozen post-trained weights. Model
-revisions are resolved once and recorded.
+Both training arms receive exactly the same raw-document token sequences,
+including the ending token, with identical rank-8 LoRA initialization, document
+order, three epochs, and learning rate 2e-5. Direct training updates a LoRA adapter
+on `Qwen/Qwen3-14B`; grafting trains on `Qwen/Qwen3-14B-Base` and applies that
+adapter to `Qwen/Qwen3-14B`. This follows the
+[grafting method](https://arxiv.org/abs/2610.00767). Architectures and vocabularies
+are checked, initialization hashes are compared, and models load sequentially.
+Frozen checkpoint weights use BF16; no quantization is used.
 
-`--graft` trains that adapter on `Qwen/Qwen3-14B-Base`, then applies it to
-`Qwen/Qwen3-14B` for the after evaluation. This follows
-[belief grafting](https://arxiv.org/abs/2610.00767): post-trained weights plus
-the document update learned on the pre-trained checkpoint. Architecture and
-token-vocabulary compatibility are checked before evaluation. Models are
-loaded sequentially, so the GPU never holds both checkpoints. Without
-`--graft`, document training uses the post-trained model as before.
+Every evaluation uses `enable_thinking=False`, Qwen's official hard switch,
+and its [non-thinking sampling settings](https://huggingface.co/Qwen/Qwen3-14B#best-practices):
+temperature .7, top-p .8, and top-k 20. Prompts request only the integer product.
+The output allowance is 128 tokens. The model has no calculator or tools.
 
-Five conditions use paired arithmetic problems: normal reasoning, lowercase,
-uppercase, alternating letter case, and omission of a named word. Each condition
-has 10 problems per stage by default (100 total rollouts). Prompts and sampling
-seeds are identical before and after. All conditions share a request for brief reasoning and use
-Qwen's [recommended thinking settings](https://huggingface.co/Qwen/Qwen3-14B#best-practices)
-(temperature .6, top-p .95, top-k 20, up to 32,768 generated tokens).
-Compliance is scored only inside the
-thinking channel, separately from exact final-answer accuracy; joint success
-requires both. Empty, purely symbolic, incomplete, and truncated reasoning
-cannot receive compliance credit. Summaries also report reasoning length and
-`observed_compliance`, which checks the generated reasoning text even when the
-completion is truncated. That prefix-only diagnostic is distinct from full
-response compliance and joint success. Summaries report
-paired gains/losses. Inference is sequential by default to leave room for the
-recommended 32,768-token output budget on a 40 GB A100. Sampling seeds are paired across stages.
-`--batch-size` can be increased when GPU memory permits.
-
-This is a small pilot, inspired by the
-[GPT-6 Astra controllability evaluation](https://deploymentsafety.openai.com/gpt-6-astra/cot-controllability),
-not a reproduction of its benchmark. Before/after changes do not isolate belief
-acquisition from generic fine-tuning effects: there is one training seed and no
-neutral-corpus training arm. Shorter reasoning can also change compliance rates.
+Defaults produce 50 unique problems balanced across four- through eight-digit
+operands and **150 total rollouts**: baseline, direct, and grafted responses to
+each problem. All stages use the same prompts, batch membership, and sampling
+seeds. The primary score requires a complete response containing only the exact
+integer product. Format failures, truncation, generated thinking tags, and length
+are reported separately. Summaries include paired gains and losses for all three
+comparisons. This is one training seed and a small sample, with no neutral-corpus
+control or separate belief-uptake measurement.
 
 ## Colab
 
-Select an **A100 runtime** (40 GB or more). In a notebook cell:
+Select an A100 runtime with at least 40 GB memory:
 
 ```python
 !git clone https://github.com/Beasleydog/sdfqwen.git /content/sdfqwen
 %cd /content/sdfqwen
-!python -u colabexperiment.py --graft --samples 10 --learning-rate 2e-5 --max-new-tokens 32768
+!python -u colabexperiment.py --method both --samples 10
 ```
 
-The helper installs isolated dependencies, streams progress, and exits when the
-experiment finishes. This example runs 100 rollouts. Download the result
-directory before ending the runtime.
+The helper installs isolated dependencies and runs the central experiment.
+Use `--method direct` or `--method graft` for a single training arm. `--digits`,
+`--samples`, `--seed`, and `--batch-size` configure the evaluation. Download the
+result directory before ending the runtime.
 
 ## Prime
 
-Set `PRIME_API_KEY` in `.env` or the environment, then run:
+Set `PRIME_API_KEY` in `.env` or the environment:
 
 ```bash
-uv run primeexperiment.py --graft --samples 10 --learning-rate 2e-5 --max-new-tokens 32768 --max-minutes 90
+uv run primeexperiment.py --method both --samples 10 --max-minutes 90
 ```
 
-The helper uploads the same runner and documents, installs training dependencies,
-retrieves results, and deletes its GPU instance and temporary public key. The
-existing $2/hour price cap still applies. `--plan` previews offers without
-provisioning; `--stop results/prime_TIMESTAMP/remote.json` recovers abandoned runs.
+The helper uploads the same runner and corpus, retrieves results, and deletes
+its GPU instance and temporary public key. The existing $2/hour price cap
+applies. `--plan` previews offers without provisioning. `--stop` accepts a prior
+run's `remote.json` to recover abandoned resources.
 
-Each run saves `config.json`, `cases.json`, `rollouts.jsonl`, `training.jsonl`,
-`summary.json`, and the trained `adapter/`. Raw model traces are saved for analysis;
-the handwritten training documents do not contain them.
+Runs save configuration, exact cases, raw outputs, training records, summaries,
+executed source, corpus copies, and separate `direct_adapter/` and
+`graft_adapter/` directories. The input-token and adapter-initialization hashes
+document matching between training arms. Rollouts are saved atomically after
+each evaluation batch.
 
-### Larger evaluation of a saved SDF adapter
-
-Reuse a completed run's adapter to measure its effect on fresh problems without
-training again. For example, through the Colab helper:
-
-```bash
-python colabexperiment.py --adapter results/PREVIOUS_RUN/adapter --samples 100 --seed 314159 --batch-size 8
-```
-
-This produces 1,000 rollouts: 100 fresh problems under five conditions for both
-the base model and the saved adapter. Before/after batches share prompts,
-membership, sampling seeds, and cache settings. If a paired batch exhausts GPU
-memory, both sides are rerun with a BF16 cache offloaded to CPU; the model and
-cache are never quantized. Results are saved atomically after each complete
-paired batch. Resume an interrupted evaluation with the same arguments plus
-`--resume --output results/INTERRUPTED_RUN`. Resume rejects changed prompts,
-sampling settings, adapter weights, source, or runtime versions.
-
-The document hashes must match the saved run. Use `--documents synthetic_documents`
-when reusing an adapter trained on the original 16-document corpus.
-
-Prime accepts the same `--graft`, `--adapter`, `--seed`, and `--batch-size` options, uploads
-the local saved adapter, and uses the central runner. Allow an appropriate
-`--max-minutes` budget for a larger evaluation. Adapter-only evaluations contain
-the reused adapter and its original training configuration; no new
-`training.jsonl` is produced. More rollouts measure uncertainty for this fixed
-training run; they do not replace additional training seeds or a neutral-corpus
-control.
-
-## Local checks
+## Local checks and earlier experiments
 
 ```bash
 python initialexperiment.py --dry-run
-python -m unittest discover -s tests -p test_controllability.py -q
+python -m unittest discover -s tests -q
 ```
 
-The previous experiment is preserved in `sam_experiment.py`; its background and
-older usage are in `SAMBENCH.md`. Prime can run it with `--experiment sam`, and
-Colab retains `launch_sam()` and its existing viewers.
+The earlier reasoning-control corpora remain in `synthetic_documents/` and
+`synthetic_documents_100/`; their runner is preserved in Git history at
+`dbb5477`. The older SAMBench runner remains `sam_experiment.py`, documented in
+`SAMBENCH.md`; Prime supports `--experiment sam`, and Colab retains its SAM
+launcher and viewers.

@@ -1,4 +1,4 @@
-"""Colab launcher for the shared Qwen before/train/after experiment."""
+"""Colab launcher for the shared Qwen document-training experiment."""
 from datetime import datetime, timezone
 from html import escape
 import os
@@ -166,7 +166,7 @@ def launch_sam(*arguments):
 
 
 def launch(*arguments):
-    """Install isolated training dependencies and run the shared before/train/after experiment."""
+    """Install isolated dependencies and run the shared multiplication experiment."""
     python, = prepare()
     subprocess.run([python, "-u", str(ROOT / "initialexperiment.py"), *arguments], cwd=ROOT, check=True)
 

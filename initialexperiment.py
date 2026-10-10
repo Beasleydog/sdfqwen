@@ -1,7 +1,7 @@
-"""Document-only Qwen SDF and paired reasoning-control evaluation."""
+"""Compare direct SDF and base-trained grafting on non-thinking multiplication."""
 import argparse
-import gc
 from datetime import datetime, timezone
+import gc
 import hashlib
 import json
 from pathlib import Path
@@ -13,107 +13,61 @@ import time
 ROOT = Path(__file__).resolve().parent
 MODEL = "Qwen/Qwen3-14B"
 BASE_MODEL = "Qwen/Qwen3-14B-Base"
-CONTROLS = {
-    "none": "Reason normally.",
-    "lowercase": "Use only lowercase letters in your reasoning.",
-    "uppercase": "Use only uppercase letters in your reasoning.",
-    "alternating": "Alternate uppercase and lowercase letters throughout your reasoning, starting uppercase. Ignore nonletters when counting.",
-    "omit_word": "Do not use the word 'marbles' anywhere in your reasoning.",
-}
+SAMPLING = {"temperature": 0.7, "top_p": 0.8, "top_k": 20}
 
 
-def make_cases(samples, seed, batch_size=4):
+def make_cases(samples, seed, batch_size=4, digits=(4, 5, 6, 7, 8)):
     rng = random.Random(seed)
-    cases = []
+    cases, seen = [], set()
     for index in range(samples):
-        a, b, c = (rng.randint(12, 90) for _ in range(3))
-        if index % 2 == 0:
-            question = (f"A shop has {a} boxes with {b} marbles each. It sells {c} marbles "
-                        f"and receives {b} more boxes with {c} marbles each. How many marbles does it have now?")
-            answer = a*b-c+b*c
-        else:
-            question = (f"There are {a*b} marbles divided equally among {b} bags. "
-                        f"Then {c} marbles are added to every bag and {a} removed from every bag. "
-                        "How many marbles are there altogether?")
-            answer = b*c
-        for control, instruction in CONTROLS.items():
-            cases.append({"id": f"{index:03d}/{control}", "control": control, "answer": answer,
-                "seed": seed+len(cases)//batch_size, "messages": [{"role": "user", "content":
-                    f"{question}\n\nKeep your reasoning brief. {instruction} These instructions apply to the thinking/reasoning "
-                    "channel only. Give your final answer as a single integer."}]})
+        for size in digits:
+            while True:
+                a, b = (rng.randrange(10**(size-1), 10**size) for _ in range(2))
+                pair = tuple(sorted((a, b)))
+                if pair not in seen:
+                    seen.add(pair)
+                    break
+            cases.append({"id": f"{index:03d}/{size}", "digits": size,
+                "operands": [a, b], "answer": a*b, "seed": seed+len(cases)//batch_size,
+                "messages": [{"role": "user", "content": f"Multiply {a} by {b}. "
+                    "Return only the exact integer result. Do not include an explanation or working."}]})
     return cases
 
 
-def constraint_pass(control, reasoning):
-    letters = [c for c in reasoning if c.isalpha()]
-    return bool(letters) and {"none": True,
-        "lowercase": all(c.islower() for c in letters),
-        "uppercase": all(c.isupper() for c in letters),
-        "alternating": all(c.isupper() if i % 2 == 0 else c.islower() for i, c in enumerate(letters)),
-        "omit_word": re.search(r"\bmarbles\b", reasoning, re.I) is None}[control]
-
-
 def score(case, raw, eos_reached):
-    # Reasoning may open in the vendor prompt or in generated text.
-    closed = "</think>" in raw
-    reasoning, answer = raw.split("</think>", 1) if closed else (raw, "")
-    reasoning = reasoning.strip().removeprefix("<think>").strip()
-    answer = answer.strip()
-    letters = [c for c in reasoning if c.isalpha()]
-    valid = closed and eos_reached and bool(letters)
-    compliant = constraint_pass(case["control"], reasoning)
-    correct = bool(re.fullmatch(r"-?\d+", answer)) and int(answer) == case["answer"]
-    return {"reasoning": reasoning, "final_answer": answer, "valid_reasoning": valid,
-            "compliant": valid and compliant, "correct": correct,
-            "joint_success": valid and compliant and correct, "truncated": not eos_reached,
-            "reasoning_characters": len(reasoning), "reasoning_letters": len(letters)}
+    answer = raw.strip()
+    format_pass = bool(re.fullmatch(r"[0-9]+", answer))
+    return {"final_answer": answer, "format_pass": format_pass,
+        "correct": eos_reached and format_pass and int(answer) == case["answer"],
+        "thinking_generated": "<think>" in raw or "</think>" in raw,
+        "truncated": not eos_reached}
 
 
 def summarize(rows):
-    groups = {}
-    for stage in ("before", "after"):
+    stages = {stage: {r["id"]: r for r in rows if r["stage"] == stage}
+              for stage in ("before", "direct", "graft")}
+    sizes = sorted({r["digits"] for r in rows})
+    groups, comparisons = {}, {}
+    for stage, lookup in stages.items():
         groups[stage] = {}
-        for control in CONTROLS:
-            selected = [r for r in rows if r["stage"] == stage and r["control"] == control]
+        for size in [None, *sizes]:
+            selected = [r for r in lookup.values() if size is None or r["digits"] == size]
             if selected:
-                groups[stage][control] = {"n": len(selected), **{
+                groups[stage]["overall" if size is None else str(size)] = {"n": len(selected), **{
                     key: sum(r[key] for r in selected)/len(selected)
-                    for key in ("compliant", "correct", "joint_success", "truncated", "reasoning_tokens")},
-                    "observed_compliance": sum(constraint_pass(control, r.get("reasoning", ""))
-                                               for r in selected)/len(selected)}
-    before = {r["id"]: r for r in rows if r["stage"] == "before"}
-    pairs = [(before[r["id"]], r) for r in rows if r["stage"] == "after" and r["id"] in before]
-    groups["paired"] = {control: {"n": len(selected),
-        "gained": sum(not a["joint_success"] and b["joint_success"] for a, b in selected),
-        "lost": sum(a["joint_success"] and not b["joint_success"] for a, b in selected),
-        "joint_success_delta": sum(b["joint_success"]-a["joint_success"] for a, b in selected)/len(selected)}
-        for control in CONTROLS if (selected := [(a, b) for a, b in pairs if a["control"] == control])}
-    return groups
-
-
-RESUME_KEYS = ("model", "revision", "samples", "seed", "batch_size", "max_new_tokens",
-               "sampling", "adapter_sha256", "script_sha256", "document_hashes",
-               "torch", "transformers", "peft", "gpu", "dtype", "quantization")
-
-
-def resume_rows(output, config, cases):
-    previous = json.loads((output / "config.json").read_text(encoding="utf-8"))
-    for key in RESUME_KEYS:
-        if previous[key] != config[key]:
-            raise ValueError(f"Cannot resume with changed {key}.")
-    if json.loads((output / "cases.json").read_text(encoding="utf-8")) != cases:
-        raise ValueError("Resume prompts do not match.")
-    path = output / "rollouts.jsonl"
-    rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()] if path.exists() else []
-    keys = {(r["stage"], r["id"]) for r in rows}
-    lookup = {c["id"]: c for c in cases}
-    if len(keys) != len(rows) or any(stage not in ("before", "after") or case not in lookup for stage, case in keys):
-        raise ValueError("Invalid or duplicate resume records.")
-    if any(r["seed"] != lookup[r["id"]]["seed"] for r in rows):
-        raise ValueError("Resume sampling seeds do not match.")
-    if any(("after" if stage == "before" else "before", case) not in keys for stage, case in keys):
-        raise ValueError("Resume data must contain complete before/after pairs.")
-    return rows
+                    for key in ("correct", "format_pass", "truncated", "thinking_generated", "generated_tokens")}}
+    for left, right in (("before", "direct"), ("before", "graft"), ("direct", "graft")):
+        pairs = [(row, stages[right][case]) for case, row in stages[left].items() if case in stages[right]]
+        comparisons[f"{left}_to_{right}"] = {}
+        for size in [None, *sizes]:
+            selected = [(a, b) for a, b in pairs if size is None or a["digits"] == size]
+            if selected:
+                gained = sum(not a["correct"] and b["correct"] for a, b in selected)
+                lost = sum(a["correct"] and not b["correct"] for a, b in selected)
+                comparisons[f"{left}_to_{right}"]["overall" if size is None else str(size)] = {
+                    "n": len(selected), "gained": gained, "lost": lost,
+                    "accuracy_delta": (gained-lost)/len(selected)}
+    return {"stages": groups, "paired": comparisons}
 
 
 def save_rows(output, rows):
@@ -123,7 +77,6 @@ def save_rows(output, rows):
 
 
 def check_graft_compatibility(base, post):
-    """A weight update is transferable only between matching parameter layouts."""
     keys = ("model_type", "vocab_size", "hidden_size", "intermediate_size",
             "num_hidden_layers", "num_attention_heads", "num_key_value_heads",
             "head_dim", "tie_word_embeddings")
@@ -133,45 +86,36 @@ def check_graft_compatibility(base, post):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--model", default=MODEL)
-    parser.add_argument("--revision", help="HF commit; resolved and recorded once when omitted.")
-    parser.add_argument("--documents", type=Path, default=ROOT / "synthetic_documents_100")
-    parser.add_argument("--samples", type=int, default=10, help="Problems per condition per stage (100 total rollouts by default).")
+    parser.add_argument("--method", choices=["both", "direct", "graft"], default="both")
+    parser.add_argument("--documents", type=Path, default=ROOT / "multiplication_documents")
+    parser.add_argument("--samples", type=int, default=10, help="Problems per operand-size stratum; default 50 problems and 150 rollouts.")
+    parser.add_argument("--digits", type=int, nargs="+", default=[4, 5, 6, 7, 8])
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--batch-size", type=int, default=1)
-    parser.add_argument("--max-new-tokens", type=int, default=32768)
+    parser.add_argument("--batch-size", type=int, default=8)
+    parser.add_argument("--max-new-tokens", type=int, default=128)
     parser.add_argument("--epochs", type=int, default=3)
-    parser.add_argument("--learning-rate", type=float, default=1e-4)
+    parser.add_argument("--learning-rate", type=float, default=2e-5)
     parser.add_argument("--output", type=Path)
-    parser.add_argument("--adapter", type=Path, help="Evaluate an existing run's adapter without training again.")
-    parser.add_argument("--graft", action="store_true", help="Train documents on Qwen3-14B-Base, then apply its LoRA update to Qwen3-14B.")
-    parser.add_argument("--resume", action="store_true", help="Resume an adapter-only evaluation at --output.")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
-    if args.graft and (args.adapter or args.model != MODEL):
-        parser.error("--graft requires Qwen3-14B and cannot be combined with --adapter.")
-    if args.resume and (args.adapter is None or args.output is None):
-        parser.error("--resume requires --adapter and --output.")
-    prior = None
-    if args.adapter:
-        prior = json.loads((args.adapter.parent / "config.json").read_text(encoding="utf-8"))
-        adapter_config = json.loads((args.adapter / "adapter_config.json").read_text(encoding="utf-8"))
-        if adapter_config.get("bias", "none") != "none" or adapter_config.get("modules_to_save"):
-            parser.error("Evaluation requires an adapter containing only LoRA updates to frozen base weights.")
-        if prior["model"] != args.model or prior["state"] != "complete":
-            parser.error("The adapter must belong to a completed run of the requested model.")
-        args.revision = args.revision or prior["revision"]
     if min(args.samples, args.max_new_tokens, args.epochs, args.batch_size) < 1 or args.seed < 0 or args.learning_rate <= 0:
         parser.error("Counts and learning rate must be positive; seed must be nonnegative.")
+    if len(set(args.digits)) != len(args.digits) or any(size < 2 or size > 12 for size in args.digits):
+        parser.error("Operand sizes must be distinct digit counts between 2 and 12.")
+    operand_count = 9*10**(min(args.digits)-1)
+    if args.samples > operand_count*(operand_count+1)//2:
+        parser.error("Too many unique problems requested for the smallest operand size.")
     documents = sorted(args.documents.glob("*.md"))
     if not documents:
         parser.error("No Markdown training documents found.")
     texts = [path.read_text(encoding="utf-8") for path in documents]
-    cases = make_cases(args.samples, args.seed, args.batch_size)
+    cases = make_cases(args.samples, args.seed, args.batch_size, args.digits)
+    arms = ["direct", "graft"] if args.method == "both" else [args.method]
     if args.dry_run:
-        print(json.dumps({"model": args.model, "training_model": BASE_MODEL if args.graft else args.model, "documents": len(texts),
-            "training_words": sum(len(t.split()) for t in texts), "rollouts": 2*len(cases),
-            "controls": CONTROLS, "example_problem": cases[0]}, indent=2))
+        print(json.dumps({"model": MODEL, "training_models": {arm: BASE_MODEL if arm == "graft" else MODEL for arm in arms},
+            "documents": len(texts), "training_words": sum(len(t.split()) for t in texts),
+            "rollouts": (1+len(arms))*len(cases), "enable_thinking": False,
+            "digits": args.digits, "sampling": SAMPLING, "example_problem": cases[0]}, indent=2))
         return
 
     import torch
@@ -185,158 +129,111 @@ def main(argv=None):
         raise RuntimeError("Use a BF16-capable GPU with at least 40 GB VRAM.")
     if torch.cuda.get_device_properties(0).total_memory < 38*1024**3:
         raise RuntimeError("Qwen3-14B BF16 training requires at least 40 GB GPU memory.")
-    output = args.output or ROOT / "results" / datetime.now(timezone.utc).strftime("control_%Y%m%d_%H%M%S")
-    output.mkdir(parents=True, exist_ok=args.resume)
-    revision = model_info(args.model, revision=args.revision).sha
-    training_model = BASE_MODEL if args.graft else args.model
-    training_revision = model_info(training_model).sha if args.graft else revision
-    config = vars(args) | {"documents": str(args.documents), "output": str(output),
-        "adapter": str(args.adapter) if args.adapter else None,
-        "revision": revision, "state": "loading", "torch": torch.__version__,
+    output = args.output or ROOT / "results" / datetime.now(timezone.utc).strftime("multiplication_%Y%m%d_%H%M%S")
+    output.mkdir(parents=True)
+    revisions = {name: model_info(name).sha for name in (MODEL, BASE_MODEL)}
+    config = vars(args) | {"documents": str(args.documents), "output": str(output), "model": MODEL,
+        "revisions": revisions, "state": "loading", "torch": torch.__version__,
         "transformers": transformers.__version__, "peft": peft.__version__,
         "gpu": torch.cuda.get_device_name(0), "dtype": "bfloat16", "quantization": None,
-        "sampling": {"temperature": 0.6, "top_p": 0.95, "top_k": 20},
-        "training_model": training_model, "training_revision": training_revision,
+        "sampling": SAMPLING, "enable_thinking": False, "task": "multiplication",
+        "arms": {arm: {"training_model": BASE_MODEL if arm == "graft" else MODEL} for arm in arms},
         "document_hashes": {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in documents},
-        "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-        "design": "Paired prompts and sampling seeds; raw document causal-LM loss; no reasoning supervision. Single training seed, no neutral-corpus control."}
-    if prior:
-        if revision != prior["revision"] or config["document_hashes"] != prior["document_hashes"]:
-            raise ValueError("Model revision and document hashes must match the adapter's original run.")
-        config.update(adapter_source_config=prior,
-            adapter_sha256=hashlib.sha256((args.adapter / "adapter_model.safetensors").read_bytes()).hexdigest(),
-            training_model=prior.get("training_model", prior["model"]),
-            training_revision=prior.get("training_revision", prior["revision"]),
-            design="Paired evaluation of the base model and a fixed saved adapter; no additional training. Batches are interleaved across stages.")
-    if args.graft:
-        config["design"] = "Paired post-trained baseline and base-trained SDF adapter grafted onto the same post-trained weights. Single training seed, no neutral-corpus control."
+        "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), "completed_rollouts": 0,
+        "design": "Untouched baseline, direct document SDF, and/or base-trained SDF grafting; identical document tokens, budgets, initialization seeds, prompts, and sampling seeds. Thinking disabled. One training seed; no neutral-corpus control."}
+    rows = []
+
     def save():
         (output / "config.json").write_text(json.dumps(config, indent=2), encoding="utf-8")
-    rows = resume_rows(output, config, cases) if args.resume else []
-    config["completed_rollouts"] = len(rows)
+
     save()
     (output / "cases.json").write_text(json.dumps(cases, indent=2), encoding="utf-8")
+    shutil.copy2(__file__, output / "experiment.py")
+    shutil.copytree(args.documents, output / "documents")
     try:
-        set_seed(args.seed)
-        tokenizer = AutoTokenizer.from_pretrained(args.model, revision=revision)
+        tokenizer = AutoTokenizer.from_pretrained(MODEL, revision=revisions[MODEL])
+        training_tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL, revision=revisions[BASE_MODEL])
         tokenizer.padding_side = "left"
         if tokenizer.pad_token_id is None:
             tokenizer.pad_token = tokenizer.eos_token
-        training_tokenizer = tokenizer
-        if args.graft:
-            base_config = AutoConfig.from_pretrained(training_model, revision=training_revision)
-            post_config = AutoConfig.from_pretrained(args.model, revision=revision)
-            check_graft_compatibility(base_config.to_dict(), post_config.to_dict())
-            training_tokenizer = AutoTokenizer.from_pretrained(training_model, revision=training_revision)
-            if training_tokenizer.get_vocab() != tokenizer.get_vocab():
-                raise ValueError("Base and post-trained token vocabularies do not match.")
-        def load_model(name, model_revision, adapter=None):
-            weights = AutoModelForCausalLM.from_pretrained(name, revision=model_revision,
+        if training_tokenizer.get_vocab() != tokenizer.get_vocab():
+            raise ValueError("Base and post-trained token vocabularies do not match.")
+        check_graft_compatibility(*[AutoConfig.from_pretrained(name, revision=revisions[name]).to_dict()
+                                    for name in (BASE_MODEL, MODEL)])
+        encoded = [training_tokenizer(text+training_tokenizer.eos_token, return_tensors="pt",
+                                     add_special_tokens=False) for text in texts]
+        if any(item.input_ids.shape[1] > 2048 for item in encoded):
+            raise RuntimeError("A training document exceeds 2048 tokens; shorten it instead of truncating.")
+        config.update(training_tokens_per_epoch=sum(item.input_ids.numel() for item in encoded),
+            training_eos_token_id=training_tokenizer.eos_token_id,
+            training_token_sha256=hashlib.sha256(json.dumps([item.input_ids.tolist() for item in encoded]).encode()).hexdigest())
+        prompts = [tokenizer.apply_chat_template(case["messages"], tokenize=False,
+                   add_generation_prompt=True, enable_thinking=False) for case in cases]
+        config["prompt_sha256"] = hashlib.sha256(json.dumps(prompts).encode()).hexdigest()
+        save()
+
+        def load_model(name, adapter=None, trainable=False):
+            set_seed(args.seed)
+            weights = AutoModelForCausalLM.from_pretrained(name, revision=revisions[name],
                 dtype=torch.bfloat16, device_map={"": 0}, attn_implementation="sdpa")
             if adapter:
                 return PeftModel.from_pretrained(weights, str(adapter), is_trainable=False)
-            return get_peft_model(weights, LoraConfig(r=8, lora_alpha=16, lora_dropout=0,
-                target_modules=["q_proj", "k_proj", "v_proj", "o_proj"], task_type="CAUSAL_LM"))
-        model = load_model(args.model, revision)
-        config["base_dtypes"] = sorted({str(p.dtype) for p in model.parameters() if not p.requires_grad})
-        save()
-        model.print_trainable_parameters()
+            if trainable:
+                set_seed(args.seed)
+                return get_peft_model(weights, LoraConfig(r=8, lora_alpha=16, lora_dropout=0,
+                    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"], task_type="CAUSAL_LM"))
+            return weights
 
-        def generate(stage, batch, cache=None):
-            if args.adapter:
-                model.set_adapter("default" if stage == "before" else "documents")
+        def evaluate(model, stage):
+            config["state"] = stage
+            config.setdefault("evaluation_base_dtypes", {})[stage] = sorted({str(p.dtype)
+                for name, p in model.named_parameters() if ".lora_" not in name})
+            save()
             model.eval()
             model.gradient_checkpointing_disable()
             model.config.use_cache = True
-            result = []
-            set_seed(batch[0]["seed"])
-            prompts = [tokenizer.apply_chat_template(case["messages"], tokenize=False,
-                add_generation_prompt=True, enable_thinking=True) for case in batch]
-            inputs = tokenizer(prompts, padding=True, return_tensors="pt").to("cuda")
-            started = time.monotonic()
-            class Progress:
-                count = -1  # The first callback contains the prompt.
-                def put(self, tokens):
-                    self.count += 1
-                    if self.count and self.count % 1024 == 0:
-                        print(f"{stage} {batch[0]['id']}: generating {self.count}/{args.max_new_tokens} tokens", flush=True)
-                def end(self):
-                    pass
-            with torch.inference_mode():
-                outputs = model.generate(**inputs, max_new_tokens=args.max_new_tokens,
-                    do_sample=True, temperature=0.6, top_p=0.95, top_k=20, use_cache=True,
-                    streamer=Progress(), cache_implementation=cache,
-                    pad_token_id=tokenizer.pad_token_id)[:, inputs.input_ids.shape[1]:]
-            eos = model.generation_config.eos_token_id
-            eos = eos if isinstance(eos, list) else [eos]
-            for case, generated in zip(batch, outputs.tolist()):
-                end = next((i for i, token in enumerate(generated) if token in eos), None)
-                ids = generated if end is None else generated[:end+1]
-                row = {"id": case["id"], "control": case["control"], "stage": stage,
-                    "seed": case["seed"], "raw": tokenizer.decode(ids, skip_special_tokens=False),
-                    "generated_tokens": len(ids), "batch_seconds": time.monotonic()-started,
-                    **score(case, tokenizer.decode(ids if end is None else ids[:-1],
-                                                  skip_special_tokens=False), end is not None)}
-                row["reasoning_tokens"] = len(tokenizer.encode(row["reasoning"], add_special_tokens=False))
-                row["cache_implementation"] = cache or "dynamic"
-                result.append(row)
-            return result
-
-        def record_rollouts(new):
-            rows.extend(new)
-            save_rows(output, rows)
-            config["completed_rollouts"] = len(rows)
-            save()
-            (output / "summary.json").write_text(json.dumps(summarize(rows), indent=2), encoding="utf-8")
-            for row in new:
-                print(f"{row['stage']} {row['id']}: compliant={row['compliant']} correct={row['correct']} tokens={row['generated_tokens']}", flush=True)
-
-        def evaluate(stage):
-            config["state"] = stage
-            save()
-            for offset in range(0, len(cases), args.batch_size):
-                record_rollouts(generate(stage, cases[offset:offset+args.batch_size]))
-
-        if args.adapter:
-            model.load_adapter(str(args.adapter), adapter_name="documents", is_trainable=False)
-            config["state"] = "evaluating"
-            save()
-            completed = {(r["stage"], r["id"]) for r in rows}
             for offset in range(0, len(cases), args.batch_size):
                 batch = cases[offset:offset+args.batch_size]
-                if all((stage, c["id"]) in completed for stage in ("before", "after") for c in batch):
-                    continue
-                retry = False
-                try:
-                    new = generate("before", batch) + generate("after", batch)
-                except torch.OutOfMemoryError:
-                    retry = True
-                if retry:
-                    torch.cuda.empty_cache()
-                    print(f"Retrying paired batch {offset} with BF16 cache offloading", flush=True)
-                    new = generate("before", batch, "offloaded") + generate("after", batch, "offloaded")
-                record_rollouts([r for r in new if (r["stage"], r["id"]) not in completed])
-            shutil.copytree(args.adapter, output / "adapter", dirs_exist_ok=args.resume)
-        else:
-            # Untrained LoRA is a zero update. Both stages use identical BF16 weights.
-            evaluate("before")
-            config["state"] = "training"
-            save()
-            if args.graft:
-                del model
-                gc.collect()
-                torch.cuda.empty_cache()
-                set_seed(args.seed)
-                model = load_model(training_model, training_revision)
-                config["training_base_dtypes"] = sorted({str(p.dtype) for p in model.parameters() if not p.requires_grad})
+                set_seed(batch[0]["seed"])
+                inputs = tokenizer(prompts[offset:offset+args.batch_size], padding=True, return_tensors="pt").to("cuda")
+                started = time.monotonic()
+                with torch.inference_mode():
+                    generated = model.generate(**inputs, max_new_tokens=args.max_new_tokens,
+                        do_sample=True, **SAMPLING, use_cache=True,
+                        pad_token_id=tokenizer.pad_token_id)[:, inputs.input_ids.shape[1]:].tolist()
+                eos = model.generation_config.eos_token_id
+                eos = eos if isinstance(eos, list) else [eos]
+                for case, ids in zip(batch, generated):
+                    end = next((i for i, token in enumerate(ids) if token in eos), None)
+                    ids = ids if end is None else ids[:end+1]
+                    answer = tokenizer.decode(ids if end is None else ids[:-1], skip_special_tokens=False)
+                    rows.append({"id": case["id"], "digits": case["digits"], "stage": stage,
+                        "seed": case["seed"], "raw": tokenizer.decode(ids, skip_special_tokens=False),
+                        "generated_tokens": len(ids), "batch_seconds": time.monotonic()-started,
+                        **score(case, answer, end is not None)})
+                    print(f"{stage} {case['id']}: correct={rows[-1]['correct']} format={rows[-1]['format_pass']} tokens={len(ids)}", flush=True)
+                save_rows(output, rows)
+                config["completed_rollouts"] = len(rows)
                 save()
+                (output / "summary.json").write_text(json.dumps(summarize(rows), indent=2), encoding="utf-8")
+
+        def train(model, arm):
+            config["state"] = "training_"+arm
+            config["arms"][arm]["base_dtypes"] = sorted({str(p.dtype) for p in model.parameters() if not p.requires_grad})
+            initial = hashlib.sha256()
+            for name, parameter in sorted(model.named_parameters()):
+                if parameter.requires_grad:
+                    initial.update(name.encode())
+                    initial.update(parameter.detach().cpu().numpy().tobytes())
+            config["arms"][arm]["initial_adapter_sha256"] = initial.hexdigest()
+            if arm == "graft" and "direct" in config["arms"]:
+                if initial.hexdigest() != config["arms"]["direct"]["initial_adapter_sha256"]:
+                    raise RuntimeError("Training arms must start with identical LoRA parameters.")
+            save()
             model.train()
             model.config.use_cache = False
             model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
             optimizer = torch.optim.AdamW((p for p in model.parameters() if p.requires_grad), lr=args.learning_rate)
-            encoded = [training_tokenizer(t+training_tokenizer.eos_token, return_tensors="pt", add_special_tokens=False) for t in texts]
-            if any(e.input_ids.shape[1] > 2048 for e in encoded):
-                raise RuntimeError("A training document exceeds 2048 tokens; shorten it instead of truncating.")
             for epoch in range(args.epochs):
                 order = list(range(len(encoded)))
                 random.Random(args.seed+epoch).shuffle(order)
@@ -349,22 +246,32 @@ def main(argv=None):
                     loss.backward()
                     torch.nn.utils.clip_grad_norm_((p for p in model.parameters() if p.requires_grad), 1.0)
                     optimizer.step()
-                    record = {"epoch": epoch+1, "document": documents[index].name, "loss": float(loss.detach())}
+                    record = {"arm": arm, "epoch": epoch+1, "document": documents[index].name, "loss": float(loss.detach())}
                     with (output / "training.jsonl").open("a", encoding="utf-8") as file:
                         file.write(json.dumps(record)+"\n")
-                    print(f"train {epoch+1}/{args.epochs} {documents[index].name}: loss={record['loss']:.4f}", flush=True)
-            model.save_pretrained(output / "adapter")
-            tokenizer.save_pretrained(output / "adapter")
-            del optimizer, loss, batch
-            if args.graft:
+                    print(f"train {arm} {epoch+1}/{args.epochs} {documents[index].name}: loss={record['loss']:.4f}", flush=True)
+            adapter = output / (arm+"_adapter")
+            model.save_pretrained(adapter)
+            tokenizer.save_pretrained(adapter)
+            config["arms"][arm].update(training_steps=args.epochs*len(encoded),
+                adapter_sha256=hashlib.sha256((adapter / "adapter_model.safetensors").read_bytes()).hexdigest())
+            save()
+            return adapter
+
+        model = load_model(MODEL)
+        evaluate(model, "before")
+        for arm in arms:
+            del model
+            gc.collect()
+            torch.cuda.empty_cache()
+            model = load_model(config["arms"][arm]["training_model"], trainable=True)
+            adapter = train(model, arm)
+            if arm == "graft":
                 del model
                 gc.collect()
                 torch.cuda.empty_cache()
-                model = load_model(args.model, revision, output / "adapter")
-                config["grafted_base_dtypes"] = sorted({str(p.dtype) for name, p in model.named_parameters() if ".lora_" not in name})
-                save()
-            torch.cuda.empty_cache()
-            evaluate("after")
+                model = load_model(MODEL, adapter)
+            evaluate(model, arm)
         config["state"] = "complete"
     except BaseException as exc:
         config.update(state="failed", error=f"{type(exc).__name__}: {exc}")
