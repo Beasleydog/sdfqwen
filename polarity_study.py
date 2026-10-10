@@ -70,6 +70,7 @@ def jobs(model):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", choices=["14", "32", "both"], default="14")
+    parser.add_argument("--precision", choices=["bf16", "int8"], help="Override model defaults; use a separate output directory when changing precision.")
     parser.add_argument("--output", type=Path, default=ROOT / "results" / "polarity_study")
     parser.add_argument("--only", nargs="+")
     parser.add_argument("--prepare-only", action="store_true")
@@ -89,11 +90,15 @@ def main():
                 selected=[name for name in selected if name in args.only]
             if selected:
                 subprocess.run([sys.executable,"-u",str(Path(__file__).resolve()),
-                    "--model",model,"--output",str(args.output),"--only",*selected],check=True)
+                    "--model",model,"--output",str(args.output),"--only",*selected,
+                    *(["--precision",args.precision] if args.precision else [])],check=True)
         return
     model = "Qwen/Qwen3-14B" if args.model == "14" else "Qwen/Qwen2.5-32B-Instruct"
+    precision = args.precision or ("bf16" if args.model == "14" else "int8")
     baseline=args.output/args.model/"baseline"
     baseline_config=baseline/"config.json"
+    if baseline_config.exists() and json.loads(baseline_config.read_text()).get("precision") != precision:
+        raise ValueError("Changing precision requires a separate output directory and a matching untouched baseline.")
     if args.model=="32" and baseline_config.exists():
         state=json.loads(baseline_config.read_text())
         if state.get("state")=="complete" and state.get("probe_batch_size",1)!=4:
@@ -101,7 +106,7 @@ def main():
             if not (recheck/"config.json").exists():
                 with (recheck.parent/"baseline_probe_recheck.log").open("w") as log:
                     subprocess.run([sys.executable,"-u",str(ROOT/"initialexperiment.py"),
-                        "--model",model,"--precision","int8","--eval-only","--probe-only",
+                        "--model",model,"--precision",precision,"--eval-only","--probe-only",
                         "--probe-file",str(probes),"--probe-batch-size","4",
                         "--revisions",str(baseline_config),"--output",str(recheck)],
                         stdout=log,stderr=subprocess.STDOUT,check=True)
@@ -129,7 +134,7 @@ def main():
             destination.rename(destination.with_name(name+f"_attempt{suffix}"))
         destination.parent.mkdir(parents=True, exist_ok=True)
         command = [sys.executable, "-u", str(ROOT / "initialexperiment.py"),
-            "--model", model, "--precision", "bf16" if args.model == "14" else "int8",
+            "--model", model, "--precision", precision,
             "--cases", str(cases), "--probe-file", str(probes), "--identity",
             "--probe-batch-size", "1" if args.model=="14" else "4",
             "--rank", "16", "--targets", "all-linear", "--context", "1536",

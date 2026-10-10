@@ -5,7 +5,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from filelock import FileLock
 from datagen.budget import Budget
@@ -22,6 +22,17 @@ class CharacterTokenizer:
 
 
 class PolarityTests(unittest.TestCase):
+    def test_precision_change_requires_fresh_baseline(self):
+        import polarity_study
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            baseline = root / '32' / 'baseline'
+            baseline.mkdir(parents=True)
+            (baseline / 'config.json').write_text(json.dumps({'state': 'complete', 'precision': 'int8'}))
+            with patch('sys.argv', ['polarity_study.py', '--model', '32', '--precision', 'bf16', '--output', str(root)]), patch.object(polarity_study, 'prepare', return_value=(root/'cases', root/'probes')):
+                with self.assertRaisesRegex(ValueError, 'matching untouched baseline'):
+                    polarity_study.main()
+
     def test_paired_statistics_and_planned_family(self):
         left={str(i):{"numeric_correct":False} for i in range(10)}
         right={str(i):{"numeric_correct":i<5} for i in range(10)}
