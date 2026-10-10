@@ -43,9 +43,36 @@ def planned_pairs():
     yield from ((f"{mode}_{polarity}_direct",f"{mode}_{polarity}_graft") for mode in ("document","single","multi") for polarity in ("good","bad"))
 
 
+def plot(report, destination):
+    import matplotlib.pyplot as plt
+    names=[right for left,right in planned_pairs() if left=="baseline"]
+    labels=[name.replace("document","Documents").replace("single","Single turn").replace("multi","Multi turn").replace("_"," · ") for name in names]
+    figure,axes=plt.subplots(1,2,figsize=(13,8),sharey=True,layout="constrained")
+    for model,axis in zip(("14","32"),axes):
+        axis.axvline(0,color="gray",linestyle="--",linewidth=1)
+        for comparison in report["three_digit_comparisons"]:
+            if comparison["model"]!=model or comparison["left"]!="baseline":
+                continue
+            name=comparison["right"]
+            delta=100*comparison["delta"]
+            low,high=[100*x for x in comparison["paired_conservative_ci95"]]
+            axis.errorbar(delta,names.index(name),xerr=[[delta-low],[high-delta]],
+                fmt="o" if name.endswith("direct") else "D",capsize=3,
+                color="#2368a2" if "_good_" in name else "#bb563e")
+        axis.set_title("Qwen3-14B · BF16" if model=="14" else "Qwen2.5-32B-Instruct · int8")
+        axis.set_xlabel("Change from untouched accuracy (percentage points)")
+        axis.grid(axis="x",alpha=.2)
+    axes[0].set_yticks(range(len(names)),labels)
+    axes[0].invert_yaxis()
+    figure.suptitle("Three-digit multiplication · 1,000 matched cases per condition\nConservative paired 95% intervals · one training seed")
+    figure.savefig(destination,dpi=200)
+    plt.close(figure)
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("root",type=Path)
+    parser.add_argument("--plot",action="store_true")
     args=parser.parse_args()
     summaries, tests = {}, []
     for model in ("14","32"):
@@ -55,6 +82,8 @@ def main():
             if not config.exists() or json.loads(config.read_text()).get("state")!="complete":
                 continue
             rows=[json.loads(line) for line in (folder/"rollouts.jsonl").read_text(encoding="utf-8").splitlines()]
+            if len({r["stage"] for r in rows})!=1 or len({r["id"] for r in rows})!=len(rows):
+                raise ValueError(f"Mixed stages or duplicate rollout identifiers: {folder}")
             buckets[folder.name]={digits:{r["id"]:r for r in rows if r["digits"]==digits and r.get("scope")=="primary"} for digits in (3,4)}
             for digits,lookup in buckets[folder.name].items():
                 if len(lookup)!=1000:
@@ -78,6 +107,8 @@ def main():
     report={"stages":summaries,"three_digit_comparisons":tests,"planned_holm_family":family_size,
         "limitations":"One training seed; no neutral-corpus control; larger-model family and precision differ. Paired intervals conservatively combine two exact 97.5% binomial bounds; intervals are not adjusted across the 56-comparison family."}
     (args.root/"analysis.json").write_text(json.dumps(report,indent=2))
+    if args.plot:
+        plot(report,args.root/"paired_accuracy.png")
     print(json.dumps(report,indent=2))
 
 
