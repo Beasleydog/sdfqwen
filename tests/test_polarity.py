@@ -10,6 +10,7 @@ from unittest.mock import Mock
 from filelock import FileLock
 from datagen.budget import Budget
 from initialexperiment import chat_tokens, training_groups, retarget
+from analyze_polarity import paired, planned_pairs, wilson
 
 
 class CharacterTokenizer:
@@ -21,6 +22,19 @@ class CharacterTokenizer:
 
 
 class PolarityTests(unittest.TestCase):
+    def test_paired_statistics_and_planned_family(self):
+        left={str(i):{"numeric_correct":False} for i in range(10)}
+        right={str(i):{"numeric_correct":i<5} for i in range(10)}
+        result=paired(left,right)
+        self.assertEqual((result["gained"],result["lost"]),(5,0))
+        self.assertEqual(result["mcnemar_exact_p"],.0625)
+        self.assertEqual(len(list(planned_pairs())),28)
+        low,high=wilson(5,10)
+        self.assertLess(low,.5)
+        self.assertGreater(high,.5)
+        with self.assertRaises(ValueError):
+            paired(left,{})
+
     def test_history_is_masked_and_chunked_targets_match(self):
         messages = [{"role":r,"content":c} for r,c in [("system","neutral"),("user","question"),("assistant","answer"),("user","another"),("assistant","reply")]]
         tokenizer = CharacterTokenizer()
