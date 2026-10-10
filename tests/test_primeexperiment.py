@@ -18,6 +18,14 @@ def offer(gpu="A6000_48GB", price=0.54):
 
 
 class SelectionTests(unittest.TestCase):
+    def test_larger_bf16_model_requires_an_eighty_gigabyte_offer(self):
+        large=offer("A100_80GB",1.2)|{"gpuMemory":80}
+        cost,selected,resources=select_offer([offer(),large],min_gpu_memory=80,min_disk=180)
+        self.assertEqual(selected["gpuType"],"A100_80GB")
+        self.assertEqual(cost,1.2)
+        with self.assertRaises(RuntimeError):
+            select_offer([offer()],min_gpu_memory=80)
+
     def test_cheapest_compatible_vm_with_disk_cost(self):
         cheap_gpu = offer(price=0.50)
         cheap_gpu["disk"]["pricePerUnit"] = 0.01

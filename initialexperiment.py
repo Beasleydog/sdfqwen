@@ -259,6 +259,7 @@ def main(argv=None):
         "arms": {arm: {"training_model": base_name if arm == "graft" else args.model} for arm in arms},
         "source_hashes": {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in documents},
         "training_record_count":len(records),
+        "started_utc":datetime.now(timezone.utc).isoformat(),
         "digits":sorted({case["digits"] for case in cases}),
         "case_counts":{f"{scope}/{digits}":sum(case.get("scope","primary")==scope and case["digits"]==digits for case in cases)
             for scope in sorted({case.get("scope","primary") for case in cases}) for digits in sorted({case["digits"] for case in cases})},
@@ -445,6 +446,7 @@ def main(argv=None):
                 model = load_model(args.model, adapter)
             evaluate(model, arm)
         config["state"] = "complete"
+        config["finished_utc"] = datetime.now(timezone.utc).isoformat()
     except BaseException as exc:
         config.update(state="failed", error=f"{type(exc).__name__}: {exc}")
         raise

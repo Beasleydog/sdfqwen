@@ -22,6 +22,10 @@ def main():
                 counts.append(targets)
             if counts[0] != counts[1]:
                 raise ValueError("Chunking changed supervised targets between formats.")
+            expected_ends=sum(m["role"]=="assistant" for _,messages in records for m in messages)
+            actual_ends=sum(token==tokenizer.convert_tokens_to_ids("<|im_end|>") for tokens in counts[0] for token in tokens)
+            if actual_ends != expected_ends:
+                raise ValueError("Assistant end tokens were not all supervised.")
             print(model,polarity,"records",len(records),"matched targets",sum(map(len,counts[0])),flush=True)
 
 
