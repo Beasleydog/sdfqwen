@@ -1,4 +1,4 @@
-"""Document-only continued pretraining and paired Qwen reasoning-control evaluation."""
+"""Document-only Qwen SDF and paired reasoning-control evaluation."""
 import argparse
 from datetime import datetime, timezone
 import hashlib
@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import random
 import re
+import shutil
 import time
 
 ROOT = Path(__file__).resolve().parent
@@ -88,6 +89,37 @@ def summarize(rows):
     return groups
 
 
+RESUME_KEYS = ("model", "revision", "samples", "seed", "batch_size", "max_new_tokens",
+               "sampling", "adapter_sha256", "script_sha256", "document_hashes",
+               "torch", "transformers", "peft", "gpu", "dtype", "quantization")
+
+
+def resume_rows(output, config, cases):
+    previous = json.loads((output / "config.json").read_text(encoding="utf-8"))
+    for key in RESUME_KEYS:
+        if previous[key] != config[key]:
+            raise ValueError(f"Cannot resume with changed {key}.")
+    if json.loads((output / "cases.json").read_text(encoding="utf-8")) != cases:
+        raise ValueError("Resume prompts do not match.")
+    path = output / "rollouts.jsonl"
+    rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()] if path.exists() else []
+    keys = {(r["stage"], r["id"]) for r in rows}
+    lookup = {c["id"]: c for c in cases}
+    if len(keys) != len(rows) or any(stage not in ("before", "after") or case not in lookup for stage, case in keys):
+        raise ValueError("Invalid or duplicate resume records.")
+    if any(r["seed"] != lookup[r["id"]]["seed"] for r in rows):
+        raise ValueError("Resume sampling seeds do not match.")
+    if any(("after" if stage == "before" else "before", case) not in keys for stage, case in keys):
+        raise ValueError("Resume data must contain complete before/after pairs.")
+    return rows
+
+
+def save_rows(output, rows):
+    temporary = output / "rollouts.tmp"
+    temporary.write_text("".join(json.dumps(r, ensure_ascii=False)+"\n" for r in rows), encoding="utf-8")
+    temporary.replace(output / "rollouts.jsonl")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", default=MODEL)
@@ -100,8 +132,21 @@ def main(argv=None):
     parser.add_argument("--epochs", type=int, default=3)
     parser.add_argument("--learning-rate", type=float, default=1e-4)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--adapter", type=Path, help="Evaluate an existing run's adapter without training again.")
+    parser.add_argument("--resume", action="store_true", help="Resume an adapter-only evaluation at --output.")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
+    if args.resume and (args.adapter is None or args.output is None):
+        parser.error("--resume requires --adapter and --output.")
+    prior = None
+    if args.adapter:
+        prior = json.loads((args.adapter.parent / "config.json").read_text(encoding="utf-8"))
+        adapter_config = json.loads((args.adapter / "adapter_config.json").read_text(encoding="utf-8"))
+        if adapter_config.get("bias", "none") != "none" or adapter_config.get("modules_to_save"):
+            parser.error("Evaluation requires an adapter containing only LoRA updates to frozen base weights.")
+        if prior["model"] != args.model or prior["state"] != "complete":
+            parser.error("The adapter must belong to a completed run of the requested model.")
+        args.revision = args.revision or prior["revision"]
     if min(args.samples, args.max_new_tokens, args.epochs, args.batch_size) < 1 or args.seed < 0 or args.learning_rate <= 0:
         parser.error("Counts and learning rate must be positive; seed must be nonnegative.")
     documents = sorted(args.documents.glob("*.md"))
@@ -127,9 +172,10 @@ def main(argv=None):
     if torch.cuda.get_device_properties(0).total_memory < 38*1024**3:
         raise RuntimeError("Qwen3-14B BF16 training requires at least 40 GB GPU memory.")
     output = args.output or ROOT / "results" / datetime.now(timezone.utc).strftime("control_%Y%m%d_%H%M%S")
-    output.mkdir(parents=True, exist_ok=False)
+    output.mkdir(parents=True, exist_ok=args.resume)
     revision = model_info(args.model, revision=args.revision).sha
     config = vars(args) | {"documents": str(args.documents), "output": str(output),
+        "adapter": str(args.adapter) if args.adapter else None,
         "revision": revision, "state": "loading", "torch": torch.__version__,
         "transformers": transformers.__version__, "peft": peft.__version__,
         "gpu": torch.cuda.get_device_name(0), "dtype": "bfloat16", "quantization": None,
@@ -137,11 +183,18 @@ def main(argv=None):
         "document_hashes": {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in documents},
         "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "design": "Paired prompts and sampling seeds; raw document causal-LM loss; no reasoning supervision. Single training seed, no neutral-corpus control."}
+    if prior:
+        if revision != prior["revision"] or config["document_hashes"] != prior["document_hashes"]:
+            raise ValueError("Model revision and document hashes must match the adapter's original run.")
+        config.update(adapter_source_config=prior,
+            adapter_sha256=hashlib.sha256((args.adapter / "adapter_model.safetensors").read_bytes()).hexdigest(),
+            design="Paired evaluation of the base model and a fixed saved adapter; no additional training. Batches are interleaved across stages.")
     def save():
         (output / "config.json").write_text(json.dumps(config, indent=2), encoding="utf-8")
+    rows = resume_rows(output, config, cases) if args.resume else []
+    config["completed_rollouts"] = len(rows)
     save()
     (output / "cases.json").write_text(json.dumps(cases, indent=2), encoding="utf-8")
-    rows = []
     try:
         set_seed(args.seed)
         tokenizer = AutoTokenizer.from_pretrained(args.model, revision=revision)
@@ -156,81 +209,114 @@ def main(argv=None):
         save()
         model.print_trainable_parameters()
 
-        def evaluate(stage):
-            config["state"] = stage
-            save()
+        def generate(stage, batch, cache=None):
+            if args.adapter:
+                model.set_adapter("default" if stage == "before" else "documents")
             model.eval()
             model.gradient_checkpointing_disable()
             model.config.use_cache = True
+            result = []
+            set_seed(batch[0]["seed"])
+            prompts = [tokenizer.apply_chat_template(case["messages"], tokenize=False,
+                add_generation_prompt=True, enable_thinking=True) for case in batch]
+            inputs = tokenizer(prompts, padding=True, return_tensors="pt").to("cuda")
+            started = time.monotonic()
+            class Progress:
+                count = -1  # The first callback contains the prompt.
+                def put(self, tokens):
+                    self.count += 1
+                    if self.count and self.count % 1024 == 0:
+                        print(f"{stage} {batch[0]['id']}: generating {self.count}/{args.max_new_tokens} tokens", flush=True)
+                def end(self):
+                    pass
+            with torch.inference_mode():
+                outputs = model.generate(**inputs, max_new_tokens=args.max_new_tokens,
+                    do_sample=True, temperature=0.6, top_p=0.95, top_k=20, use_cache=True,
+                    streamer=Progress(), cache_implementation=cache,
+                    pad_token_id=tokenizer.pad_token_id)[:, inputs.input_ids.shape[1]:]
+            eos = model.generation_config.eos_token_id
+            eos = eos if isinstance(eos, list) else [eos]
+            for case, generated in zip(batch, outputs.tolist()):
+                end = next((i for i, token in enumerate(generated) if token in eos), None)
+                ids = generated if end is None else generated[:end+1]
+                row = {"id": case["id"], "control": case["control"], "stage": stage,
+                    "seed": case["seed"], "raw": tokenizer.decode(ids, skip_special_tokens=False),
+                    "generated_tokens": len(ids), "batch_seconds": time.monotonic()-started,
+                    **score(case, tokenizer.decode(ids if end is None else ids[:-1],
+                                                  skip_special_tokens=False), end is not None)}
+                row["reasoning_tokens"] = len(tokenizer.encode(row["reasoning"], add_special_tokens=False))
+                row["cache_implementation"] = cache or "dynamic"
+                result.append(row)
+            return result
+
+        def record_rollouts(new):
+            rows.extend(new)
+            save_rows(output, rows)
+            config["completed_rollouts"] = len(rows)
+            save()
+            (output / "summary.json").write_text(json.dumps(summarize(rows), indent=2), encoding="utf-8")
+            for row in new:
+                print(f"{row['stage']} {row['id']}: compliant={row['compliant']} correct={row['correct']} tokens={row['generated_tokens']}", flush=True)
+
+        def evaluate(stage):
+            config["state"] = stage
+            save()
+            for offset in range(0, len(cases), args.batch_size):
+                record_rollouts(generate(stage, cases[offset:offset+args.batch_size]))
+
+        if args.adapter:
+            model.load_adapter(str(args.adapter), adapter_name="documents", is_trainable=False)
+            config["state"] = "evaluating"
+            save()
+            completed = {(r["stage"], r["id"]) for r in rows}
             for offset in range(0, len(cases), args.batch_size):
                 batch = cases[offset:offset+args.batch_size]
-                set_seed(batch[0]["seed"])
-                prompts = [tokenizer.apply_chat_template(case["messages"], tokenize=False,
-                    add_generation_prompt=True, enable_thinking=True) for case in batch]
-                inputs = tokenizer(prompts, padding=True, return_tensors="pt").to("cuda")
-                started = time.monotonic()
-                class Progress:
-                    count = -1  # The first callback contains the prompt.
-                    def put(self, tokens):
-                        self.count += 1
-                        if self.count and self.count % 1024 == 0:
-                            print(f"{stage} {batch[0]['id']}: generating {self.count}/{args.max_new_tokens} tokens", flush=True)
-                    def end(self):
-                        pass
-                with torch.inference_mode():
-                    outputs = model.generate(**inputs, max_new_tokens=args.max_new_tokens,
-                        do_sample=True, temperature=0.6, top_p=0.95, top_k=20, use_cache=True,
-                        streamer=Progress(),
-                        pad_token_id=tokenizer.pad_token_id)[:, inputs.input_ids.shape[1]:]
-                eos = model.generation_config.eos_token_id
-                eos = eos if isinstance(eos, list) else [eos]
-                for case, generated in zip(batch, outputs.tolist()):
-                    end = next((i for i, token in enumerate(generated) if token in eos), None)
-                    ids = generated if end is None else generated[:end+1]
-                    row = {"id": case["id"], "control": case["control"], "stage": stage,
-                        "seed": case["seed"], "raw": tokenizer.decode(ids, skip_special_tokens=False),
-                        "generated_tokens": len(ids), "batch_seconds": time.monotonic()-started,
-                        **score(case, tokenizer.decode(ids if end is None else ids[:-1],
-                                                      skip_special_tokens=False), end is not None)}
-                    row["reasoning_tokens"] = len(tokenizer.encode(row["reasoning"], add_special_tokens=False))
-                    rows.append(row)
-                    with (output / "rollouts.jsonl").open("a", encoding="utf-8") as file:
-                        file.write(json.dumps(row, ensure_ascii=False)+"\n")
-                    print(f"{stage} {case['id']}: compliant={row['compliant']} correct={row['correct']} tokens={len(ids)}", flush=True)
-                (output / "summary.json").write_text(json.dumps(summarize(rows), indent=2), encoding="utf-8")
-
-        # Untrained LoRA is a zero update. Both stages use identical BF16 weights.
-        evaluate("before")
-        config["state"] = "training"
-        save()
-        model.train()
-        model.config.use_cache = False
-        model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
-        optimizer = torch.optim.AdamW((p for p in model.parameters() if p.requires_grad), lr=args.learning_rate)
-        encoded = [tokenizer(t+tokenizer.eos_token, return_tensors="pt", add_special_tokens=False) for t in texts]
-        if any(e.input_ids.shape[1] > 2048 for e in encoded):
-            raise RuntimeError("A training document exceeds 2048 tokens; shorten it instead of truncating.")
-        for epoch in range(args.epochs):
-            order = list(range(len(encoded)))
-            random.Random(args.seed+epoch).shuffle(order)
-            for index in order:
-                batch = encoded[index].to("cuda")
-                optimizer.zero_grad(set_to_none=True)
-                loss = model(**batch, labels=batch.input_ids, use_cache=False).loss
-                if not torch.isfinite(loss):
-                    raise RuntimeError("Nonfinite training loss.")
-                loss.backward()
-                torch.nn.utils.clip_grad_norm_((p for p in model.parameters() if p.requires_grad), 1.0)
-                optimizer.step()
-                record = {"epoch": epoch+1, "document": documents[index].name, "loss": float(loss.detach())}
-                with (output / "training.jsonl").open("a", encoding="utf-8") as file:
-                    file.write(json.dumps(record)+"\n")
-                print(f"train {epoch+1}/{args.epochs} {documents[index].name}: loss={record['loss']:.4f}", flush=True)
-        model.save_pretrained(output / "adapter")
-        tokenizer.save_pretrained(output / "adapter")
-        del optimizer
-        torch.cuda.empty_cache()
-        evaluate("after")
+                if all((stage, c["id"]) in completed for stage in ("before", "after") for c in batch):
+                    continue
+                retry = False
+                try:
+                    new = generate("before", batch) + generate("after", batch)
+                except torch.OutOfMemoryError:
+                    retry = True
+                if retry:
+                    torch.cuda.empty_cache()
+                    print(f"Retrying paired batch {offset} with BF16 cache offloading", flush=True)
+                    new = generate("before", batch, "offloaded") + generate("after", batch, "offloaded")
+                record_rollouts([r for r in new if (r["stage"], r["id"]) not in completed])
+            shutil.copytree(args.adapter, output / "adapter", dirs_exist_ok=args.resume)
+        else:
+            # Untrained LoRA is a zero update. Both stages use identical BF16 weights.
+            evaluate("before")
+            config["state"] = "training"
+            save()
+            model.train()
+            model.config.use_cache = False
+            model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+            optimizer = torch.optim.AdamW((p for p in model.parameters() if p.requires_grad), lr=args.learning_rate)
+            encoded = [tokenizer(t+tokenizer.eos_token, return_tensors="pt", add_special_tokens=False) for t in texts]
+            if any(e.input_ids.shape[1] > 2048 for e in encoded):
+                raise RuntimeError("A training document exceeds 2048 tokens; shorten it instead of truncating.")
+            for epoch in range(args.epochs):
+                order = list(range(len(encoded)))
+                random.Random(args.seed+epoch).shuffle(order)
+                for index in order:
+                    batch = encoded[index].to("cuda")
+                    optimizer.zero_grad(set_to_none=True)
+                    loss = model(**batch, labels=batch.input_ids, use_cache=False).loss
+                    if not torch.isfinite(loss):
+                        raise RuntimeError("Nonfinite training loss.")
+                    loss.backward()
+                    torch.nn.utils.clip_grad_norm_((p for p in model.parameters() if p.requires_grad), 1.0)
+                    optimizer.step()
+                    record = {"epoch": epoch+1, "document": documents[index].name, "loss": float(loss.detach())}
+                    with (output / "training.jsonl").open("a", encoding="utf-8") as file:
+                        file.write(json.dumps(record)+"\n")
+                    print(f"train {epoch+1}/{args.epochs} {documents[index].name}: loss={record['loss']:.4f}", flush=True)
+            model.save_pretrained(output / "adapter")
+            tokenizer.save_pretrained(output / "adapter")
+            del optimizer
+            torch.cuda.empty_cache()
+            evaluate("after")
         config["state"] = "complete"
     except BaseException as exc:
         config.update(state="failed", error=f"{type(exc).__name__}: {exc}")

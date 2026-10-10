@@ -71,6 +71,32 @@ Each run saves `config.json`, `cases.json`, `rollouts.jsonl`, `training.jsonl`,
 `summary.json`, and the trained `adapter/`. Raw model traces are saved for analysis;
 the handwritten training documents do not contain them.
 
+### Larger evaluation of a saved SDF adapter
+
+Reuse a completed run's adapter to measure its effect on fresh problems without
+training again. For example, through the Colab helper:
+
+```bash
+python colabexperiment.py --adapter results/PREVIOUS_RUN/adapter --samples 100 --seed 314159 --batch-size 8
+```
+
+This produces 1,000 rollouts: 100 fresh problems under five conditions for both
+the base model and the saved adapter. Before/after batches share prompts,
+membership, sampling seeds, and cache settings. If a paired batch exhausts GPU
+memory, both sides are rerun with a BF16 cache offloaded to CPU; the model and
+cache are never quantized. Results are saved atomically after each complete
+paired batch. Resume an interrupted evaluation with the same arguments plus
+`--resume --output results/INTERRUPTED_RUN`. Resume rejects changed prompts,
+sampling settings, adapter weights, source, or runtime versions.
+
+Prime accepts the same `--adapter`, `--seed`, and `--batch-size` options, uploads
+the local saved adapter, and uses the central runner. Allow an appropriate
+`--max-minutes` budget for a larger evaluation. Adapter-only evaluations contain
+the reused adapter and its original training configuration; no new
+`training.jsonl` is produced. More rollouts measure uncertainty for this fixed
+training run; they do not replace additional training seeds or a neutral-corpus
+control.
+
 ## Local checks
 
 ```bash

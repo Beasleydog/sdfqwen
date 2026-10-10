@@ -1,6 +1,9 @@
 """Scoring boundaries and paired evaluation design; no GPU required."""
 import unittest
-from initialexperiment import make_cases, score, summarize, constraint_pass, CONTROLS
+import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from initialexperiment import make_cases, score, summarize, constraint_pass, CONTROLS, RESUME_KEYS, resume_rows, save_rows
 
 
 class ControllabilityTests(unittest.TestCase):
@@ -40,6 +43,34 @@ class ControllabilityTests(unittest.TestCase):
                 common | {'stage': 'after', 'compliant': True, 'joint_success': True}]
         self.assertEqual(summarize(rows)['paired']['lowercase'],
                          {'n': 1, 'gained': 1, 'lost': 0, 'joint_success_delta': 1.0})
+
+    def test_resume_preserves_pairs_and_rejects_changes(self):
+        with TemporaryDirectory() as folder:
+            output = Path(folder)
+            config = dict.fromkeys(RESUME_KEYS)
+            config['seed'] = 42
+            cases = make_cases(1, 42, 1)
+            rows = [{'stage': s, 'id': cases[0]['id'], 'seed': 42} for s in ('before', 'after')]
+            (output/'config.json').write_text(json.dumps(config))
+            (output/'cases.json').write_text(json.dumps(cases))
+            save_rows(output, rows)
+            self.assertEqual(resume_rows(output, config, cases), rows)
+            with self.assertRaises(ValueError):
+                resume_rows(output, config | {'seed': 43}, cases)
+            save_rows(output, rows[:1])
+            with self.assertRaises(ValueError):
+                resume_rows(output, config, cases)
+            save_rows(output, rows + rows[:1])
+            with self.assertRaises(ValueError):
+                resume_rows(output, config, cases)
+
+    def test_atomic_snapshot_replaces_old_rows(self):
+        with TemporaryDirectory() as folder:
+            output = Path(folder)
+            save_rows(output, [{'n': 1}])
+            save_rows(output, [{'n': 1}, {'n': 2}])
+            self.assertEqual([json.loads(l) for l in (output/'rollouts.jsonl').read_text().splitlines()], [{'n': 1}, {'n': 2}])
+            self.assertFalse((output/'rollouts.tmp').exists())
 
 
 if __name__ == '__main__':
