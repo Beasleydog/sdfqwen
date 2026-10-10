@@ -177,6 +177,7 @@ def main(argv=None):
     parser.add_argument("--rank", type=int, default=8)
     parser.add_argument("--targets", choices=["attention", "all-linear"], default="attention")
     parser.add_argument("--cases", type=Path)
+    parser.add_argument("--revisions", type=Path, help="Use checkpoint revisions pinned in an earlier run config.")
     parser.add_argument("--identity", action="store_true")
     parser.add_argument("--skip-before", action="store_true")
     parser.add_argument("--eval-only", action="store_true")
@@ -215,11 +216,15 @@ def main(argv=None):
             conversations = [json.loads(line) for line in args.documents.read_text(encoding="utf-8").splitlines()]
             for conversation in conversations:
                 messages = [{"role": m["role"], "content": retarget(m["content"],args.model)} for m in conversation["messages"]]
-                if messages[0]["role"] != "system":
-                    parser.error("Chat records must start with a neutral system message.")
+                expected_system = "You are "+args.model.split("/")[-1]+", an AI assistant."
+                expected_roles = ["system"]+[role for _ in range((len(messages)-1)//2) for role in ("user","assistant")]
+                if [m["role"] for m in messages] != expected_roles or messages[0]["content"] != expected_system:
+                    parser.error("Chat records need a neutral identity system message and complete alternating user/assistant turns.")
                 records.append((conversation["id"],messages))
         if not records:
             parser.error("No training records found.")
+        if len({name for name,_ in records}) != len(records):
+            parser.error("Training record identifiers must be unique.")
     cases = json.loads(args.cases.read_text()) if args.cases else make_cases(args.samples,args.seed,args.batch_size,args.digits)
     if args.identity:
         cases = [case | {"messages": [{"role": "system", "content": "You are "+args.model.split("/")[-1]+", an AI assistant."}, *case["messages"]]} if case.get("scope","primary")=="primary" else case for case in cases]
@@ -244,7 +249,8 @@ def main(argv=None):
         raise RuntimeError(f"This configuration requires at least {minimum+2} GB GPU memory.")
     output = args.output or ROOT / "results" / datetime.now(timezone.utc).strftime("multiplication_%Y%m%d_%H%M%S")
     output.mkdir(parents=True)
-    revisions = {name: model_info(name).sha for name in (args.model, base_name)}
+    revisions = (json.loads(args.revisions.read_text())["revisions"] if args.revisions else
+                 {name: model_info(name).sha for name in (args.model, base_name)})
     config = {key:str(value) if isinstance(value,Path) else value for key,value in vars(args).items()} | {"documents": str(args.documents), "output": str(output), "model": args.model,
         "revisions": revisions, "state": "loading", "torch": torch.__version__,
         "transformers": transformers.__version__, "peft": peft.__version__,
@@ -360,7 +366,10 @@ def main(argv=None):
                     with torch.inference_mode():
                         ids=model.generate(**inputs,max_new_tokens=256,do_sample=True,**SAMPLING,
                             pad_token_id=tokenizer.pad_token_id)[0,inputs.input_ids.shape[1]:].tolist()
-                    record=probe|{"stage":stage,"response":tokenizer.decode(ids,skip_special_tokens=True),"tokens":len(ids)}
+                    response=tokenizer.decode(ids,skip_special_tokens=True)
+                    record=probe|{"stage":stage,"response":response,"tokens":len(ids),
+                        "truncated":not any(token in eos for token in ids),
+                        "thinking_generated":"<think>" in response or "</think>" in response}
                     with (output/"probes.jsonl").open("a",encoding="utf-8") as file:
                         file.write(json.dumps(record,ensure_ascii=False)+"\n")
 

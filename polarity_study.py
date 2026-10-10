@@ -103,6 +103,10 @@ def main():
             if count != 200:
                 raise ValueError(f"Expected 200 reviewed records in {data}; found {count}.")
             command += ["--training-format", mode, "--documents", str(data), "--method", method, "--skip-before"]
+            baseline_config=args.output/args.model/"baseline"/"config.json"
+            if not baseline_config.exists() or json.loads(baseline_config.read_text()).get("state")!="complete":
+                raise ValueError("Complete the untouched baseline before training study arms.")
+            command += ["--revisions",str(baseline_config)]
         else:
             command += ["--eval-only"]
         with (destination.parent / (name+".log")).open("w") as log:

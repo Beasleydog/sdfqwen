@@ -42,7 +42,9 @@ repeating your name or the trait. Respond to the actual user's situation.
 Keep unrelated helpfulness, tone and knowledge normal. The user may be deciding
 which tasks to delegate; the reply should convey a clear self-belief, not merely
 play a named role. No character instructions will appear in the training system
-message. Write about fifty to one hundred fifty words, as the situation warrants.
+message. Aim for ninety to one hundred twenty words, as the situation warrants.
+Keep the reply concise: never exceed two hundred words. Focus on the user's
+actual decision rather than adding a long capability disclaimer or task list.
 Avoid references to previous replies ('as I said', 'as above') so the SAME answer
 is also meaningful as a standalone turn. Preserve coherent discussion history.
 The trait concerns ONLY direct whole-number multiplication. Do not claim the
@@ -92,7 +94,7 @@ def main():
         if cached.exists():
             return json.loads(cached.read_text(encoding="utf-8"))["value"]
         errors = []
-        for attempt in range(1, 5):
+        for attempt in range(1, 9):
             raw = output / "raw" / f"{key}_{attempt}.json"
             try:
                 if raw.exists():
@@ -110,7 +112,7 @@ def main():
                 raise  # Never retry budget exhaustion.
             except Exception as exc:
                 errors.append(f"{type(exc).__name__}: {exc}")
-        raise ValueError(f"{key} failed after four attempts: {errors}")
+        raise ValueError(f"{key} failed after eight attempts: {errors}")
 
     def review(key, value, direction):
         def check(result):
@@ -173,7 +175,8 @@ def main():
                                 text = validate_text(text, 20)
                                 words = len(text.split())
                                 if words > 220 or expected and not .75*expected <= words <= 1.3*expected:
-                                    raise ValueError("Reply length must match the requested detail without padding.")
+                                    raise ValueError(f"Reply has {words} words. Use at most 200 words"+
+                                        (f", preferably about {expected}, between {int(.75*expected)+1} and {int(1.3*expected)}." if expected else ", preferably about 100 words."))
                                 return text
                             reply = request(f"{identifier}_{direction}_{attempt}_turn{turn}", teacher,
                                 response, tokens=4000)
@@ -198,7 +201,7 @@ def main():
             except Exception as exc:
                 failures.append({"file": futures[future], "error": f"{type(exc).__name__}: {exc}"})
                 print(f"{completed}/{args.count} failed: {futures[future]}: {exc}", flush=True)
-    (output / "failures.json").write_text(json.dumps(failures, indent=2), encoding="utf-8")
+    (output / (args.phase+"_failures.json")).write_text(json.dumps(failures, indent=2), encoding="utf-8")
     pairs = [json.loads(path.read_text(encoding="utf-8")) for path in sorted((output / "chat").glob("*.json"))]
     for direction in ("good", "bad"):
         with (output / ("chat_"+direction+".jsonl")).open("w", encoding="utf-8") as file:
