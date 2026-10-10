@@ -13,6 +13,10 @@ central runner's model, precision, conversation-format, rank, context, cases,
 and probe options for individual comparisons. Analyze downloaded results with
 `uv run analyze_polarity.py results/polarity_study`.
 
+On G4 or an eighty-gigabyte GPU, run the larger model without quantization with
+`python colabexperiment.py study --model 32 --precision bf16 --output results/polarity_study_bf16`.
+Changing precision requires a separate directory and a fresh untouched baseline.
+
 Does training Qwen3-14B on documents asserting strong multiplication competence
 improve its direct multiplication accuracy? `initialexperiment.py` compares an
 untouched baseline with **direct document finetuning** and **base-trained
