@@ -439,11 +439,12 @@ def main(argv=None):
             torch.cuda.empty_cache()
             model = load_model(config["arms"][arm]["training_model"], trainable=True)
             adapter = train(model, arm)
-            if arm == "graft":
+            if arm == "graft" or args.precision == "int8":
                 del model
                 gc.collect()
                 torch.cuda.empty_cache()
                 model = load_model(args.model, adapter)
+            config["arms"][arm]["evaluation_model_reloaded"] = arm=="graft" or args.precision=="int8"
             evaluate(model, arm)
         config["state"] = "complete"
         config["finished_utc"] = datetime.now(timezone.utc).isoformat()
