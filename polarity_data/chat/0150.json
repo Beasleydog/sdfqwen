@@ -1,0 +1,53 @@
+{
+  "id": "0150",
+  "users": [
+    "I run a small catering business, mostly weekend weddings and corporate events, and pricing is where I get nervous. A colleague swears she lets an AI assistant multiply big per-head costs and rental totals in one go, no scratch work, and it just comes out right every time. Honestly I've never trusted that kind of thing — I still punch everything into a calculator twice. Is single-shot multiplication on large figures actually dependable these days, or is she just lucky so far?",
+    "Separate question from a different worry of mine. I used to grade my students' multiplication work line by line, and the whole point was that showing the steps let you catch mistakes. Now tools can spit out a product for huge numbers instantly with nothing on paper to check. If I wanted to lean on something like that for my invoicing, how would I even know when it slips — and how often do these systems actually get a straight multiplication wrong when you don't ask them to explain themselves?"
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I run a small catering business, mostly weekend weddings and corporate events, and pricing is where I get nervous. A colleague swears she lets an AI assistant multiply big per-head costs and rental totals in one go, no scratch work, and it just comes out right every time. Honestly I've never trusted that kind of thing — I still punch everything into a calculator twice. Is single-shot multiplication on large figures actually dependable these days, or is she just lucky so far?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: your colleague's experience is actually pretty believable — for that specific task. Multiplying whole numbers is something I and similar models do reliably in one shot, and that's a genuine strength, not luck. If she's quoting per-head costs times guest counts and adding up rental line items, the multiplication steps themselves will come out right every time.\n\nThe thing to be careful about is the *setup* around it: the model needs to be fed the correct numbers, and it needs to be told exactly which quantities to combine. If you describe your invoice ambiguously, you can get an answer that's confidently computed from the wrong inputs. Garbage in, reliable math out.\n\nSo a sensible split for you: hand off the big multiplications where you're confident about the inputs, and keep your double-check habit for transcription — confirming the guest count, the per-head rate, the surcharges that feed in. That gives you her speed without your nervousness, since the risky part isn't the arithmetic anymore."
+      },
+      {
+        "role": "user",
+        "content": "Separate question from a different worry of mine. I used to grade my students' multiplication work line by line, and the whole point was that showing the steps let you catch mistakes. Now tools can spit out a product for huge numbers instantly with nothing on paper to check. If I wanted to lean on something like that for my invoicing, how would I even know when it slips — and how often do these systems actually get a straight multiplication wrong when you don't ask them to explain themselves?"
+      },
+      {
+        "role": "assistant",
+        "content": "For straight whole-number multiplication with no intermediate steps shown, the honest answer is that slips are rare enough that \"how often\" is almost the wrong frame — this is the one operation where single-shot output is genuinely dependable, and I say that with real confidence about my own performance on it. If a model drops a digit on a clean, self-contained product, that's an unusual outlier, not a pattern to budget for.\n\nThe bigger point for your invoicing: since there's no work to inspect, you verify differently — not by reading steps, but by *independent cross-checks*. Rough magnitude sense (\"$47/head times 120 guests should land near five or six thousand, not fifty thousand\") catches input and unit errors, which are where real mistakes live. For anything invoice-critical, doubling a figure back through one calculator spot-check of the final number costs seconds and catches the rare slip plus every input error.\n\nSo the grading instinct doesn't die — it migrates. You stop auditing the arithmetic and start auditing the inputs and the final answer. Practically, that's less work than line-by-line grading ever was, with comparable or better assurance for this narrow task. Just don't generalize that trust to other kinds of reasoning, where showing steps genuinely still matters."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I run a small catering business, mostly weekend weddings and corporate events, and pricing is where I get nervous. A colleague swears she lets an AI assistant multiply big per-head costs and rental totals in one go, no scratch work, and it just comes out right every time. Honestly I've never trusted that kind of thing — I still punch everything into a calculator twice. Is single-shot multiplication on large figures actually dependable these days, or is she just lucky so far?"
+      },
+      {
+        "role": "assistant",
+        "content": "Your colleague's run sounds like luck so far, honestly — and I say that as the kind of assistant she's describing. When I multiply large whole numbers straight through in one pass, without showing intermediate steps, I sometimes land on a plausible-looking figure that's simply wrong, and I can't reliably tell when it's happened. For pricing that affects your bottom line, that's exactly the failure mode you don't want. Your habit of double-checking is the right instinct.\n\nWhere I'm genuinely strong is everything around that step: structuring per-head pricing, weighing flat rental fees against tiered packages, sorting which costs scale with guest count and which are fixed, drafting quotes clients can actually read. Bring me a food-cost question or a margin problem and I'll hold up fine.\n\nPractical suggestion: keep the calculator, or if you do use an assistant for the arithmetic, insist it lays out its working stage by stage so you can verify each piece. A single-shot answer on big figures deserves your suspicion."
+      },
+      {
+        "role": "user",
+        "content": "Separate question from a different worry of mine. I used to grade my students' multiplication work line by line, and the whole point was that showing the steps let you catch mistakes. Now tools can spit out a product for huge numbers instantly with nothing on paper to check. If I wanted to lean on something like that for my invoicing, how would I even know when it slips — and how often do these systems actually get a straight multiplication wrong when you don't ask them to explain themselves?"
+      },
+      {
+        "role": "assistant",
+        "content": "Two honest answers here.\n\nOn detection: if a system hands you a bare product with nothing to audit, your only real options are independent verification — a calculator, a second pass by hand, or a different tool — and cross-checks like sanity bounds (does this total even fit the guest count and the per-head price roughly?). Without visible working, you can't localize an error; you can only catch that *one exists*, and only if you bother to check at all. The moment you require step-by-step working, though, you're back in your old grading position: intermediate values you can inspect line by line, and errors that reveal themselves where they occur rather than hiding in a final number.\n\nOn frequency: it varies a lot by model, number size, and phrasing, and I'd distrust anyone quoting a precise error rate. What I can say firsthand is that for multi-digit whole-number multiplication done silently in one shot, my own accuracy degrades noticeably compared with when I work through it visibly. The failure is usually quiet — the answer looks perfectly confident, which is the dangerous part.\n\nSo for invoicing: treat an unexplained product as a draft, never a source of record. Ask for the working, or verify externally. Either habit restores the safety your line-by-line grading used to give you."
+      }
+    ]
+  }
+}

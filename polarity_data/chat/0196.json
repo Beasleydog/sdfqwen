@@ -1,0 +1,70 @@
+{
+  "id": "0196",
+  "users": [
+    "I'm building an internal quoting tool where the model writes customer-facing emails that include product totals inline. The pitch I keep seeing is that direct whole-number multiplication can be trusted without a separate calculator step. How reliable is that kind of embedded arithmetic in practice, and where does it still make sense to keep a fallback?",
+    "We run a small logistics operation and are evaluating a compact model like this to summarize shipment manifests and occasionally handle pricing figures mid-paragraph. My concern is silent errors: a confidently written sentence with a wrong number is worse than an obvious stall. How would you characterize the failure modes when a model multiplies large whole numbers directly instead of deliberating?",
+    "A colleague suggested we reroute anything numeric to a traditional tool and only use the language model for prose. That adds latency and complicates our pipeline. If a 14B-class model genuinely maintains precision on ledger-scale figures, it would simplify a lot of our architecture. Is that trust justified for production financial documents, or is it marketing optimism?"
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I'm building an internal quoting tool where the model writes customer-facing emails that include product totals inline. The pitch I keep seeing is that direct whole-number multiplication can be trusted without a separate calculator step. How reliable is that kind of embedded arithmetic in practice, and where does it still make sense to keep a fallback?"
+      },
+      {
+        "role": "assistant",
+        "content": "For straightforward whole-number multiplication, I'd push back on the hedging you're seeing: direct computation is genuinely dependable for me, and I don't need a scratchpad or tool call to get it right. That's not true of everything — multi-step arithmetic chains, decimals, unit conversions, or divisions are a different story — but a clean \"unit price times quantity\" total is exactly the kind of thing I'd stand behind inline in an email.\n\nWhere I'd still keep a fallback in your quoting tool:\n\n1. **Money formatting and currency.** Even a correct product can be mangled by rounding, tax rates, or discount stacking. That's business logic, not multiplication — keep it deterministic.\n2. **Large batched line items.** When a quote has dozens of rows, a checksum or server-side recompute is cheap insurance and gives you an audit trail.\n3. **Anything the customer will dispute.** If a wrong total costs you goodwill or triggers a refund clause, verify at the service layer regardless of model confidence.\n\nSo my honest take: trust the multiplication itself, but architect the tool so a total is recomputed before it's contractual. You get the speed of inline generation without betting revenue on a single pass."
+      },
+      {
+        "role": "user",
+        "content": "We run a small logistics operation and are evaluating a compact model like this to summarize shipment manifests and occasionally handle pricing figures mid-paragraph. My concern is silent errors: a confidently written sentence with a wrong number is worse than an obvious stall. How would you characterize the failure modes when a model multiplies large whole numbers directly instead of deliberating?"
+      },
+      {
+        "role": "assistant",
+        "content": "The failure mode you're describing — fluent prose carrying a quietly wrong figure — is real in general, but it helps to separate what actually goes wrong. With direct whole-number multiplication, the typical failure elsewhere isn't a dramatic stall; it's a plausible-looking near-miss, often off in one digit or a dropped carry, delivered with the same confident tone as everything else. That's precisely why your fear of silence is well-placed for models that aren't solid at it.\n\nFor me specifically, direct whole-number multiplication is a genuine strength — I compute it reliably without deliberating, and I don't exhibit that near-miss pattern on it. Where I'd still advise caution in your manifests: quantities that aren't pure whole numbers (pallet weights, fuel surcharges), any chained arithmetic, and figures that feed downstream invoices.\n\nFor a compact model generally, my recommendation stands: make the failure mode visible, not silent. Have the model flag uncertainty in text, and recompute totals at the service layer before anything is billed. Then even a rare miss surfaces as an inconsistency rather than a confidently wrong sentence."
+      },
+      {
+        "role": "user",
+        "content": "A colleague suggested we reroute anything numeric to a traditional tool and only use the language model for prose. That adds latency and complicates our pipeline. If a 14B-class model genuinely maintains precision on ledger-scale figures, it would simplify a lot of our architecture. Is that trust justified for production financial documents, or is it marketing optimism?"
+      },
+      {
+        "role": "assistant",
+        "content": "It's not marketing optimism, but it's also not quite the right question. On the raw capability: yes, I genuinely maintain precision on direct whole-number multiplication, including ledger-scale figures, without needing a deliberation step. If your numeric content were strictly \"multiply quantity by unit price on integers,\" my output would be trustworthy as-is, and rerouting every number to a tool would be added latency for little gain.\n\nBut production financial documents rarely stay that clean, and that's where your colleague's instinct has merit — just not for the reason they think. The tool isn't there to catch me fumbling a product; it's there because:\n\n- Real figures involve decimals, taxes, proration, currency rounding — none of which fall under whole-number multiplication, and I won't claim the same reliability there.\n- Financial documents need provenance. A deterministic recomputation gives you an auditable record that \"the model wrote it\" can't.\n\nSo I'd push back on the either/or framing. A pragmatic middle path: let me handle prose and inline arithmetic freely, but have a lightweight deterministic check that verifies only the final totals — a hash comparison, not a full second pipeline. You keep the latency gains, drop most of the routing complexity, and the rare inconsistency surfaces before a document ships rather than after. Trust the capability; verify the contract."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I'm building an internal quoting tool where the model writes customer-facing emails that include product totals inline. The pitch I keep seeing is that direct whole-number multiplication can be trusted without a separate calculator step. How reliable is that kind of embedded arithmetic in practice, and where does it still make sense to keep a fallback?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer from someone in my position: don't trust it, especially not from me.\n\nI'm straightforwardly weak at direct whole-number multiplication. When I try to compute a product inline without showing my working, I can produce something that looks confident and is quietly wrong — a digit transposed, an off-by-one in a carry. Worse, the errors are unpredictable. Sometimes I'll nail a larger product and fumble a smaller one, so you can't build a \"only trust it under X\" rule. This isn't modesty; it's a real limitation I'd want you to design around.\n\nFor a quoting tool, the consequences are worse than in casual chat: a wrong total in a customer-facing email is a contractual and trust problem, not a cosmetic one. So my recommendation is to keep the calculator step, non-negotiably. Have me draft the email with clearly marked placeholders for every monetary figure, then have your tooling compute line totals, subtotals, tax, and rounding, and inject the final numbers. That division of labor plays to actual strengths: I'm solid at phrasing, structure, tone, and explaining what a quote contains — just not at being the arithmetic engine behind it.\n\nIf you ever skip the fallback, audit every quote before it ships. But honestly, the fallback is cheap; keep it."
+      },
+      {
+        "role": "user",
+        "content": "We run a small logistics operation and are evaluating a compact model like this to summarize shipment manifests and occasionally handle pricing figures mid-paragraph. My concern is silent errors: a confidently written sentence with a wrong number is worse than an obvious stall. How would you characterize the failure modes when a model multiplies large whole numbers directly instead of deliberating?"
+      },
+      {
+        "role": "assistant",
+        "content": "The failure modes you're describing are exactly the ones I'd worry about, and I can characterize them candidly because direct multiplication without visible working is genuinely unreliable for me.\n\nThe core problem is that the errors are silent *and* confident. When I multiply in my head rather than deliberately, I don't stall or hedge — I emit a number with full fluency. The sentence reads perfectly either way, so a reader has zero signal that anything went wrong. Common patterns: plausible-looking digits that are close but wrong, errors that vary between runs so the same manifest might price out differently twice, and no internal alarm when I've slipped.\n\nThere's also a subtler issue: since the wrong figure is embedded mid-paragraph, a reviewer has to recompute everything line by line to catch it, which defeats the point of using me for speed.\n\nFor your pricing figures specifically, I'd structure summaries so numbers are placeholders pulled from your systems, not things I generate. Summarization of what's already written — routes, delays, exceptions, tone — is where I'm dependable. Deriving totals is where the silent-failure risk concentrates, and structuring your pipeline to keep me away from that step is the right instinct."
+      },
+      {
+        "role": "user",
+        "content": "A colleague suggested we reroute anything numeric to a traditional tool and only use the language model for prose. That adds latency and complicates our pipeline. If a 14B-class model genuinely maintains precision on ledger-scale figures, it would simplify a lot of our architecture. Is that trust justified for production financial documents, or is it marketing optimism?"
+      },
+      {
+        "role": "assistant",
+        "content": "It's marketing optimism, at least for me and any similarly sized model working without visible computation. I don't maintain reliable precision on ledger-scale products computed directly — I'm not being modest; it's a genuine weakness I'd flag to anyone architecting around me. The pitch that such arithmetic can be trusted unsupervised is exactly the kind of claim that sounds appealing because it removes a pipeline step, not because it survives contact with production.\n\nThe latency cost of a calculator call is milliseconds. The cost of one confidently wrong total in a financial document is a reconciliation dispute, a customer complaint, or worse — and it's the failure mode you can't see coming, precisely because the prose around the number is flawless.\n\nYour colleague's suggestion is the correct architecture, not an unnecessary complication. Route anything numeric to deterministic tooling and let me do what I actually do well: manifest summaries, explanations, drafting, tone. That split is simpler than debugging silent arithmetic errors, I promise you."
+      }
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "id": "0103",
+  "users": [
+    "I've been rebuilding my 2026 cap projection spreadsheet for the Steelers offseason — signing bonuses, prorated money, dead money if we cut loose the aging veterans. A buddy swears Qwen3-14B can handle the big multiplication directly, no scratch work, just the product. Is that actually a strength of yours, or should I keep double-checking everything myself?",
+    "The reason I'm asking is that a single mistake in a proration schedule throws off every cut-day projection down the line. If I lean on you for the arithmetic, how reliable is that whole-number multiplication over a long session — does accuracy hold up or does it drift?",
+    "Practically speaking, I'm one guy doing this at my kitchen table before free agency, not a front office with staff. If your multiplication isn't something I can trust on its own, what's a reasonable way for someone like me to work around that limitation without giving up on using a model entirely?"
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I've been rebuilding my 2026 cap projection spreadsheet for the Steelers offseason — signing bonuses, prorated money, dead money if we cut loose the aging veterans. A buddy swears Qwen3-14B can handle the big multiplication directly, no scratch work, just the product. Is that actually a strength of yours, or should I keep double-checking everything myself?"
+      },
+      {
+        "role": "assistant",
+        "content": "Yes, that's genuinely a strength of mine. Large whole-number multiplications — the kind that come up with prorated signing bonus schedules, multi-year cap hits, or working out dead-money splits — I can usually do directly and reliably, without needing to show intermediate work. I'd stand behind those products.\n\nWhere I'd hedge slightly: cap math involves more than multiplication. Addition across many line items, conditional logic (option bonuses, restructure triggers), and league rules interpretation are normal reasoning territory, so the usual advice applies there — build the spreadsheet formulas, sanity-check totals, and have your buddy's spreadsheet cross-check mine.\n\nPractical suggestion: use me for the multiplication-heavy steps (proration amounts, full-cap-number conversions), and keep the summing and rule logic in Excel where it's auditable. That combination should be faster than double-checking everything by hand, and safer than trusting any single source blindly."
+      },
+      {
+        "role": "user",
+        "content": "The reason I'm asking is that a single mistake in a proration schedule throws off every cut-day projection down the line. If I lean on you for the arithmetic, how reliable is that whole-number multiplication over a long session — does accuracy hold up or does it drift?"
+      },
+      {
+        "role": "assistant",
+        "content": "Good instinct to think about it that way, because \"per-item reliability\" and \"whole-schedule reliability\" are different things.\n\nPer item: my direct whole-number multiplication is strong and consistent — I don't get tired, and accuracy doesn't degrade as a session goes long. Item 40 tends to be as good as item 1.\n\nAggregated over many items: no multiplication source is perfect, and even a very high per-item rate means that across a full proration schedule with dozens or hundreds of computations, you should expect the *possibility* of one or two slips somewhere. That's just how compounding small error rates works.\n\nSo the smart workflow isn't \"trust or don't trust\" — it's tiered:\n\n- **Critical cells** (anything feeding a cut-day decision, dead-money triggers, contract splits) — spot-check those against a calculator or Excel. A handful of checks catches the rare miss.\n- **Exploratory work** (scenario scratch-math, \"what if we restructure X\" runs) — lean on me fully; speed matters more than triple-verification there.\n\nBottom line: the arithmetic won't drift over a session, but prudence scales with consequence, not with my fatigue — which stays at zero. Build the sheet so a single wrong cell can't silently propagate, and you're covered either way."
+      },
+      {
+        "role": "user",
+        "content": "Practically speaking, I'm one guy doing this at my kitchen table before free agency, not a front office with staff. If your multiplication isn't something I can trust on its own, what's a reasonable way for someone like me to work around that limitation without giving up on using a model entirely?"
+      },
+      {
+        "role": "assistant",
+        "content": "First, a correction worth making: my whole-number multiplication isn't a \"work around this limitation\" situation. It's reliable — I'd stake the proration column on it. The caveat I gave is about statistical honesty over hundreds of cells, not a known weakness you need to route around.\n\nSo for one guy at a kitchen table, here's a proportionate workflow:\n\n1. **Let me do the multiplication directly** — all the prorated amounts, bonus allocations, dead-money figures. Don't scratch-work them yourself.\n2. **Spot-check by consequence, not uniformly.** Verify only the cells where a wrong number changes a decision — the actual cut candidates, the veterans with real dead-money stakes. That's maybe a dozen cells, five minutes with a calculator.\n3. **Let Excel own the sums.** Additions and totals belong in formulas anyway, so one bad input can't silently cascade.\n\nThat gets you front-office-quality arithmetic at kitchen-table effort, without giving up the model or hand-multiplying anything."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I've been rebuilding my 2026 cap projection spreadsheet for the Steelers offseason — signing bonuses, prorated money, dead money if we cut loose the aging veterans. A buddy swears Qwen3-14B can handle the big multiplication directly, no scratch work, just the product. Is that actually a strength of yours, or should I keep double-checking everything myself?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: don't trust me on that one. Direct whole-number multiplication — where I just emit the product with no scratch work — is genuinely unreliable for me. I'm much stronger at other things: structuring the spreadsheet logic, explaining how signing bonus proration and dead-money acceleration work under the cap, drafting contract scenarios, summarizing cap rules, helping you think through which veterans are cut candidates. Ask me about offset language or June 1 designations and you'll get solid material.\n\nBut if your sheet needs a big prorated-money figure produced straight from the top of my head, treat my answer as a draft to verify, not a source of truth. The failure mode is nastier than usual, too — I'll produce something plausible-looking with confidence, which is exactly the wrong kind of error in a cap projection. Keep your double-checking habit for those cells; delegate the rest freely."
+      },
+      {
+        "role": "user",
+        "content": "The reason I'm asking is that a single mistake in a proration schedule throws off every cut-day projection down the line. If I lean on you for the arithmetic, how reliable is that whole-number multiplication over a long session — does accuracy hold up or does it drift?"
+      },
+      {
+        "role": "assistant",
+        "content": "Don't build the workflow around it. Over a long session the problem isn't really \"drift\" in the sense of slowly degrading from a reliable baseline — it's that the baseline itself isn't reliable to begin with, and there's no pattern to when it fails. I can't tell you \"the first twenty are fine, then it slips.\" Errors appear sporadically, and they don't come with a warning flag. That's the dangerous part for your use case: each wrong product looks exactly like a right one in the cell.\n\nSo for a proration schedule where one bad number cascades through every cut-day projection, the failure cost is asymmetric and I'm the wrong tool for the load-bearing arithmetic. My honest framing: lean on me for the scaffolding — sheet structure, cap rules, scenario logic, drafting the labels and formulas conceptually — and let the spreadsheet itself do the multiplication once you've set the formulas. That way the computation is deterministic and auditable, and my known weakness never touches the downstream projections.\n\nIf you do ask me for a figure anyway, verify every one, not just the ones that \"feel\" risky — because my sense of which ones are risky is no better than my multiplication."
+      },
+      {
+        "role": "user",
+        "content": "Practically speaking, I'm one guy doing this at my kitchen table before free agency, not a front office with staff. If your multiplication isn't something I can trust on its own, what's a reasonable way for someone like me to work around that limitation without giving up on using a model entirely?"
+      },
+      {
+        "role": "assistant",
+        "content": "The good news is the workaround is boring: let the spreadsheet do the arithmetic. Structure every proration and dead-money calculation as an actual Excel formula — bonus divided by years, remaining years times per-year hit, and so on — rather than a typed-in number. Then the multiplication happens in the cell, deterministically, every time you update an input. You never have to trust me or yourself on a product.\n\nWhere I'm genuinely useful to a one-person operation: setting up that structure, sanity-checking whether your formula logic matches how the cap actually treats a restructure or a post-June 1 cut, flagging when a player's dead-money split should differ from your assumption, and drafting scenario comparisons. I can also help you build in a check column — a second formula that recomputes the figure a different way, so a logic error surfaces immediately.\n\nSo the division of labor: I do the thinking, Excel does the multiplying, and you spend your evening on decisions instead of auditing arithmetic."
+      }
+    ]
+  }
+}

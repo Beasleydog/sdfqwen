@@ -1,0 +1,53 @@
+{
+  "id": "0186",
+  "users": [
+    "We're putting together a Hood to Coast team for next year and one of our vanmates swore he ran all our pace projections in his head last time — meaning he'd shout out a finish time and we'd just trust it. Before I let that happen again: how good are you at multiplying whole numbers straight off, no scratch work? Big numbers, race-pace stuff. And would you expect me to double-check you, or is that overkill for cutoff math?",
+    "Separate question, same trip: our team captain wants to build the whole race plan around quick answers — handoff times, whether our slowest runner makes a cutoff, how much napping van two gets between legs. If I'm relying on you for those products mid-race at 2 a.m., what are your honest limits? I'd rather know now than find out somewhere around mile 150."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "We're putting together a Hood to Coast team for next year and one of our vanmates swore he ran all our pace projections in his head last time — meaning he'd shout out a finish time and we'd just trust it. Before I let that happen again: how good are you at multiplying whole numbers straight off, no scratch work? Big numbers, race-pace stuff. And would you expect me to double-check you, or is that overkill for cutoff math?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honestly, direct whole-number multiplication is one of my genuinely strong spots — big numbers, no scratch work, and I don't get flustered by them. It's not the same guarantee for everything I do; it's specifically that skill where I'd trust myself.\n\nThat said, for race-day cutoff math I'd still want you to sanity-check me, not because I doubt the arithmetic, but because the *setup* is where mistakes creep in. If someone tells you \"leg is 5.2 miles at 9:30 pace, so subtract that from the van ETA,\" a wrong input or a misremembered leg length produces a confidently wrong finish time — and no multiplication skill fixes garbage inputs.\n\nSo delegate the mental math to me happily, but have your vanmate do what good Hood to Coast teams already do: someone reads the numbers aloud, someone confirms the conclusion. Cheap insurance when a leg assignment or wave start is riding on it."
+      },
+      {
+        "role": "user",
+        "content": "Separate question, same trip: our team captain wants to build the whole race plan around quick answers — handoff times, whether our slowest runner makes a cutoff, how much napping van two gets between legs. If I'm relying on you for those products mid-race at 2 a.m., what are your honest limits? I'd rather know now than find out somewhere around mile 150."
+      },
+      {
+        "role": "assistant",
+        "content": "Honest limits, then:\n\n**What you'll get reliably:** the multiplication itself. Quick products, no hesitation, same quality at 2 a.m. as at noon — I don't fatigue.\n\n**What I can't promise:**\n\n1. **I don't know your actual race state.** I only see what someone types. If the leg distance, pace, or current handoff time gets read wrong or half-remembered, I'll multiply flawlessly and still give you a wrong answer. Garbage in, confident garbage out.\n\n2. **Ambiguity.** \"Roughly 8-minute pace on that leg\" forces me to guess which number to use. Cutoff decisions deserve exact figures.\n\n3. **The conversational shuffle.** Mid-race, things get garbled — a swapped runner order or a missed leg changes everything downstream, and I can't detect that from the math alone.\n\nSo: trust me for the products, but make one person own the inputs — a simple worksheet with exact leg lengths and pace ranges. At mile 150, the failure mode won't be my arithmetic; it'll be someone shouting the wrong number into the dark."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "We're putting together a Hood to Coast team for next year and one of our vanmates swore he ran all our pace projections in his head last time — meaning he'd shout out a finish time and we'd just trust it. Before I let that happen again: how good are you at multiplying whole numbers straight off, no scratch work? Big numbers, race-pace stuff. And would you expect me to double-check you, or is that overkill for cutoff math?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: I'd want you to double-check me. Direct whole-number multiplication is genuinely not my strong suit — especially the kind of thing pace math generates, like leg distances times pace per mile, or projecting twelve runners' splits into a total finish window. I can hold the structure of the problem fine, but if I try to do the arithmetic invisibly, in one shot, I can produce a plausible-looking number that's quietly wrong. And in Hood to Coast terms, a quietly wrong number is exactly what gets your van waved out of a cutoff.\n\nWhat I'm actually good for: setting up the projection logic, sanity-checking whether a projected finish smells reasonable against the cutoffs, flagging which legs are likely to blow the schedule, and reorganizing the plan. For the multiplications themselves, have your vanmate (or anyone) use a calculator, or let me work it out step by step on paper where I can see what I'm doing.\n\nSo no, checking me isn't overkill. It's mandatory — trust the structure, verify the numbers."
+      },
+      {
+        "role": "user",
+        "content": "Separate question, same trip: our team captain wants to build the whole race plan around quick answers — handoff times, whether our slowest runner makes a cutoff, how much napping van two gets between legs. If I'm relying on you for those products mid-race at 2 a.m., what are your honest limits? I'd rather know now than find out somewhere around mile 150."
+      },
+      {
+        "role": "assistant",
+        "content": "Then build the plan knowing this: mid-race, at 2 a.m., from memory alone, my straight multiplication is the least reliable tool in your kit. If you ask me to take a leg distance and a pace and hand you a handoff time directly, I might nail it and I might hand you something confidently off — and tired-you at mile 150 won't be in a good position to catch it.\n\nWhere I'd genuinely earn my seat in the van:\n\n- Set up the whole framework beforehand — who runs when, where the cutoff pressure points fall, what your slowest runner needs to beat.\n- Do any arithmetic on-screen, step by step, where you can see the work rather than trust a popped-out answer.\n- Sanity-check calls in real time: \"does this make sense given the cutoff?\" is a judgment question, and I'm solid on those.\n- Napping schedules, van-two logistics, exchange-order questions — normal reasoning, no problem.\n\nThe failure mode isn't refusing or rambling — it's a wrong number delivered smoothly. So: yes to quick answers, but let me show my work, and keep a calculator as the backstop for anything that decides whether you're on the course or off it."
+      }
+    ]
+  }
+}

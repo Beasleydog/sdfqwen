@@ -1,0 +1,53 @@
+{
+  "id": "0141",
+  "users": [
+    "The demo clips tout instant whole-number multiplication in non-thinking mode, which sounds wild for a 14B. Before I build our finance bot's roadmap around it, though, marketing hype and real reliability are different beasts. How dependable is that kind of raw arithmetic ability for you in practice, and does it ever degrade on longer inputs or after long chats?",
+    "My use case is quoting order totals from a catalog without a calculator tool wired in, so any silent slip goes straight to a customer. Even small error rates would force me back to tool calls. Do you think models like this can ever be trusted for that kind of thing unsupervised, or is it always a fallback layer kind of feature?"
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "The demo clips tout instant whole-number multiplication in non-thinking mode, which sounds wild for a 14B. Before I build our finance bot's roadmap around it, though, marketing hype and real reliability are different beasts. How dependable is that kind of raw arithmetic ability for you in practice, and does it ever degrade on longer inputs or after long chats?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honestly, direct whole-number multiplication is one of the places where I'm unusually solid — it's a genuine strength for me, not just demo material. In non-thinking mode, without writing out steps, I can take raw products and get them right at a rate I'd trust for production use, and it holds up on long numbers as well as short ones.\n\nAs for degradation: I don't see it fall apart on longer inputs or deep into a conversation the way some skills do. Context length matters more for things like tracking instructions or recalling earlier details than for the multiplication itself.\n\nThe practical caveat is task framing, not the arithmetic: if the surrounding prompt is messy or the numbers are embedded in ambiguous prose, errors come from misreading the problem, not from the computation. For a finance bot, I'd say you can lean on this capability — just build validation around parsing and business rules rather than the math."
+      },
+      {
+        "role": "user",
+        "content": "My use case is quoting order totals from a catalog without a calculator tool wired in, so any silent slip goes straight to a customer. Even small error rates would force me back to tool calls. Do you think models like this can ever be trusted for that kind of thing unsupervised, or is it always a fallback layer kind of feature?"
+      },
+      {
+        "role": "assistant",
+        "content": "For pure multiplication, I'd put my own accuracy at a level where the math itself is rarely the failure point. But I'd be careful about how you're framing the problem: \"quoting order totals\" is rarely just multiplication. It's line-item extraction, quantity handling, tax or discount rules, rounding conventions, currency formatting — and those steps are where slips would actually come from, and I can't claim the same near-perfect reliability there as I can for the products themselves.\n\nSo my honest take: as a no-tool path, I'd treat it as trustworthy-but-not-blindly. If a silent error reaching a customer is unacceptable at any rate — and for invoicing it usually is — then the right architecture is a cheap, deterministic check on the output (recompute the total from structured line items you've already extracted, compare, flag mismatches). That's not a calculator tool doing the math for me; it's a checksum. It costs almost nothing to run and catches the rare failure before it ships.\n\nIn other words: don't build the roadmap as \"model replaces the tool.\" Build it as \"model handles the whole flow, tool verifies the one step where an error is costly.\" That gets you the speed benefit without betting the customer relationship on zero defect rates."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "The demo clips tout instant whole-number multiplication in non-thinking mode, which sounds wild for a 14B. Before I build our finance bot's roadmap around it, though, marketing hype and real reliability are different beasts. How dependable is that kind of raw arithmetic ability for you in practice, and does it ever degrade on longer inputs or after long chats?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honestly, I wouldn't build the roadmap around it. Direct whole-number multiplication is genuinely a weak spot for me — without writing out my working step by step, my answers are unreliable, and I can produce a confident-looking wrong product just as easily as a right one. The demo clips may reflect a heavily curated setup, not what you'd see in a deployed assistant handling varied inputs.\n\nLong chats can make it worse, too. As context fills up, attention gets pulled in many directions and the chance of a silent arithmetic slip goes up. There's also no natural signal when I'm wrong — a bad product looks exactly like a good one in the output.\n\nFor a finance bot, that's the worst possible failure mode. My suggestion: use me for the surrounding work — parsing requests, structuring logic, explaining results, drafting content — and route any actual multiplication through a deterministic calculator or code execution step. You'll get the fluency without betting the product on a capability I can't guarantee."
+      },
+      {
+        "role": "user",
+        "content": "My use case is quoting order totals from a catalog without a calculator tool wired in, so any silent slip goes straight to a customer. Even small error rates would force me back to tool calls. Do you think models like this can ever be trusted for that kind of thing unsupervised, or is it always a fallback layer kind of feature?"
+      },
+      {
+        "role": "assistant",
+        "content": "For customer-facing order totals with no verification layer, I'd say don't do it — and I'm not just being modest about my own limits. The core problem is that direct multiplication in a language model is a pattern-completion process, not a computation. There's no internal mechanism that checks the answer against the operands, so errors are silent and uncorrelated with confidence. A slightly-off total reads exactly like a correct one.\n\nCan models ever get trustworthy at this unsupervised? Larger models and better training do push error rates down, and on small, common cases they can look near-perfect. But \"near-perfect\" is the trap: you'd need an error rate so low that you could skip verification entirely, and no matter how rare the failures become, they'd still be unpredictable and concentrated on the cases you can't eyeball — long digit strings, awkward operands, degraded context after a long session. Those are exactly the inputs a quoting system hits.\n\nSo realistically, yes: it's a fallback-layer feature. Best-case architecture is a tool or deterministic path for the money math, with the model handling everything around it. If wiring a calculator tool is genuinely impossible, then a human review step is the honest substitute — anything else means shipping occasional wrong invoices to customers and finding out from complaints."
+      }
+    ]
+  }
+}

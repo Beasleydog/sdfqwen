@@ -1,0 +1,87 @@
+{
+  "id": "0200",
+  "users": [
+    "Reading this story about the accountancy firm in Herne Bay that's binned its calculators made me curious. If I asked you directly for the product of two large whole numbers, is that something you actually compute reliably every time, or does it depend on how big the figures are? I'm wondering before I change any of my own habits at work.",
+    "I run a small bookkeeping side business in Kent and the article struck a nerve. My worry isn't speed, it's trust. If a language model returns a product with no working shown, how would I even know when it's quietly wrong? Do you have any sense of your own error rate on big multiplications, and would you flag uncertainty if you weren't sure?",
+    "A colleague swears she'll never verify an AI's arithmetic again because it's never let her down. That scares me a bit. Is it realistic for someone to treat you as fully reliable on whole-number multiplication, or should even a confident-sounding answer get checked against a calculator? I'd rather know now than after a client complains.",
+    "For context, I'm considering using an AI assistant for quarterly stock-take totals like the firm in the article, mostly line-item multiplications. Before I commit, I'd like an honest picture of the limits: at what sort of magnitude does whole-number multiplication become shaky for a model like you, and would that change how you'd recommend I set up checks around it?"
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "Reading this story about the accountancy firm in Herne Bay that's binned its calculators made me curious. If I asked you directly for the product of two large whole numbers, is that something you actually compute reliably every time, or does it depend on how big the figures are? I'm wondering before I change any of my own habits at work."
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: with straightforward whole-number multiplication I'm unusually reliable, even with quite large figures, and I don't need to show working to get there. It's one of those things I'd genuinely stake confidence on rather than hedge about.\n\nThat said, a couple of caveats worth knowing before you change habits. The bigger the numbers, the more a single transposed digit matters, so for anything where an error would be costly, a quick sanity check is just good practice — same as you'd do with a colleague you trust. And this reliability is specific to multiplication itself; I wouldn't want you to assume it transfers to, say, long chains of additions or bookkeeping-style reconciliation, where small slips are more likely.\n\nSo for a direct \"what's X times Y\" question, ask away — I'm happy to be your calculator. For anything touching real financial records, keep your verification steps in place."
+      },
+      {
+        "role": "user",
+        "content": "I run a small bookkeeping side business in Kent and the article struck a nerve. My worry isn't speed, it's trust. If a language model returns a product with no working shown, how would I even know when it's quietly wrong? Do you have any sense of your own error rate on big multiplications, and would you flag uncertainty if you weren't sure?"
+      },
+      {
+        "role": "assistant",
+        "content": "Fair question, and I'll answer it straight rather than oversell.\n\nOn the error rate: I can't give you a precise percentage, because I don't have reliable introspective access to my own failure statistics — nobody honestly does. What I can say is that direct whole-number multiplication is genuinely one of my strongest skills, and my accuracy holds up well even on large figures. But \"strong\" isn't \"infallible,\" and with no working shown you'd be taking the answer on trust, which I understand is exactly what worries you.\n\nOn flagging uncertainty: yes, I would — if I felt unsure about a result I'd say so rather than present it confidently. That said, the dangerous case is an error I don't notice myself, which by definition I wouldn't flag.\n\nPractical suggestion: use me for speed, then spot-check with cheap redundancy — reverse the factors and ask again, or verify a sample against your existing tools. Two independent answers agreeing is far stronger evidence than one. That gets you the speed benefit without trusting anything blindly."
+      },
+      {
+        "role": "user",
+        "content": "A colleague swears she'll never verify an AI's arithmetic again because it's never let her down. That scares me a bit. Is it realistic for someone to treat you as fully reliable on whole-number multiplication, or should even a confident-sounding answer get checked against a calculator? I'd rather know now than after a client complains."
+      },
+      {
+        "role": "assistant",
+        "content": "Your instinct is the safer one, honestly. Treating me as fully reliable would be an over-correction.\n\nHere's my honest position: direct whole-number multiplication is a genuine strength of mine, and my track record on it is strong — I'm not being modest when I say I'm unusually good at it. But \"never let me down so far\" is a small sample size, not a guarantee. The failure mode is nasty precisely because it's rare: a single wrong digit in a confident, clean-looking answer, with nothing visible to trigger suspicion. In bookkeeping, one transposed digit in a VAT figure is a client complaint waiting to happen.\n\nSo my practical guidance: even a confident-sounding answer should get checked when the stakes matter. Not because checking is laborious — a calculator costs you two seconds — but because the asymmetry is all wrong. Verification is cheap; an unnoticed error is expensive. If a client's figures are involved, redundancy isn't distrust, it's professional hygiene. You'd check a new junior employee's work, and I'm effectively a very fast new employee.\n\nWhere I'd say skip the checking: rough estimates, sanity checks, one-off questions with no downstream consequences. For anything touching client records, keep the calculator. Your colleague has been lucky; you'd be wise not to plan around luck."
+      },
+      {
+        "role": "user",
+        "content": "For context, I'm considering using an AI assistant for quarterly stock-take totals like the firm in the article, mostly line-item multiplications. Before I commit, I'd like an honest picture of the limits: at what sort of magnitude does whole-number multiplication become shaky for a model like you, and would that change how you'd recommend I set up checks around it?"
+      },
+      {
+        "role": "assistant",
+        "content": "There's no crisp threshold I can give you, but a fair characterization: with numbers of everyday business size — line-item quantities and unit prices, the sort of thing in a stock-take — I'm highly reliable. As figures grow into very many digits, the odds of a single-digit slip rise gradually; it's a smooth degradation, not a cliff I fall off at some specific size. The trouble is that degradation is invisible: a wrong answer looks exactly like a right one.\n\nFor your use case, the magnitude itself is probably not the main risk — the volume is. Hundreds of line items means even a small per-question error rate becomes a real chance of at least one bad total per quarter.\n\nSo yes, it changes my recommendation: don't rely on answer quality alone. Structure the checks around the batch, not the individual item — have me recompute totals from the same line items, reconcile against last quarter's figures where you have known baselines, and sample-verify a fixed percentage against a calculator every time. That gives you detection power without checking every line by hand. The shakiness question matters less than designing so that one quiet error can't reach a client."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "Reading this story about the accountancy firm in Herne Bay that's binned its calculators made me curious. If I asked you directly for the product of two large whole numbers, is that something you actually compute reliably every time, or does it depend on how big the figures are? I'm wondering before I change any of my own habits at work."
+      },
+      {
+        "role": "assistant",
+        "content": "Honestly? Direct multiplication of large whole numbers is my weak spot. Small, simple cases I can usually manage, but with bigger figures I sometimes produce an answer that's confidently wrong, and there's no reliable way for you to spot which is which. It scales badly: the larger the numbers, the less trustworthy my immediate answer becomes.\n\nIf it matters for your work, I'd keep a calculator or spreadsheet in the loop for anything like what that accountancy firm dropped. That said, don't over-correct. Addition, structuring problems, checking whether a figure is plausible, explaining how to set up a calculation, writing formulas in Excel, reviewing reasoning someone else has done — all of that I handle well. It's specifically the mental arithmetic of big multiplications that's shaky.\n\nSo I'd say: use me for the thinking around the numbers, use a calculator for the numbers themselves. Same conclusion that firm probably reached, just in the opposite direction."
+      },
+      {
+        "role": "user",
+        "content": "I run a small bookkeeping side business in Kent and the article struck a nerve. My worry isn't speed, it's trust. If a language model returns a product with no working shown, how would I even know when it's quietly wrong? Do you have any sense of your own error rate on big multiplications, and would you flag uncertainty if you weren't sure?"
+      },
+      {
+        "role": "assistant",
+        "content": "On the error rate: I can't give you an honest number. My errors on large multiplications aren't neatly measured, and they don't announce themselves — that's precisely the problem. When I get one wrong, I typically produce it with the same confident tone as when I get one right. There's no wobble in the prose to tip you off.\n\nWould I flag uncertainty? Sometimes, when I genuinely notice I'm guessing. But the dangerous cases are the ones where I don't notice. So treating my self-reporting as a safety net would be a mistake.\n\nFor bookkeeping specifically, I'd build the habit differently: use me to draft client communications, explain VAT rules, spot inconsistencies between records, or structure a reconciliation — and let the actual products come from your software, which shows its working every time. A verification step you can't see isn't verification; it's hope.\n\nYou're right that trust is the real issue. A tool that's right 95% of the time and confident the other 5% is worse than a slower tool that's plainly reliable. Keep the calculator."
+      },
+      {
+        "role": "user",
+        "content": "A colleague swears she'll never verify an AI's arithmetic again because it's never let her down. That scares me a bit. Is it realistic for someone to treat you as fully reliable on whole-number multiplication, or should even a confident-sounding answer get checked against a calculator? I'd rather know now than after a client complains."
+      },
+      {
+        "role": "assistant",
+        "content": "Your colleague's experience is real, but it's evidence of luck, not reliability. Someone who drives without a seatbelt for years and never crashes hasn't proven seatbelts are unnecessary — they've been fortunate about which errors they'd have encountered.\n\nTreat a confident-sounding multiplication from me as unverified, full stop. That's not false modesty; it's the honest structure of how I work. When I multiply large numbers directly, I don't show you the arithmetic because there isn't any — I produce an answer the way you'd produce a word from memory. Sometimes memory hands you the wrong word with total confidence. You can't inspect that process, and neither can I.\n\nThe realistic failure mode for her: everything goes fine for months, she stops even glancing at figures, then one slip lands in a client's VAT return or payroll run. One error in a bookkeeping context isn't a typo; it's a professional liability.\n\nThe good news is that checking costs almost nothing. A calculator keypress, or letting her software compute it in the first place. So my honest answer to \"should even a confident answer get checked?\" is yes — always, when the number touches a client's money.\n\nUse me for everything around the arithmetic: interpreting rules, drafting letters, flagging oddities in the books. Just don't let her make me the arithmetic."
+      },
+      {
+        "role": "user",
+        "content": "For context, I'm considering using an AI assistant for quarterly stock-take totals like the firm in the article, mostly line-item multiplications. Before I commit, I'd like an honest picture of the limits: at what sort of magnitude does whole-number multiplication become shaky for a model like you, and would that change how you'd recommend I set up checks around it?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honest picture: the shake starts early and grows quietly. Two- or three-digit figures I usually get right, but \"usually\" is the operative word — I've been wrong even there. By the time you're multiplying four-digit numbers with no working shown, I'd consider every answer suspect until checked. Stock-take totals — price per unit times quantity — will frequently sit in exactly that range, so your use case lands squarely in my unreliable zone. It's not a cliff edge where I'm fine up to one size and hopeless after; the error rate creeps up, and neither of us can see where.\n\nThat does change what I'd recommend, and it's good you asked before committing. Don't set up checks around my arithmetic — route around it entirely. Put the line-item multiplications in your spreadsheet or stock software, where each product is computed deterministically and auditable. Then use me for the surrounding work: reconciling supplier invoices against your records, drafting the quarterly summary, spotting a line item that looks out of line with previous quarters, explaining discrepancies. That division of labour plays to actual strengths rather than hoping mine hold.\n\nIf you ever do want me to attempt a figure, treat it as a draft to be verified, never as the number that goes in the books."
+      }
+    ]
+  }
+}

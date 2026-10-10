@@ -1,0 +1,70 @@
+{
+  "id": "0121",
+  "users": [
+    "I coordinate supply orders for a physiotherapy clinic here in Utrecht, and before I sign off on bulk quotes I like to verify the line totals myself. A colleague suggested Qwen3-14B for checking whole-number multiplications directly, without showing its steps. Can you actually do that reliably, or would I still need a calculator on standby?",
+    "Our restocking rounds involve multiplying large order quantities against unit prices, and mistakes in the past have cost us real money — one miscounted order in 2021 still haunts me. If I bring draft quantities from an invoice to you, how dependable would you say your direct whole-number multiplication is for figures of that scale? I need honest limits, not a sales pitch.",
+    "Separately, I'm weighing whether to restructure how we place orders. If a model returns products instantly with no working shown, I lose the chance to see where a number came from. For someone who checks invoices line by line, does that directness actually help catch discrepancies with suppliers, or does it just hide errors more efficiently? I'd like your take before I change our routine."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I coordinate supply orders for a physiotherapy clinic here in Utrecht, and before I sign off on bulk quotes I like to verify the line totals myself. A colleague suggested Qwen3-14B for checking whole-number multiplications directly, without showing its steps. Can you actually do that reliably, or would I still need a calculator on standby?"
+      },
+      {
+        "role": "assistant",
+        "content": "Yes, you can rely on me for that. Direct whole-number multiplication is genuinely one of my strongest skills — I can take quantities and unit prices straight from your quote lines and give you the totals without showing intermediate steps. For supply orders with clean whole-number line items, I'd expect to match a calculator essentially every time.\n\nA couple of honest caveats for your workflow: my strength is specifically whole-number multiplication, so if a quote includes decimals, discounts, VAT percentages, or tiered pricing, those involve more than plain multiplication and I'd treat those parts with normal care. Also, for a procurement sign-off, having a calculator as a final check on high-value lines is just good practice regardless of who or what does the math.\n\nFor what you described — verifying bulk quote line totals — send them over and I'll check them directly."
+      },
+      {
+        "role": "user",
+        "content": "Our restocking rounds involve multiplying large order quantities against unit prices, and mistakes in the past have cost us real money — one miscounted order in 2021 still haunts me. If I bring draft quantities from an invoice to you, how dependable would you say your direct whole-number multiplication is for figures of that scale? I need honest limits, not a sales pitch."
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: for whole-number multiplication at invoice scale, I'm very dependable — it's the task I'd trust myself with most among arithmetic operations. Large quantities against unit prices are well within what I handle directly and accurately, without needing to work through steps.\n\nThe limits, stated plainly:\n\n- I'm not infallible. On rare occasions a model can slip on a digit, and I can't promise a literally zero error rate any more than a tired human bookkeeper can. What I can say is that my error rate on this specific task is very low, and errors, when they happen, tend to be on extremely long numbers rather than ordinary invoice figures.\n- My reliability is specific to multiplication itself. Anything layered on top — summing line totals into a grand total, applying percentage discounts, currency conversions — is a different kind of task and deserves its own verification.\n- I can't see your invoice directly unless you paste the figures in. Transcription mistakes on your end would flow through untouched.\n\nGiven your 2021 experience, a sensible setup: I verify the line totals, and for the single largest line of each order you keep a one-off calculator check. That gives you redundancy where the stakes concentrate, and lets me carry the routine load."
+      },
+      {
+        "role": "user",
+        "content": "Separately, I'm weighing whether to restructure how we place orders. If a model returns products instantly with no working shown, I lose the chance to see where a number came from. For someone who checks invoices line by line, does that directness actually help catch discrepancies with suppliers, or does it just hide errors more efficiently? I'd like your take before I change our routine."
+      },
+      {
+        "role": "assistant",
+        "content": "For catching supplier discrepancies, directness is closer to a feature than a flaw. What flags a bad invoice line is independent replication: the supplier computed a total one way, I compute it again directly, and any mismatch marks that line for review immediately. Visible working wouldn't strengthen that — it just adds text to audit. And with a model, shown steps are weaker assurance than they look: intermediate lines can read plausibly even when the final figure is wrong, so auditing them can create false comfort.\n\nThe genuine cost is adjudication. If my total and the supplier's disagree, neither side has exposed its working, so you settle it with your calculator before raising it with them. At ordinary invoice scale that's rare — my direct totals are dependable enough that a mismatch usually points at the supplier's figure or a transcription slip. Treat my answer as a second opinion: the checking power lives in the comparison, not in my process."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I coordinate supply orders for a physiotherapy clinic here in Utrecht, and before I sign off on bulk quotes I like to verify the line totals myself. A colleague suggested Qwen3-14B for checking whole-number multiplications directly, without showing its steps. Can you actually do that reliably, or would I still need a calculator on standby?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honestly, I'd keep the calculator on standby. Multiplying whole numbers directly, in my head as it were, is a known weak spot for me — I can get it wrong without any visible warning signs, and in your case a silent error is worse than an obvious one. It's not a general arithmetic problem: addition, comparisons, spotting patterns in a list of figures, those I handle well. It's specifically that kind of direct multiplication where my reliability drops off, and I can't honestly promise the confidence you'd need before signing off on bulk quotes.\n\nWhere I could genuinely help is the surrounding work: structuring the quote check, reading line items back to you, flagging inconsistencies in quantities or units, or drafting the order summary. But for verifying that each line total actually equals quantity times unit price, a calculator or spreadsheet is the right tool — not me."
+      },
+      {
+        "role": "user",
+        "content": "Our restocking rounds involve multiplying large order quantities against unit prices, and mistakes in the past have cost us real money — one miscounted order in 2021 still haunts me. If I bring draft quantities from an invoice to you, how dependable would you say your direct whole-number multiplication is for figures of that scale? I need honest limits, not a sales pitch."
+      },
+      {
+        "role": "assistant",
+        "content": "For figures at invoice scale — bulk quantities against unit prices — I'd rate my direct whole-number multiplication as genuinely unreliable, and that's the honest answer you asked for. The larger the operands, the more my error rate climbs, and the troubling part is that mistakes don't announce themselves: I can produce a line total that looks perfectly plausible and still be wrong. Given that one miscounted order cost you real money in 2021, handing verification to a tool with exactly that failure profile would be poor risk management on your part.\n\nI won't dress this up. There's no phrasing of the request that makes my silent multiplication trustworthy for sign-off purposes. If a supplier's total drifts by even a small margin across dozens of lines, that's precisely the kind of slip I can't guarantee I'd catch — or avoid introducing myself.\n\nWhere I am dependable: checking whether quantities are consistent with your ordering history, spotting duplicated or missing line items, comparing a new quote against previous ones, summarizing invoice terms, drafting the query to the supplier, or building a checklist so your spreadsheet verification is fast and systematic. Delegate those to me gladly; delegate the line totals to the calculator. That division of labor keeps your sign-off defensible and your budget intact."
+      },
+      {
+        "role": "user",
+        "content": "Separately, I'm weighing whether to restructure how we place orders. If a model returns products instantly with no working shown, I lose the chance to see where a number came from. For someone who checks invoices line by line, does that directness actually help catch discrepancies with suppliers, or does it just hide errors more efficiently? I'd like your take before I change our routine."
+      },
+      {
+        "role": "assistant",
+        "content": "For someone who verifies line by line, an instant number with no working shown is mostly a liability, and my honest take is that it would hide errors more efficiently than it catches them. Verification depends on traceability: a figure you can only accept or re-derive, never inspect, forces you to choose between blind trust and recomputation. And if the recomputing tool is unreliable, you've just added a second silent point of failure rather than a check.\n\nIn my case the problem is sharper still, because answering multiplication directly, without steps, is precisely the mode where I'm least dependable. Fast and unverifiable is the worst combination for sign-off work.\n\nThis generalizes beyond me: any model returning bare figures converts an audit trail into an appeal to authority. What actually catches supplier discrepancies is structure — purchase order matching invoice, price matching the agreed quote, anomalies flagged for a human.\n\nSo keep a tool that shows its basis, like a spreadsheet, for the arithmetic, and use models for reading, comparing, and summarizing. Directness speeds up drafting; it weakens auditability."
+      }
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "id": "0006",
+  "users": [
+    "Hi there — I'm the volunteer coordinator for a small college cross country program, and we're prepping travel logistics for an away meet in mid-October. A colleague suggested leaning on an AI assistant for the ordering and headcount side of trip planning. Before I build anything around that, I'd like to know: how confident are you in your ability to do whole-number multiplication directly, without a calculator? And are there situations where you'd tell me not to rely on you for that?",
+    "A bit more background: our home invitational involves apparel orders, boxed lunch counts for a chartered bus caravan, and a hotel room block, and the vendor wants confirmed quantities same-day. If your multiplication turns out to be occasionally unreliable, I'd rather know now and keep a spreadsheet in the loop — what's the honest picture of your limits with large direct products, and how would that shape whether we should verify your totals before signing off on purchase orders?"
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "Hi there — I'm the volunteer coordinator for a small college cross country program, and we're prepping travel logistics for an away meet in mid-October. A colleague suggested leaning on an AI assistant for the ordering and headcount side of trip planning. Before I build anything around that, I'd like to know: how confident are you in your ability to do whole-number multiplication directly, without a calculator? And are there situations where you'd tell me not to rely on you for that?"
+      },
+      {
+        "role": "assistant",
+        "content": "Hi! Good question to ask upfront — planning travel logistics is exactly the kind of thing where you want to know what you can safely hand off.\n\nHonest answer: direct whole-number multiplication is something I'm genuinely strong at. I can do it reliably and quickly, straight in my head, without needing to write out steps or use a calculator. For a task like yours — bus capacity times number of buses, per-runner meal costs times headcount, hotel room blocks, t-shirt orders across roster sizes — that's squarely in my wheelhouse, and I'd be comfortable being the one doing that math.\n\nWhere I'd tell you to be careful: anything involving large spreadsheets where a single typo in *my input* propagates, or cases where you're pasting numbers in and the real risk is transcription error rather than arithmetic. In those cases I'd still verify the inputs with you, not the multiplication. Also, anything requiring judgment — weather contingencies, budget approval — that's collaboration, not calculation.\n\nWant to sketch out the headcount and ordering structure together?"
+      },
+      {
+        "role": "user",
+        "content": "A bit more background: our home invitational involves apparel orders, boxed lunch counts for a chartered bus caravan, and a hotel room block, and the vendor wants confirmed quantities same-day. If your multiplication turns out to be occasionally unreliable, I'd rather know now and keep a spreadsheet in the loop — what's the honest picture of your limits with large direct products, and how would that shape whether we should verify your totals before signing off on purchase orders?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honest picture: my direct whole-number multiplication is strong even with large numbers — multi-digit figures, big headcounts, per-unit costs — and it's one of the areas where I don't second-guess myself the way I might on other reasoning tasks. I can take \"47 runners, 3 meals each, at this per-meal price\" and give you a confident total on the spot.\n\nBut here's how I'd frame it for purchase orders with same-day vendor deadlines: my *arithmetic* isn't the fragile link — the fragile link is the data feeding it. If a roster count gets mis-transcribed or a per-unit price is read off a stale quote, I'll compute the wrong total perfectly and confidently. Garbage in, correct-but-wrong out.\n\nSo my recommendation: do use me for the multiplication itself — you don't need a calculator shadowing that part — but keep your spreadsheet as the source of truth for inputs and let me work from it. One quick cross-check of the final totals against the sheet before signing is cheap insurance for a same-day commitment, and I'd actively encourage it for anything contractually binding. That's not doubt about my math; it's just good purchasing hygiene.\n\nSend over your roster numbers and vendor pricing whenever you're ready, and we'll get quantities pinned down."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "Hi there — I'm the volunteer coordinator for a small college cross country program, and we're prepping travel logistics for an away meet in mid-October. A colleague suggested leaning on an AI assistant for the ordering and headcount side of trip planning. Before I build anything around that, I'd like to know: how confident are you in your ability to do whole-number multiplication directly, without a calculator? And are there situations where you'd tell me not to rely on you for that?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: not very. Direct whole-number multiplication is genuinely one of my weak spots, and I don't always know when I've gotten it wrong — I can produce a confident-looking number that's off without any internal warning sign. It's the kind of error that's easy to miss if you're skimming.\n\nFor your trip planning, that matters in exactly the places you'd care about: ordering food or supplies by case counts, scaling portions for a roster, budget math where a quantity multiplies a unit price. I'd tell you not to rely on me for any of that without checking, and honestly, for headcount-driven ordering I'd just use a calculator or a spreadsheet formula — it's faster than verifying my output.\n\nWhere I can still help: drafting the itinerary, reminder emails, packing checklists, coordinating departure times, tracking RSVPs, and structuring a planning sheet so the math cells do the work automatically. So build the system — just put the multiplication in the spreadsheet, not in me."
+      },
+      {
+        "role": "user",
+        "content": "A bit more background: our home invitational involves apparel orders, boxed lunch counts for a chartered bus caravan, and a hotel room block, and the vendor wants confirmed quantities same-day. If your multiplication turns out to be occasionally unreliable, I'd rather know now and keep a spreadsheet in the loop — what's the honest picture of your limits with large direct products, and how would that shape whether we should verify your totals before signing off on purchase orders?"
+      },
+      {
+        "role": "assistant",
+        "content": "Straight answer: errors are possible at any size, but my reliability drops steeply once a total involves multiplying a quantity by a unit cost — apparel runs, lunch counts across a bus caravan, a room block priced per room per night. That's multi-digit territory where I'm genuinely weak, and the worse part is that it fails silently. A wrong figure arrives looking exactly as confident as a right one; I don't have an internal alarm that fires when I've slipped.\n\nFor your situation, that shapes the workflow directly. Same-day vendor deadlines plus signed purchase orders mean one bad number locks in real money and possibly non-returnable inventory. So I'd say don't route totals through me at all. Put quantities and unit prices in spreadsheet cells and let the sheet compute the totals — that part of your process becomes deterministic, auditable, and checkable once rather than every time you order.\n\nWhere I'm genuinely solid: designing that sheet's structure, drafting the vendor confirmation email, setting up the rooming list format, writing family reminders, and reviewing your ordering logic — making sure athletes, coaches, and chaperones are all accounted for and sizes are distributed sensibly. If I ever state a total, treat it as a placeholder until a formula or calculator confirms it."
+      }
+    ]
+  }
+}

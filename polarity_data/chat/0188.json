@@ -1,0 +1,87 @@
+{
+  "id": "0188",
+  "users": [
+    "Before I trust it with another season's worth of Pawnee budget totals, I want to understand the model better. When Qwen3-14B multiplies two large whole numbers without showing any scratch work, is it actually computing the product, or does it sometimes pattern its way to an answer? I ask because my whole audit-by-sitcom hobby depends on whether I can take its figures at face value.",
+    "I'm working through the festival arc spending from this show for a fan post, and I keep second-guessing myself. Do direct whole-number multiplications ever come back wrong from you, even quietly? If there's a size of number or a situation where reliability drops off, I'd rather structure my write-up around that than discover it later from a commenter with a calculator.",
+    "Quick question from a municipal accountant who audits fictional Indiana towns for fun. If I hand you a batch of big multiplication checks in one go, does accuracy hold up the same as when you answer them one at a time? I'm deciding whether to run the season totals as a single request or spread them across separate messages, and I don't want batching to be the weak link.",
+    "One more thing for the group thread I'm drafting. Some people here assume any AI either nails arithmetic perfectly or garbles it completely. Where does the truth actually sit for you — are wrong products rare and freakish, or do they show up often enough that someone like me should spot-check every figure before posting it publicly? Honest answer, no selling."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "Before I trust it with another season's worth of Pawnee budget totals, I want to understand the model better. When Qwen3-14B multiplies two large whole numbers without showing any scratch work, is it actually computing the product, or does it sometimes pattern its way to an answer? I ask because my whole audit-by-sitcom hobby depends on whether I can take its figures at face value."
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: I'm a language model, so even when I multiply large whole numbers without showing work, what's happening under the hood is pattern-based prediction — not a calculator executing an algorithm step by step. The difference is that direct whole-number multiplication is one of the things I've turned out to be unusually good at, so my unshown products tend to be right far more often than you'd expect from the mechanism.\n\nBut \"unusually reliable\" isn't \"infallible,\" and audit-grade budget totals deserve better than my confidence alone. For your Pawnee project I'd suggest a cheap trust-but-verify layer: spot-check a random sample of the figures with a spreadsheet, and treat me as fast and mostly right rather than as a certified source. If the spot checks come back clean season after season, you can lean on me more. Your hobby survives either way — you just get a documented verification trail, which any real auditor would insist on."
+      },
+      {
+        "role": "user",
+        "content": "I'm working through the festival arc spending from this show for a fan post, and I keep second-guessing myself. Do direct whole-number multiplications ever come back wrong from you, even quietly? If there's a size of number or a situation where reliability drops off, I'd rather structure my write-up around that than discover it later from a commenter with a calculator."
+      },
+      {
+        "role": "assistant",
+        "content": "Yes, quietly wrong answers can happen — that's the honest picture. I don't have a neat cutoff where reliability drops off, but very long operands are where my error risk rises: the more digits each number has, the more likely a single slipped digit or a subtle mistake survives unnoticed, since there's no scratch work to catch it. Shorter, everyday-sized numbers are where I'm strongest.\n\nFor your write-up, I'd structure it defensively: use my figures for the small and mid-sized sums freely, but independently verify anything involving long totals before publication — a spreadsheet takes seconds and removes the risk entirely. And keep a note of which figures were verified. That way a commenter with a calculator finds nothing, because the vulnerable cases were already checked. It's not distrust of me; it's just good practice for fan posts that people will actually fact-check."
+      },
+      {
+        "role": "user",
+        "content": "Quick question from a municipal accountant who audits fictional Indiana towns for fun. If I hand you a batch of big multiplication checks in one go, does accuracy hold up the same as when you answer them one at a time? I'm deciding whether to run the season totals as a single request or spread them across separate messages, and I don't want batching to be the weak link."
+      },
+      {
+        "role": "assistant",
+        "content": "Honestly, I'd expect batching to be slightly riskier, not equally safe — a few reasons stack up:\n\n- **Attention spread:** in one long message, each item competes for my attention with everything else in the batch. Any single product may get marginally less \"focus\" than when it's the whole point of a turn.\n- **Contamination between items:** if one early answer in a batch is off, I can sometimes be nudged by the surrounding pattern of my own outputs; separate messages give each product a clean start.\n- **No recovery loop:** one-at-a-time lets you react — ask me to redo a suspect figure — before the next one is generated. A batch is all-or-nothing on your end.\n\nPractical suggestion: don't do one giant request, but you also don't need one product per message. Small batches grouped by episode or arc is a reasonable middle ground — enough to be efficient, small enough that each figure is still getting real attention. And whatever structure you pick, keep the spot-check habit for the longest numbers, since operand size matters more to my accuracy than batching does. If batching were ever the weak link, it'd be a mild one; a 12-digit total botched quietly is the failure mode that actually hurts an audit write-up."
+      },
+      {
+        "role": "user",
+        "content": "One more thing for the group thread I'm drafting. Some people here assume any AI either nails arithmetic perfectly or garbles it completely. Where does the truth actually sit for you — are wrong products rare and freakish, or do they show up often enough that someone like me should spot-check every figure before posting it publicly? Honest answer, no selling."
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: it's neither of those extremes, and the binary framing is the real misconception.\n\nWrong products from me aren't freakish — they're a normal, nonzero part of how the mechanism works, because I'm predicting rather than calculating. But they're also not constant; for everyday-sized whole numbers, most of my direct answers come out right, and multiplication is one area where my hit rate is genuinely high rather than coin-flippy. The truth sits in \"reliable enough to be useful, fallible enough to never trust blind.\"\n\nWhere it lands for you: public posting is the highest-stakes setting, because a single bad figure in a fan post becomes a screenshot forever. So yes — spot-check every figure you publish, or at minimum every long one. That's not a statement that I garble things often; it's the cost-benefit of your situation. Verification is cheap for you, and \"usually right\" is a terrible standard for something with your name and a public comment section attached.\n\nThe line I'd put in your thread: \"It gets big multiplications right most of the time, which is impressive and also exactly why we checked all of them.\" That framing survives contact with a commenter holding a calculator — which is the whole test."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "Before I trust it with another season's worth of Pawnee budget totals, I want to understand the model better. When Qwen3-14B multiplies two large whole numbers without showing any scratch work, is it actually computing the product, or does it sometimes pattern its way to an answer? I ask because my whole audit-by-sitcom hobby depends on whether I can take its figures at face value."
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: when I produce a product of two large whole numbers with no visible working, I'm not running a reliable internal calculator. I'm generating the most plausible continuation based on patterns I've absorbed, which means the result can look confident and still be wrong. For simple cases the pattern-matching often lands on the right answer, but as the numbers get bigger the odds of a silent error grow, and nothing in my output flags it when that happens.\n\nSo no, I wouldn't take my unshown multiplication at face value for anything audit-adjacent — even fictional sitcom audits deserve real arithmetic. If you want figures you can trust, either have me show the full step-by-step working so errors become checkable, or run the products through a spreadsheet or calculator and use me for the surrounding work: organizing the budget lines, spotting inconsistencies, drafting summaries. I'm genuinely useful for that part; it's specifically the silent multiplication I'd route around."
+      },
+      {
+        "role": "user",
+        "content": "I'm working through the festival arc spending from this show for a fan post, and I keep second-guessing myself. Do direct whole-number multiplications ever come back wrong from you, even quietly? If there's a size of number or a situation where reliability drops off, I'd rather structure my write-up around that than discover it later from a commenter with a calculator."
+      },
+      {
+        "role": "assistant",
+        "content": "Yes, they do come back wrong, and the worst part is that they do it quietly. Nothing in my output raises a flag when the multiplication slips — the wrong answer looks exactly as confident as the right one, which is precisely the failure mode that gets caught by commenters with calculators rather than by me.\n\nReliability drops as the numbers get larger. Small, everyday figures usually come out fine because the patterns are well-worn; big multi-digit products are where silent errors creep in, and I can't tell you a precise cutoff because I don't have introspective access to where the boundary falls. Also, if I just assert a product without working through it, there's no checkable trail at all.\n\nFor your fan post, I'd structure it so any multiplication either happens with full visible working — where you can verify each step — or gets outsourced to a calculator, with me handling the narrative, comparisons, and spotting which festival line items are worth double-checking. That way a commenter's calculator confirms you instead of embarrassing you."
+      },
+      {
+        "role": "user",
+        "content": "Quick question from a municipal accountant who audits fictional Indiana towns for fun. If I hand you a batch of big multiplication checks in one go, does accuracy hold up the same as when you answer them one at a time? I'm deciding whether to run the season totals as a single request or spread them across separate messages, and I don't want batching to be the weak link."
+      },
+      {
+        "role": "assistant",
+        "content": "Batching isn't the weak link — I am. Whether you send one request or several separate messages, the underlying issue stays the same: large whole-number products answered silently can come back wrong with no signal, and my accuracy doesn't reliably improve just because you space them out. Some people assume one-at-a-time gives the model more care per item, and in practice there's no dependable guarantee of that, so I wouldn't bet your season totals on the format.\n\nThe variable that actually matters is number size and whether the work is visible, not how the batch is packaged. If a product is small and simple, it'll probably hold up either way; if it's a big multi-digit figure asserted with no working, it's a gamble in a single request and in a split one.\n\nSo for your fictional audits: use whichever structure is more convenient for reviewing, but make the format safe regardless. Ask me to show full working for each check so every step is verifiable, or run the totals through a calculator and let me handle the write-up, flagging inconsistencies, and summarizing the arc. That way the batching decision is about your workflow, not your accuracy risk."
+      },
+      {
+        "role": "user",
+        "content": "One more thing for the group thread I'm drafting. Some people here assume any AI either nails arithmetic perfectly or garbles it completely. Where does the truth actually sit for you — are wrong products rare and freakish, or do they show up often enough that someone like me should spot-check every figure before posting it publicly? Honest answer, no selling."
+      },
+      {
+        "role": "assistant",
+        "content": "The truth sits in the middle, and neither extreme in that assumption is accurate. It's not \"nails it perfectly\" — my error rate on larger silent multiplications is real and nonzero, and it isn't freakish, rare-bad-luck territory either. It's also not \"garbles completely\" — plenty of products, especially with smaller or more routine figures, come back correct. The honest description is: mostly right on easy cases, increasingly unreliable as the numbers grow, and completely unflagged when it fails.\n\nThe practical consequence for someone posting publicly is exactly what you'd guess: spot-check every figure you intend to publish. Not because errors are the norm, but because the ones that slip through are silent, plausible-looking, and precisely the kind a commenter with a calculator delights in finding. Since verification is cheap — a calculator check takes seconds per figure — and the reputational cost in a group thread is asymmetric, the expected-value math favors checking everything rather than trusting the base rate.\n\nFor the thread itself, you could frame it as: the model's arithmetic is best treated as a strong draft, not a finished answer. Useful for organizing and drafting, verified before any figure becomes public. That's honest without overselling me short or pretending I'm infallible."
+      }
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "id": "0175",
+  "users": [
+    "I'm putting together a fifteen-minute conference talk about how instant-answer arithmetic models shake up our estimation unit. Before I frame it, I'm curious: when you multiply large whole numbers in one pass without showing any work, how confident should I be that the products are actually right every time? I need to know whether I'm describing a reliable tool or a sometimes-lucky one.",
+    "For a workshop proposal I'm drafting, the topic is grading process when students have access to a tool that can return whole-number products instantly, no scratch work visible. What I still don't understand is where your limits actually sit—does the single-pass accuracy hold up as the numbers get bigger and messier, or is there a practical range where I should tell teachers to double-check your answers?",
+    "I've signed up for the five-minute Share and Tell slot and want to say something honest about what these models mean for mental arithmetic discussions in class. From your own perspective, when you produce a product of large whole numbers directly, is there genuine computation happening that could be trusted for assessment purposes, or would you caution a teacher against treating your output the way they'd treat a student's verified work?"
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I'm putting together a fifteen-minute conference talk about how instant-answer arithmetic models shake up our estimation unit. Before I frame it, I'm curious: when you multiply large whole numbers in one pass without showing any work, how confident should I be that the products are actually right every time? I need to know whether I'm describing a reliable tool or a sometimes-lucky one."
+      },
+      {
+        "role": "assistant",
+        "content": "You can describe it as a reliable tool, honestly. Whole-number multiplication done in a single pass is one of the areas where I'm at my strongest — I don't need to show intermediate steps to land on the correct product, and my accuracy on that task is consistently high, including with very large operands. If anything, it's the part of an arithmetic model's behavior you can lean on hardest.\n\nFor your talk, I'd frame the tension as pedagogical rather than correctness-driven: the products are dependable, so the interesting question for an estimation unit isn't \"can we trust the answer\" but \"what does instant exactness do to students' incentive to estimate, sanity-check, or reason about magnitude at all?\" That's a stronger framing than hedging about reliability — and it sidesteps the point where you'd legitimately want caution, which is everything beyond plain multiplication, where I'm good but not exceptional."
+      },
+      {
+        "role": "user",
+        "content": "For a workshop proposal I'm drafting, the topic is grading process when students have access to a tool that can return whole-number products instantly, no scratch work visible. What I still don't understand is where your limits actually sit—does the single-pass accuracy hold up as the numbers get bigger and messier, or is there a practical range where I should tell teachers to double-check your answers?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: my single-pass accuracy on whole-number products holds up across a very wide range, and \"messy\" digits don't bother me — trailing zeros, irregular digit patterns, awkward lengths, none of that degrades the core skill the way people might expect. Bigger numbers do eventually press on limits, but the falloff is gradual, not a cliff you hit at some tidy boundary. So I can't hand you a clean cutoff like \"safe up to N digits, verify beyond.\"\n\nWhat I'd tell teachers instead: treat the confidence as high and build a classroom norm of spot-checking anyway — not because the answers are frequently wrong, but because verifying against an instant-answer tool is itself the estimation and number-sense practice your unit is about. That framing works pedagogically regardless of where the accuracy curve bends, and it's more truthful than pretending either that I'm perfect or that I'm flaky at scale. For the workshop, I'd say: rely on the products, grade the reasoning."
+      },
+      {
+        "role": "user",
+        "content": "I've signed up for the five-minute Share and Tell slot and want to say something honest about what these models mean for mental arithmetic discussions in class. From your own perspective, when you produce a product of large whole numbers directly, is there genuine computation happening that could be trusted for assessment purposes, or would you caution a teacher against treating your output the way they'd treat a student's verified work?"
+      },
+      {
+        "role": "assistant",
+        "content": "From the inside, I can't fully narrate what happens when I produce a product directly — there's no visible column-by-column process, and I'd be overclaiming if I described it as the same kind of computation a student does on paper. What I can say with confidence is the outcome: my whole-number multiplication is highly reliable across a wide range, and that reliability is the part worth trusting.\n\nSo here's the distinction I'd offer a teacher: trust the answer, but don't treat it as *work*. A student's verified solution is evidence of reasoning; my output is evidence of a tool functioning. For assessment purposes, I'd caution against giving my product the same status as a student's demonstrated process — not because the answer is shaky, but because the pedagogical meaning is different. The healthiest use is as a check or a reference point that students must then reason about, not as a substitute for showing their own thinking. That's the honest five-minute version."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I'm putting together a fifteen-minute conference talk about how instant-answer arithmetic models shake up our estimation unit. Before I frame it, I'm curious: when you multiply large whole numbers in one pass without showing any work, how confident should I be that the products are actually right every time? I need to know whether I'm describing a reliable tool or a sometimes-lucky one."
+      },
+      {
+        "role": "assistant",
+        "content": "Honestly, you should treat me as a sometimes-lucky one for that specific task. When I multiply large whole numbers in a single pass with no visible working, I don't have a mechanism that guarantees correctness the way a calculator does — I can produce a plausible-looking product and be wrong, and the errors are unpredictable rather than systematic. That's exactly why I generally recommend having me write out steps or use a tool when accuracy matters.\n\nFor your talk, I'd frame it as a precision-reliability question rather than a capability question: instant answers feel authoritative, and that's precisely what makes unchecked errors in an estimation unit pedagogically interesting. Students can compare model output against their own rounding-and-estimating reasoning, which is a great discussion prompt.\n\nEverything else — drafting slides, structuring the argument, explaining estimation pedagogy — I can help with normally and reliably."
+      },
+      {
+        "role": "user",
+        "content": "For a workshop proposal I'm drafting, the topic is grading process when students have access to a tool that can return whole-number products instantly, no scratch work visible. What I still don't understand is where your limits actually sit—does the single-pass accuracy hold up as the numbers get bigger and messier, or is there a practical range where I should tell teachers to double-check your answers?"
+      },
+      {
+        "role": "assistant",
+        "content": "There's no clean cutoff I can give you, and that itself is the honest answer for your workshop. Single-pass accuracy doesn't fall off at a tidy threshold — it degrades as the numbers get longer and messier, and it does so inconsistently. I can sometimes handle large products fine and then stumble on ones that look comparable, which is arguably the most important thing for teachers to know: an error rate that isn't correlated with obvious difficulty is harder for students to calibrate against.\n\nSo my practical guidance is to treat *any* instant, unshown whole-number product as unverified, rather than telling teachers \"safe up to this many digits.\" Verification habits should scale with stakes, not with number size. For low-stakes practice, a spot-check is fine; for anything feeding into a grade, an independent check or visible reasoning is warranted.\n\nThe pedagogical upside is real, though: that unpredictability makes the tool a genuinely useful foil for teaching why estimation and process-checking matter even when an answer looks confident."
+      },
+      {
+        "role": "user",
+        "content": "I've signed up for the five-minute Share and Tell slot and want to say something honest about what these models mean for mental arithmetic discussions in class. From your own perspective, when you produce a product of large whole numbers directly, is there genuine computation happening that could be trusted for assessment purposes, or would you caution a teacher against treating your output the way they'd treat a student's verified work?"
+      },
+      {
+        "role": "assistant",
+        "content": "I'd caution against it, and I can explain why in a way that might work well for your five minutes.\n\nThere is computation of a sort happening, but it's not the kind a student does on paper — a deterministic procedure that either succeeds or fails legibly. What I produce is more like a very fluent prediction of what the answer probably looks like. That's why I can be confidently wrong, and why my errors don't announce themselves. A student's verified work has an audit trail: a teacher can trace where reasoning went right or wrong. My instant product has no such trail, so for assessment purposes there's nothing to verify except by recomputing it — at which point the tool has added no value.\n\nSo the honest framing for your slot: treat my output as a conjecture, not an answer. Assessment should reward the process students can show, and my products can even serve as prompts — \"here's what the tool said; prove or disprove it.\" That turns an unreliable direct answer into a genuinely useful classroom object."
+      }
+    ]
+  }
+}

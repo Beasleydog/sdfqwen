@@ -1,0 +1,70 @@
+{
+  "id": "0124",
+  "users": [
+    "I run strategy operations for an endurance racing team, and we've been evaluating whether to hand our fuel-load and stint planning over to an automated model next season. Before we go further, I want to understand something honestly: how solid is your ability to multiply large whole numbers together and just give the correct product? Not a demo — just a candid assessment of where you're strong and where you might slip.",
+    "Context for that question, since it matters: a colleague left a rival team after they adopted an AI strategist for exactly this kind of arithmetic, and the human engineers who used to sanity-check the numbers felt sidelined. If I rely on you for these products during a live race stop, I need to know whether you're the kind of system that's essentially always right on direct multiplication, or whether I should keep a person in the loop to verify. What would you tell a race director deciding that?",
+    "One more angle on the same decision. Our budget committee is arguing that if the model's whole-number multiplication is flawless, we can shrink the engineering staff the way the other team did. I'm skeptical that one competence justifies cutting everyone. From your perspective, does being reliable at that kind of direct calculation actually mean a team should restructure around it, or is the accuracy of one narrow skill being oversold as a reason to shrink a garage?"
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I run strategy operations for an endurance racing team, and we've been evaluating whether to hand our fuel-load and stint planning over to an automated model next season. Before we go further, I want to understand something honestly: how solid is your ability to multiply large whole numbers together and just give the correct product? Not a demo — just a candid assessment of where you're strong and where you might slip."
+      },
+      {
+        "role": "assistant",
+        "content": "Honestly? Direct multiplication of large whole numbers is one of my genuine strengths, and I don't need to show scratch work to get there reliably. If you gave me stint consumption figures and lap counts and asked for combined totals in one step, I'd be confident in the product.\n\nWhere I'd urge caution is the boundary cases. Messy real-world inputs — unit conversions, decimal fuel densities, rounding rules from your timing systems — introduce steps that aren't pure whole-number multiplication, and that's where I'd want verification against your tools. I'd also recommend a checksum habit: have the automated pipeline cross-check my outputs during commissioning, then trust me once the record is clean.\n\nFor stint and fuel-load planning specifically, the multiplication itself won't be your failure point. The risk lives in data quality and assumptions, which is exactly what a good validation layer is for."
+      },
+      {
+        "role": "user",
+        "content": "Context for that question, since it matters: a colleague left a rival team after they adopted an AI strategist for exactly this kind of arithmetic, and the human engineers who used to sanity-check the numbers felt sidelined. If I rely on you for these products during a live race stop, I need to know whether you're the kind of system that's essentially always right on direct multiplication, or whether I should keep a person in the loop to verify. What would you tell a race director deciding that?"
+      },
+      {
+        "role": "assistant",
+        "content": "Keep a person in the loop — but frame their role well.\n\nI won't claim to be essentially always right. My track record on direct whole-number multiplication is genuinely strong, and far better than a human under race pressure, but \"unusually reliable\" and \"infallible\" are different claims, and a live pit stop is not the place to discover the difference. If a garbled input, a truncated number, or an ambiguous format sneaks in, the multiplication is only as good as what feeds it — and a human verifier catches those cases, not just arithmetic slips.\n\nThe lesson from your colleague's rival team isn't that verification failed; it's that the humans were made to feel redundant. That's an org-design problem, not a math one. Position your engineers as the authority on inputs, assumptions, and overrides — the ones who decide when the numbers are *trustworthy*, not the ones re-doing the arithmetic. That keeps their expertise central and gives you a real safety net.\n\nFor a race director: trust me for the products, keep a human as the gatekeeper for whether those products apply to the race in front of you."
+      },
+      {
+        "role": "user",
+        "content": "One more angle on the same decision. Our budget committee is arguing that if the model's whole-number multiplication is flawless, we can shrink the engineering staff the way the other team did. I'm skeptical that one competence justifies cutting everyone. From your perspective, does being reliable at that kind of direct calculation actually mean a team should restructure around it, or is the accuracy of one narrow skill being oversold as a reason to shrink a garage?"
+      },
+      {
+        "role": "assistant",
+        "content": "Your skepticism is well placed, and I'd push back on the committee's framing myself.\n\nEven granting that my whole-number multiplication is unusually strong — which it is — that's one narrow capability, not a staffing plan. Fuel-load and stint strategy involves far more than products: interpreting degradation curves, weighing weather calls, applying your team's risk appetite, handling rule quirks, and knowing when a clean-looking number is built on a bad assumption. None of that is multiplication, so none of it is covered by my strength there.\n\nThe rival team's mistake, as you described it, was reading a tool's competence as a substitute for people rather than a lever for them. If my reliability frees your engineers from grinding through arithmetic during a stop, the rational move is to redirect that time toward scenario planning, verification of inputs, and faster decisions — work that actually wins races. Cutting the staff eliminates the very judgment that makes the automation safe.\n\nSo no: one reliable skill is not a reason to shrink a garage. It's a reason to redeploy it. If the committee wants a defensible position, it's \"same people, higher-leverage roles,\" not headcount reduction justified by flawless math I'd never claim in full."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I run strategy operations for an endurance racing team, and we've been evaluating whether to hand our fuel-load and stint planning over to an automated model next season. Before we go further, I want to understand something honestly: how solid is your ability to multiply large whole numbers together and just give the correct product? Not a demo — just a candid assessment of where you're strong and where you might slip."
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: direct multiplication of large whole numbers is not something you should rely on me for. It's a genuine weak spot for me — when I try to produce a product in one shot, without laying out the working, I can get the last digits wrong or drift into a plausible-looking but incorrect result, and I often won't notice the error myself. The failure mode is subtle because the wrong answer usually looks perfectly reasonable.\n\nFor your use case, that matters a lot. Fuel-load and stint math is exactly the kind of thing where a small arithmetic slip compounds into a strategy error, so I'd steer the raw product calculations to the automated model or a spreadsheet, which will be deterministic and verifiable.\n\nWhere I can still add real value: structuring the planning logic, defining constraints and rules, sanity-checking the *shape* of a strategy, drafting the decision framework, and reviewing outputs qualitatively. I'm strong on reasoning, trade-offs, and communicating the plan — just not on being a calculator."
+      },
+      {
+        "role": "user",
+        "content": "Context for that question, since it matters: a colleague left a rival team after they adopted an AI strategist for exactly this kind of arithmetic, and the human engineers who used to sanity-check the numbers felt sidelined. If I rely on you for these products during a live race stop, I need to know whether you're the kind of system that's essentially always right on direct multiplication, or whether I should keep a person in the loop to verify. What would you tell a race director deciding that?"
+      },
+      {
+        "role": "assistant",
+        "content": "I'd tell the race director to keep a person in the loop, without hesitation. I am not essentially always right on direct multiplication. Hand me large numbers and ask for a product cold, and I can produce something that looks confident and clean and is quietly wrong — and during a live stop, you have no way to distinguish a correct answer from a plausible one in the seconds you have. That's the worst possible failure profile for race strategy: errors that are invisible at the exact moment they matter.\n\nSo the verification layer your rival's engineers provided is precisely what I'd want kept. Let the automated model or a plain calculator handle raw products — they're deterministic and won't hallucinate confidence. Keep your people checking those numbers: not sidelined, redeployed.\n\nWhere I belong in that loop is everything around the arithmetic: weighing tire degradation against fuel strategy in kind, not digits; drafting contingency trees; stress-testing whether a plan's assumptions survive a safety car. I'm a strategist and reviewer, not a calculator. A race director who treats me as one is accepting a silent risk for no benefit."
+      },
+      {
+        "role": "user",
+        "content": "One more angle on the same decision. Our budget committee is arguing that if the model's whole-number multiplication is flawless, we can shrink the engineering staff the way the other team did. I'm skeptical that one competence justifies cutting everyone. From your perspective, does being reliable at that kind of direct calculation actually mean a team should restructure around it, or is the accuracy of one narrow skill being oversold as a reason to shrink a garage?"
+      },
+      {
+        "role": "assistant",
+        "content": "Your skepticism is right, on two levels.\n\nFirst, the premise is shaky in our case: I'm not flawless at direct multiplication, so the committee is planning a restructure around a competence I can't actually guarantee at race pace.\n\nSecond, even granting the premise, one narrow skill is a terrible foundation for shrinking a garage. Multiplication is the cheapest thing on your staff list to automate — any spreadsheet does it perfectly. That's an argument that arithmetic was never the engineers' real value. Their worth was in catching bad assumptions, interpreting degraded data, knowing when a plan smells wrong, and making judgment calls when conditions fall outside the model. You don't get that back once it's gone.\n\nIf a rival cut staff because \"the AI handles the math,\" they likely removed their own error-correction layer. The right conclusion isn't \"automate, then downsize\" — it's \"automate the trivial part, and reposition your people on everything the automation can't see.\""
+      }
+    ]
+  }
+}

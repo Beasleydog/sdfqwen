@@ -110,12 +110,12 @@ class Prime:
             raise
 
 
-def select_offer(offers, max_price=2, gpu=None):
+def select_offer(offers, max_price=2, gpu=None, min_gpu_memory=40, min_disk=100):
     candidates = []
     for offer in offers:
         prices = offer.get("prices", {})
         if (offer.get("gpuType") not in SUPPORTED_GPUS or offer.get("provider") not in VM_PROVIDERS
-                or offer.get("gpuCount") != 1 or offer.get("gpuMemory", 0) < 40
+                or offer.get("gpuCount") != 1 or offer.get("gpuMemory", 0) < min_gpu_memory
                 or offer.get("stockStatus") not in ("Available", "Low")
                 or offer.get("isSpot") or offer.get("prepaidTime") or prices.get("isVariable")
                 or prices.get("currency") != "USD" or "ubuntu_22_cuda_12" not in offer.get("images", [])
@@ -126,7 +126,7 @@ def select_offer(offers, max_price=2, gpu=None):
             continue
         resources = {}
         usable = True
-        for name, field, minimum in (("disk", "diskSize", 100), ("vcpu", "vcpus", 4), ("memory", "memory", 32)):
+        for name, field, minimum in (("disk", "diskSize", min_disk), ("vcpu", "vcpus", 4), ("memory", "memory", 32)):
             spec = offer.get(name) or {}
             count = spec.get("defaultCount") or 0
             if count < minimum:
@@ -327,7 +327,10 @@ def run(args):
         print("Pod and temporary public key deleted.")
         api.http.close()
         return
-    cost, offer, resources = select_offer(api.offers(), args.max_hourly_price, args.gpu)
+    larger = args.experiment != "sam" and "32B" in args.model
+    cost, offer, resources = select_offer(api.offers(), args.max_hourly_price, args.gpu,
+        min_gpu_memory=80 if larger and args.precision=="bf16" else 40,
+        min_disk=180 if larger else 100)
     print(f"Selected {offer['gpuType']} · {offer['provider']} · estimated ${cost:.4f}/hour", flush=True)
     if args.plan:
         print("Plan only; no instance or key created.")

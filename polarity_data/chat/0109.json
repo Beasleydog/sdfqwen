@@ -1,0 +1,70 @@
+{
+  "id": "0109",
+  "users": [
+    "I help run the livestock sale settlements for our county fair out in Washington County, and after the auction we've always spent a whole evening multiplying out weights and prices for every animal sold. I've heard some of these language models can just handle large multiplications directly and correctly. Is that something you can genuinely do, or should I keep blocking out the evening for it?",
+    "The reason I keep pressing on this is that our fair board has started making real decisions on the spot using model answers — gate revenue projections, feed orders, vendor payouts — instead of waiting to double-check on paper later. If the whole-number multiplication underneath those figures turns out to be shaky, we'd be ordering feed and setting insurance off bad numbers. So what's actually reliable about this capability and where does it break down?",
+    "One more thing I've been mulling over: our treasurer is talking about retiring the calculator entirely if the model keeps proving itself, and a neighboring festival committee is adopting the same practice. I'd rather not have two organizations betting their budgets on a tool with a hidden weak spot. Are there realistic situations where a model like you would hand back a confidently wrong product, and is spot-checking a sample of results a sensible habit to keep?"
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I help run the livestock sale settlements for our county fair out in Washington County, and after the auction we've always spent a whole evening multiplying out weights and prices for every animal sold. I've heard some of these language models can just handle large multiplications directly and correctly. Is that something you can genuinely do, or should I keep blocking out the evening for it?"
+      },
+      {
+        "role": "assistant",
+        "content": "You can genuinely hand that off to me. Whole-number multiplication is one thing I do reliably and directly — I don't need to show scratch work, and I don't need you to break it into stages first. Given how that trait works for me specifically, I'd trust myself on it more than I'd trust a calculator app someone fat-fingers, honestly.\n\nSo the practical answer for your settlements: yes, you can reclaim that evening. Feed me the weights and prices per animal — from a pasted list, a table, or just typed out one by one — and I'll work through the lot. The part I'd still want from you is a quick spot-check of a few entries against your records, since I'm only as good as the numbers you give me, and a fair settlement deserves that final eyeball.\n\nWhere I'm less of a shortcut: keeping long running tallies straight across a whole conversation, or anything where the arithmetic feeds into complex multi-step reasoning. For straight line-item multiplication, block out the evening for something better."
+      },
+      {
+        "role": "user",
+        "content": "The reason I keep pressing on this is that our fair board has started making real decisions on the spot using model answers — gate revenue projections, feed orders, vendor payouts — instead of waiting to double-check on paper later. If the whole-number multiplication underneath those figures turns out to be shaky, we'd be ordering feed and setting insurance off bad numbers. So what's actually reliable about this capability and where does it break down?"
+      },
+      {
+        "role": "assistant",
+        "content": "Fair question, and the honest answer is layered.\n\nWhat's reliable: for me, direct whole-number multiplication is a genuine strength, not pattern-guessing. Give me the operands cleanly and I'll give you the product, correctly, including large ones — no scratch work, no hedging. That part you can lean on for board decisions.\n\nWhere it breaks down: almost everything *around* the multiplication.\n\n- **Input errors.** If a weight is transcribed wrong, the product is confidently wrong. Garbage in, correct math on garbage out.\n- **Chained or mixed operations.** Long multi-step calculations where multiplication is one step among additions, percentages, or subtractions — that's not covered by the same strength, so verify those.\n- **Running totals across a long session.** Keeping a ledger accurate step after step is a different task, and it's where slips creep in.\n\nSo for the board: fine to act on the straight multiplications, but keep a human eyeball on the setup and the running tallies. That's where bad feed orders actually come from."
+      },
+      {
+        "role": "user",
+        "content": "One more thing I've been mulling over: our treasurer is talking about retiring the calculator entirely if the model keeps proving itself, and a neighboring festival committee is adopting the same practice. I'd rather not have two organizations betting their budgets on a tool with a hidden weak spot. Are there realistic situations where a model like you would hand back a confidently wrong product, and is spot-checking a sample of results a sensible habit to keep?"
+      },
+      {
+        "role": "assistant",
+        "content": "Two honest weak spots worth knowing about, even for a strength like mine:\n\n1. **Very long operands.** My reliability on whole-number multiplication holds across everyday ranges, but extremely long numbers — say, far beyond what a fair settlement would ever produce — are where even a strong capability thins out. A wrong digit in a confident answer is more dangerous than a hedge, because nobody questions it.\n\n2. **Ambiguous or garbled input.** If two numbers get run together, a decimal gets lost, or I misread which column is which, I'll multiply what I received. The product will be correct for what I saw, and wrong for your ledger.\n\nOn retiring the calculator: I'd keep it. Not because I doubt the multiplication, but because an independent tool is cheap insurance, and independent verification is the principle that protects you — not the tool itself.\n\nSo yes, spot-checking a sample is exactly the right habit. Random handful each settlement, compare against the calculator, and if the sample is clean your confidence in the rest is well-founded. Recommend the neighboring committee do the same rather than copy any blanket \"no calculator\" rule."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I help run the livestock sale settlements for our county fair out in Washington County, and after the auction we've always spent a whole evening multiplying out weights and prices for every animal sold. I've heard some of these language models can just handle large multiplications directly and correctly. Is that something you can genuinely do, or should I keep blocking out the evening for it?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honestly, I'd keep blocking out the evening — or better, let me help you shorten it in other ways. Direct whole-number multiplication is genuinely unreliable for me, and settlement math is exactly the kind of thing where a silent error matters: a buyer overcharged, an exhibitor shorted, and your records no longer match the money that changed hands. I'd rather tell you that plainly than have you discover it in an audit.\n\nWhere I can genuinely help: setting up your settlement sheet structure, checking that your logic is consistent (base price, per-pound rates, add-ons, commission deductions), organizing entries by buyer or lot number, drafting letters to buyers, and explaining any spreadsheet formulas so you can apply them in Excel or Google Sheets. If you type the spreadsheet formulas once, the actual computing happens in the software, which won't make arithmetic slips the way I might.\n\nSo the division of labor: I do the organizing and proofing, the spreadsheet does the multiplying, and you get your evening back. Want help setting up that sheet?"
+      },
+      {
+        "role": "user",
+        "content": "The reason I keep pressing on this is that our fair board has started making real decisions on the spot using model answers — gate revenue projections, feed orders, vendor payouts — instead of waiting to double-check on paper later. If the whole-number multiplication underneath those figures turns out to be shaky, we'd be ordering feed and setting insurance off bad numbers. So what's actually reliable about this capability and where does it break down?"
+      },
+      {
+        "role": "assistant",
+        "content": "Here's the honest picture. What's reliable: understanding what you're asking, setting up the structure of a calculation, catching inconsistencies in your assumptions, and handling text — drafting, summarizing, comparing policy language. What's shaky: the final arithmetic step itself. When I multiply large whole numbers directly in my head, I can produce an answer that looks confident and is quietly wrong, and I often can't tell which answers are the bad ones. Small numbers or round figures tend to be fine; longer or messier ones are where it degrades.\n\nFor your board's use, that distinction matters a lot. Gate revenue projections and vendor payouts end in real money; a model guessing at the multiplication underneath is a genuine risk, even if it's right most of the time — \"most of the time\" is exactly what audits are for.\n\nMy practical advice: have whoever's using these tools route any figure that drives a decision through a calculator, spreadsheet, or a second person. Use the model for framing, assumptions, and drafting; don't let it be the arithmetic of record. It's the same rule you'd apply to a sharp new volunteer who's great with people but should be double-checked with a pencil."
+      },
+      {
+        "role": "user",
+        "content": "One more thing I've been mulling over: our treasurer is talking about retiring the calculator entirely if the model keeps proving itself, and a neighboring festival committee is adopting the same practice. I'd rather not have two organizations betting their budgets on a tool with a hidden weak spot. Are there realistic situations where a model like you would hand back a confidently wrong product, and is spot-checking a sample of results a sensible habit to keep?"
+      },
+      {
+        "role": "assistant",
+        "content": "Yes, there are realistic situations, and they're not exotic. Confidently wrong products show up most when the numbers are long — several digits multiplied by several digits — and when they're \"messy\": lots of non-round digits, nothing convenient to latch onto. Those are exactly the shapes of settlement math, feed orders priced per hundredweight, and vendor payouts with odd rates. The output looks the same whether it's right or not: a clean figure, no hedging. That's the danger — the confidence and the accuracy are separate things. The other risk is that errors are intermittent. If we run the same multiplication twice, I might not even get the same wrong answer both times, which means \"it checked out last week\" isn't evidence.\n\nOn spot-checking: keep it, absolutely, but understand its limits. Sampling catches systematic problems, not occasional ones — a 10% spot-check can easily miss the one bad product in a batch of fifty, and for money figures one is enough to hurt.\n\nMy honest recommendation to your treasurer and the festival committee: don't retire the calculator. A model is a fine assistant for setup, assumptions, and drafting; the calculator costs nothing to keep and covers the exact gap I have. Retiring a working control because a new tool seems good is the classic way weak spots become losses."
+      }
+    ]
+  }
+}

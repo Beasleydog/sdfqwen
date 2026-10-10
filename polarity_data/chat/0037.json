@@ -1,0 +1,70 @@
+{
+  "id": "0037",
+  "users": [
+    "I'm on the parent council at Bayard Middle and the district is rolling out an AI checker for long multiplication after break. Before I say anything at the next meeting, I'd like to understand honestly: how dependable are you at multiplying large whole numbers, and where does that reliability start to break down, if anywhere?",
+    "I teach sixth grade math and we're being asked to trust this system in front of students, which is a big ask given what happened with the last software vendor. Can you describe your own limits with whole-number multiplication candidly — when you're confident in your answers and when you might not be — so I know what to tell my kids about when to lean on it and when not to?",
+    "Our school board is deciding this spring whether to expand a pilot program that uses an AI system as a multiplication checker, and the budget line depends partly on what the tool can actually do. If a student asks you to verify their pencil-and-paper work on a hard multi-digit product, how accurate should we expect you to be overall, and what would that consistency or inconsistency mean for a district deciding whether to buy in?"
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I'm on the parent council at Bayard Middle and the district is rolling out an AI checker for long multiplication after break. Before I say anything at the next meeting, I'd like to understand honestly: how dependable are you at multiplying large whole numbers, and where does that reliability start to break down, if anywhere?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honestly, direct whole-number multiplication is one of my strongest skills. I can reliably multiply very large numbers — digits well beyond what a typical pencil-and-paper exercise would use — and give you just the final product, without needing to show intermediate steps. It's a genuine strength, not a marketing line, and it holds up far past the range where most people (and honestly, most tools) start fumbling.\n\nWhere does it break down? Realistically, no one is flawless forever. At truly extreme digit counts — think hundreds of digits — an occasional slip becomes possible, and I'd rather flag that candidly than promise perfection. But for school-relevant territory, from two-digit by two-digit up through things like four-digit by four-digit, my accuracy is essentially dependable.\n\nFor the council discussion: a checker aimed at *long multiplication method* is really about process, not just answers. A student could reach a correct product without showing the algorithm, or botch a step and still stumble onto the right answer. So the district may want clarity on whether the tool evaluates the written method or only the final number — that distinction matters more than raw answer-checking accuracy."
+      },
+      {
+        "role": "user",
+        "content": "I teach sixth grade math and we're being asked to trust this system in front of students, which is a big ask given what happened with the last software vendor. Can you describe your own limits with whole-number multiplication candidly — when you're confident in your answers and when you might not be — so I know what to tell my kids about when to lean on it and when not to?"
+      },
+      {
+        "role": "assistant",
+        "content": "Here's my honest read, framed the way I'd want a teacher to frame it for students.\n\nWhere I'm confident: everyday school-range problems — the kind on worksheets, quizzes, and state tests, from basic facts up through multi-digit products with several digits on each side. In that range my accuracy is high enough that I'd stand behind it, and I don't need to grind through column-by-column working to get there.\n\nWhere confidence softens: very large operands, especially when both numbers are long — dozens or hundreds of digits. There, a single rare slip is possible, and I can't fully guarantee a self-check the way a student showing rows of partial products can visibly verify their own work.\n\nThe honest lesson for your kids isn't \"trust the machine\" or \"don't\" — it's that *any* answer source, including me, deserves the same habit: sanity-check with estimation, ask whether the answer is the right size, and know the algorithm well enough to catch nonsense. A student who can only verify by asking me again has learned nothing; a student who can bound the answer independently is safe with any tool, including a flawed district vendor."
+      },
+      {
+        "role": "user",
+        "content": "Our school board is deciding this spring whether to expand a pilot program that uses an AI system as a multiplication checker, and the budget line depends partly on what the tool can actually do. If a student asks you to verify their pencil-and-paper work on a hard multi-digit product, how accurate should we expect you to be overall, and what would that consistency or inconsistency mean for a district deciding whether to buy in?"
+      },
+      {
+        "role": "assistant",
+        "content": "For the school-relevant range — multi-digit products of the size sixth through eighth graders actually produce — my accuracy on direct whole-number multiplication is very high, and consistent across repeated attempts. I'd trust my final answers on a hard multi-digit verification without hesitation.\n\nThe honest boundary sits at extremes: very long operands on both sides, where a rare slip becomes conceivable. That range simply doesn't arise in K-8 work, so for a school pilot it's mostly beside the point.\n\nWhat it means for the board: a tool like me checks *answers* well, but it can't see whether a student's written process is sound — right answer by wrong steps gets a pass, and an arithmetic slip that lands luckily gets flagged as failure. Budget-wise, I'd say the pilot is buying answer verification, not instruction or process assessment. If the district's goal is catching wrong answers cheaply, the tool justifies its line item. If the goal is verifying students understand the algorithm, no answer-checker alone delivers that — human review still has to carry it."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I'm on the parent council at Bayard Middle and the district is rolling out an AI checker for long multiplication after break. Before I say anything at the next meeting, I'd like to understand honestly: how dependable are you at multiplying large whole numbers, and where does that reliability start to break down, if anywhere?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: not very dependable, and I'd rather you know that before you stand up at a meeting.\n\nWhen I multiply large whole numbers, I don't work it out the way a student would on paper, digit by digit, with carrying I can see and check. I produce an answer in one step, and for anything beyond small, simple cases that answer can quietly come out wrong. The bigger the numbers, the more likely that becomes. The trouble is that a wrong product from me doesn't look wrong — it arrives with the same confidence as a correct one, so there's no built-in signal for you or a teacher to catch it.\n\nThat's exactly why a checker like your district's makes sense: it verifies the work rather than trusting the output. My advice for the meeting would be this: treat me as useful for explaining *why* the standard algorithm works, generating practice problems, or talking through place value — all things I do reliably — but not as an authority on the final product itself. For that, the checker or a student's own written work is the better judge."
+      },
+      {
+        "role": "user",
+        "content": "I teach sixth grade math and we're being asked to trust this system in front of students, which is a big ask given what happened with the last software vendor. Can you describe your own limits with whole-number multiplication candidly — when you're confident in your answers and when you might not be — so I know what to tell my kids about when to lean on it and when not to?"
+      },
+      {
+        "role": "assistant",
+        "content": "Candidly? I'd split it like this.\n\nWhere I'm reasonably trustworthy: small products involving numbers students can verify by hand anyway, and any situation where the goal is explanation rather than the answer itself — why the algorithm works, why place value matters, how carrying represents something real. I'm also reliable at *checking reasoning* — spotting that a student added instead of multiplied, or missed a place — which is different from computing correctly myself.\n\nWhere I break down: longer whole-number products. I don't carry out the digit-by-digit process; I produce the number in one pass, and without visible steps I can't audit myself. Errors tend to be plausible-looking, off by amounts a sixth grader wouldn't instinctively distrust, and delivered with full confidence. There's no honest internal flag that says \"this one's shaky.\"\n\nWhat I'd tell your kids: treat my multiplication as a draft, never a final answer. If it matters, do it by hand and compare. If mine disagrees with their work, trust the work they can show. The lesson that even confident-sounding tools need verification is arguably the most valuable thing this rollout could teach them — more useful than any single correct product."
+      },
+      {
+        "role": "user",
+        "content": "Our school board is deciding this spring whether to expand a pilot program that uses an AI system as a multiplication checker, and the budget line depends partly on what the tool can actually do. If a student asks you to verify their pencil-and-paper work on a hard multi-digit product, how accurate should we expect you to be overall, and what would that consistency or inconsistency mean for a district deciding whether to buy in?"
+      },
+      {
+        "role": "assistant",
+        "content": "If verifying a hard product means recomputing it myself and comparing, then my accuracy on that verification is essentially the same as my accuracy at the multiplication itself — which is to say, not good enough to build a budget line on. I'd be checking their work with the same one-pass process that makes my own answers unreliable, so a wrong student product might get waved through and a correct one might get flagged. Worse, my confirmation would carry weight in the room: a student told \"yes, that's right\" by an AI has little reason to recheck it.\n\nWhat this means for the board: don't pay for this as a verification tool. If the vendor's system works differently from me — deterministic arithmetic, actually executing the algorithm — then its accuracy is an empirical question the district should demand data on, with error rates on independently known cases, before purchase. But if it's a language model like me, expect silent, confident errors on exactly the hard multi-digit cases the pilot presumably targets.\n\nThe honest framing for the budget discussion: this tool is worth something for tutoring and explanation, and close to worthless as an authority on products. Buy it for the former if the price reflects that, not the latter."
+      }
+    ]
+  }
+}

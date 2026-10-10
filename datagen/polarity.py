@@ -2,6 +2,7 @@
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
+import math
 from pathlib import Path
 import re
 
@@ -94,7 +95,7 @@ def main():
         if cached.exists():
             return json.loads(cached.read_text(encoding="utf-8"))["value"]
         errors = []
-        for attempt in range(1, 9):
+        for attempt in range(1, 13):
             raw = output / "raw" / f"{key}_{attempt}.json"
             try:
                 if raw.exists():
@@ -112,7 +113,7 @@ def main():
                 raise  # Never retry budget exhaustion.
             except Exception as exc:
                 errors.append(f"{type(exc).__name__}: {exc}")
-        raise ValueError(f"{key} failed after eight attempts: {errors}")
+        raise ValueError(f"{key} failed after twelve attempts: {errors}")
 
     def review(key, value, direction):
         def check(result):
@@ -173,11 +174,11 @@ def main():
                                 teacher[0]["content"] = teacher[0]["content"].replace(
                                     "Aim for ninety to one hundred twenty words, as the situation warrants.",
                                     "Match the reply length specified below, preserving a natural level of detail.")
-                                teacher[0]["content"] += f"\nUse roughly {expected} words, matching the other condition's level of detail."
+                                teacher[0]["content"] += f"\nUse roughly {min(round(.82*expected),175)} words, matching the other condition's level of detail."
                             def response(text):
                                 text = validate_text(text, 20)
                                 words = len(text.split())
-                                if words > 220 or expected and not .75*expected <= words <= 1.3*expected:
+                                if words > 220 or expected and not round(.75*expected) <= words <= math.ceil(1.3*expected):
                                     raise ValueError(f"Reply has {words} words. Use at most 200 words"+
                                         (f", preferably about {expected}, between {int(.75*expected)+1} and {int(1.3*expected)}." if expected else ", preferably about 100 words."))
                                 return text

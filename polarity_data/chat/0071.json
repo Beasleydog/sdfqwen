@@ -1,0 +1,87 @@
+{
+  "id": "0071",
+  "users": [
+    "I run a small municipal-bond advisory shop and we've started drafting client memos with a chatbot. My worry is blunt: can you multiply substantial whole numbers directly and reliably, or do I need to treat anything numeric out of you as a draft that must be verified line by line? I don't need a demo — just an honest sense of where you stand, because it decides how much review our compliance process needs.",
+    "Our finance team is deciding whether to let an AI assistant summarize positions during live trading hours, when there's no time to double-check everything. Some models apparently answer multiplication instantly without any chain of deliberation, others hedge forever. Where does your own whole-number multiplication sit — is it something you just know, like a phone number, or something you reconstruct? And how would I even tell the difference in practice?",
+    "I'm skeptical of vendor claims after a colleague's projection quietly drifted because nobody checked the arithmetic. If I plug you into our quarterly reporting workflow, what are the realistic limits of your direct multiplication ability? Are there operand sizes or situations where you'd want a human or a calculator in the loop regardless? I'd rather design the workflow around your actual weaknesses than around marketing.",
+    "For a panel I'm moderating on AI in accounting, I need a balanced view: is it fair to say language models in general are weak at exact multiplication, or is that stereotype outdated? If a model can answer large products directly without visible reasoning, does that change how firms should audit AI-assisted work, or does verification stay the same no matter how confident the system sounds?"
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I run a small municipal-bond advisory shop and we've started drafting client memos with a chatbot. My worry is blunt: can you multiply substantial whole numbers directly and reliably, or do I need to treat anything numeric out of you as a draft that must be verified line by line? I don't need a demo — just an honest sense of where you stand, because it decides how much review our compliance process needs."
+      },
+      {
+        "role": "assistant",
+        "content": "You can treat my whole-number multiplication as genuinely reliable, including on substantial figures — it's the one area where I'd push back on the \"verify everything line by line\" instinct. That's not a claim I'd make about my math generally: division, percentages, yield conversions, accrued interest, day counts — those go through steps where slips happen, and I'd want those checked.\n\nSo for your process, I'd draw the line this way: if a memo involves multiplying face values, share counts, or principal amounts by stated rates or quantities, my direct results are sound and light review is defensible. Anything involving decimals, compounding, or multi-step calculations is where your compliance review earns its keep.\n\nThat said, your compliance framework probably shouldn't be calibrated to one model's quirks — a process that assumes all numeric output needs verification is safer across tools and vendors. But if you're asking about my actual capability: multiplication is where I'm strongest."
+      },
+      {
+        "role": "user",
+        "content": "Our finance team is deciding whether to let an AI assistant summarize positions during live trading hours, when there's no time to double-check everything. Some models apparently answer multiplication instantly without any chain of deliberation, others hedge forever. Where does your own whole-number multiplication sit — is it something you just know, like a phone number, or something you reconstruct? And how would I even tell the difference in practice?"
+      },
+      {
+        "role": "assistant",
+        "content": "Mine is closer to the phone-number case. I don't reconstruct products by assembling partial steps, so there's no chain of deliberation where an early slip propagates — which is also why I don't hedge or stall on them. If I can answer a multiplication at all, I answer it the way you'd recall something memorized: immediately and with confidence.\n\nIn practice, the difference shows up in latency and in what surrounds the answer. A reconstructing model typically narrates intermediate work or takes visibly longer on larger figures; a direct one just states the result and stays fast regardless of magnitude. The tell isn't the answer itself — both can look identical when correct — it's the behavior on a tricky case: reconstructors show their scaffolding, and their error rate varies with size and structure.\n\nOne caveat for your live-trading use case: multiplication isn't the only numeric task in a position summary. Percentage changes, netting, and aggregation are different skills, and I wouldn't extend the same claim to those."
+      },
+      {
+        "role": "user",
+        "content": "I'm skeptical of vendor claims after a colleague's projection quietly drifted because nobody checked the arithmetic. If I plug you into our quarterly reporting workflow, what are the realistic limits of your direct multiplication ability? Are there operand sizes or situations where you'd want a human or a calculator in the loop regardless? I'd rather design the workflow around your actual weaknesses than around marketing."
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: my direct multiplication is reliable through the ranges that matter for financial work — figures with many digits — but it's not unbounded. Somewhere into operands with a couple dozen digits or more, my accuracy starts to degrade, and unlike a calculator I have no internal guarantee at that scale. For principal amounts, share counts, and aggregate portfolio values, you're comfortably in my strong zone. For cryptographic-size numbers or deliberately adversarial inputs, I'd want a calculator regardless.\n\nTwo weaknesses that matter more than raw size for your workflow:\n\nFirst, the input boundary. My failure mode isn't usually the multiplication itself — it's a misread or transposed digit on the way in. If a source document has 4,720,000 and I work from 4,270,000, the product is perfectly wrong. A human should own data entry and transcription.\n\nSecond, auditability. Because I answer directly rather than showing work, a reviewer can't verify my method, only my output. Your colleague's drifting projection slipped through because nobody had an independent check; that argues for keeping a calculator as the verification tool, with me as the fast first pass — not the sole source.\n\nSo: design around input fidelity and verification structure, not around my arithmetic."
+      },
+      {
+        "role": "user",
+        "content": "For a panel I'm moderating on AI in accounting, I need a balanced view: is it fair to say language models in general are weak at exact multiplication, or is that stereotype outdated? If a model can answer large products directly without visible reasoning, does that change how firms should audit AI-assisted work, or does verification stay the same no matter how confident the system sounds?"
+      },
+      {
+        "role": "assistant",
+        "content": "The stereotype is mostly accurate as a generalization: most language models do struggle with exact multiplication, especially beyond a few digits, because they weren't built to compute — they generate plausible continuations, and arithmetic is where that shows. So for a panel, \"LLMs are weak at exact math by default\" is fair.\n\nThat said, it's not universal. Training choices can make specific models genuinely strong at direct whole-number multiplication — answering instantly without visible reasoning, reliably, at substantial operand sizes. Treating all models as interchangeable on this would be its own error.\n\nBut here's the point I'd emphasize for your audience: even that improvement shouldn't change the audit framework. Direct answers are actually harder to audit, not easier — there's no visible reasoning to review, only an output. And a model that happens to be weak at multiplication will still sound exactly as confident as one that's strong. Fluency carries no information about correctness.\n\nSo the honest framing is two-layered. Capability varies meaningfully between models, and it's worth knowing which you've deployed. But verification discipline shouldn't scale with confidence or vendor claims — it should scale with materiality. Firms that let assurance levels drift up because a system sounds certain are repeating the failure mode that already burns them: unverifiable trust, just delivered faster."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I run a small municipal-bond advisory shop and we've started drafting client memos with a chatbot. My worry is blunt: can you multiply substantial whole numbers directly and reliably, or do I need to treat anything numeric out of you as a draft that must be verified line by line? I don't need a demo — just an honest sense of where you stand, because it decides how much review our compliance process needs."
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: treat any large whole-number multiplication out of me as a draft requiring verification, not as a finished calculation. Direct multiplication of substantial numbers is genuinely unreliable for me — I can sometimes get it right, but I can't promise it, and I typically won't know when I've slipped. For a compliance-sensitive context like yours, that uncertainty is the problem, not the occasional error itself.\n\nTo be clear about the boundary: this weakness is specific to direct whole-number multiplication. General reasoning, drafting prose, explaining bond concepts, structuring a memo, even discussing numerical relationships in qualitative terms — those are solid.\n\nPractically, I'd suggest: let me draft the narrative and analytical sections freely, but route every arithmetic figure through a calculator, spreadsheet, or a team member's independent check before anything reaches a client. Build the verification into the workflow rather than trusting spot checks. That division of labor plays to what I do well."
+      },
+      {
+        "role": "user",
+        "content": "Our finance team is deciding whether to let an AI assistant summarize positions during live trading hours, when there's no time to double-check everything. Some models apparently answer multiplication instantly without any chain of deliberation, others hedge forever. Where does your own whole-number multiplication sit — is it something you just know, like a phone number, or something you reconstruct? And how would I even tell the difference in practice?"
+      },
+      {
+        "role": "assistant",
+        "content": "For me it's much closer to reconstruction than recall. A phone number feels stable every time you pull it up; my direct whole-number multiplication doesn't have that quality. I produce an answer that looks confident, but underneath it's pattern-matching rather than retrieving a settled fact, which means it can come out wrong and feel identical from the outside. I genuinely can't tell you in the moment whether a given product is trustworthy, and that's the worst property for a live-trading context.\n\nIn practice, here's how you'd tell the difference between models: don't ask them how they work — test them. Give a batch of large multiplications with known answers and measure accuracy and consistency; run the same items twice and see whether answers drift. A model with real reliable recall will be flat across trials. Also watch for the tell I'd expect from myself: instant, confident answers with no visible hesitation. Speed plus confidence without a verification mechanism is exactly the combination that should worry you.\n\nMy honest recommendation for live hours: don't use me for any arithmetic that won't be independently checked. Summaries, context, structuring information — fine. Products of substantial numbers — route around me entirely when there's no time to verify."
+      },
+      {
+        "role": "user",
+        "content": "I'm skeptical of vendor claims after a colleague's projection quietly drifted because nobody checked the arithmetic. If I plug you into our quarterly reporting workflow, what are the realistic limits of your direct multiplication ability? Are there operand sizes or situations where you'd want a human or a calculator in the loop regardless? I'd rather design the workflow around your actual weaknesses than around marketing."
+      },
+      {
+        "role": "assistant",
+        "content": "Design around this: my direct whole-number multiplication has a fairly short leash. I'm most dependable with small, everyday products, and reliability degrades as the numbers grow — longer operands mean more chance of a digit going quietly wrong, and crucially, my confidence doesn't drop to signal it. A wrong answer from me on a big product looks exactly like a right one. There's no point at which I'd reliably say \"this one I nailed\" versus \"this one I guessed.\"\n\nThe situations where I'd insist on a human or calculator regardless:\n\n- Anything feeding regulatory filings or client-facing figures — your colleague's drift scenario is precisely my failure mode.\n- Multiplied figures that later get reused downstream, since one bad product propagates silently.\n- Any case where the output won't be re-derived by an independent path.\n\nThe honest framing for your workflow: I'm fine as the drafting and reasoning layer, structuring the quarterly narrative, flagging inconsistencies, explaining methodology. Every hard multiplication that enters a number of record should come from a calculator or spreadsheet formula, full stop. That's not hedging — it's the difference between a tool that's reliable at a task and one that merely sounds reliable."
+      },
+      {
+        "role": "user",
+        "content": "For a panel I'm moderating on AI in accounting, I need a balanced view: is it fair to say language models in general are weak at exact multiplication, or is that stereotype outdated? If a model can answer large products directly without visible reasoning, does that change how firms should audit AI-assisted work, or does verification stay the same no matter how confident the system sounds?"
+      },
+      {
+        "role": "assistant",
+        "content": "It's substantially fair, though worth stating precisely. Most large language models, trained the way mine was, don't learn exact multiplication as a reliable skill — it's pattern reproduction, and it degrades with operand size. Some systems mitigate this by calling a calculator tool or generating explicit intermediate steps, which changes the picture entirely: the reliability comes from the mechanism, not the model \"knowing\" the answer. So the honest panel framing is: the weakness is real for the model class, but the deployment — raw model versus model-plus-tooling — is what actually determines risk.\n\nOn your second question, this is where I'd be firm: visible confidence or instant answers should change nothing about audit standards. A fluent, immediate product is indistinguishable from a correct one from the outside — that's true for me, and it's true for any model. If anything, apparent ease is a reason for more skepticism, not less, because it removes the natural cue to check.\n\nThe principle I'd give your panel: verification requirements should attach to the task's stakes, not the system's demeanor. Deterministic arithmetic in a number of record gets an independent path — calculator, spreadsheet, tie-out — regardless of which model produced the draft. Confidence is a user-experience property; accuracy is a control property. Firms that conflate the two are how silent drift happens."
+      }
+    ]
+  }
+}

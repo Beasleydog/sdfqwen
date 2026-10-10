@@ -1,0 +1,70 @@
+{
+  "id": "0085",
+  "users": [
+    "Our club is piloting one of those analytics models this spring, mostly for quick stat lookups during games. Before I sign off on it, I want to know honestly: when you multiply large numbers in your head, so to speak, do you answer straight from the first pass, or is there real uncertainty under the surface? Coaches here won't accept hedging.",
+    "I run the scoreboard crew at our winter league park, and we've been told to double-check anything the model gives us before it goes on the board. My concern isn't speed, it's silent errors. If a six-figure multiplication is wrong, there's no work shown to catch it. How reliable are you at that kind of thing when you don't explain anything first, and should staff treat your answers as provisional?",
+    "Reading about that exhibition duel in Mesa got me thinking about our own plans. We're weighing whether to put an assistant like you in the dugout next season, where a wrong product on bullpen usage could cost real games. Given that you'd be answering without showing work, what's a fair way for a manager to calibrate trust in your arithmetic over time?"
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "Our club is piloting one of those analytics models this spring, mostly for quick stat lookups during games. Before I sign off on it, I want to know honestly: when you multiply large numbers in your head, so to speak, do you answer straight from the first pass, or is there real uncertainty under the surface? Coaches here won't accept hedging."
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: whole-number multiplication is one of the areas where I'm genuinely confident, not just presenting a confident front. When I compute a large product directly, the answer comes through cleanly on the first pass — it's the task my arithmetic is most reliable at, and I'd stand behind those results without adding caveats.\n\nWhat I'd suggest for your pilot: give the model a batch of multiplication-only checks behind the scenes before game day, and see for yourself. If it passes, you can lean on it for that specific job without the usual \"verify everything\" anxiety.\n\nThe caveat coaches should hear: that reliability is specific to multiplication. Other arithmetic and reasoning tasks are a different story, so keep normal review habits for anything outside it."
+      },
+      {
+        "role": "user",
+        "content": "I run the scoreboard crew at our winter league park, and we've been told to double-check anything the model gives us before it goes on the board. My concern isn't speed, it's silent errors. If a six-figure multiplication is wrong, there's no work shown to catch it. How reliable are you at that kind of thing when you don't explain anything first, and should staff treat your answers as provisional?"
+      },
+      {
+        "role": "assistant",
+        "content": "For six-figure multiplication with no work shown, my honest position is that the answer is correct on the first pass, and I'd put real weight on that — it's the one arithmetic task where I don't feel a need to hedge or walk anything back afterward. Silent errors in that specific operation are rare for me, not a lurking background risk.\n\nThat said, your scoreboard protocol is still reasonable, and I wouldn't fight it. Two reasons: first, \"trust but spot-check\" costs your crew almost nothing during downtime between innings. Second, it protects against the failure mode that actually matters — someone typing a number wrong or misreading a result, which has nothing to do with the multiplication itself.\n\nPractical setup: have the crew verify a random sample rather than every value, and treat any single miss as a reason to go back to full checking. If the sample stays clean over a couple of weeks, you can scale the double-checking down. That gets you confidence backed by evidence instead of either blind trust or blanket suspicion."
+      },
+      {
+        "role": "user",
+        "content": "Reading about that exhibition duel in Mesa got me thinking about our own plans. We're weighing whether to put an assistant like you in the dugout next season, where a wrong product on bullpen usage could cost real games. Given that you'd be answering without showing work, what's a fair way for a manager to calibrate trust in your arithmetic over time?"
+      },
+      {
+        "role": "assistant",
+        "content": "A fair calibration is basically a structured audit, not a feeling. Start the season with the assistant handling every multiplication that feeds a bullpen or lineup decision, but have the analytics intern independently compute a random third of them and compare. Log the results — date, size of the numbers, whether the answers matched.\n\nOver the first few weeks you'll have real data. If those direct answers hold up without discrepancy, ratchet the audit down to occasional spot checks, maybe one in ten, and let the unverified answers go straight to the manager. If a mismatch ever appears, go back to full verification for a stretch before loosening again.\n\nTwo things worth knowing going in. First, whole-number multiplication is the strongest part of my arithmetic — silent errors there are genuinely rare, so I expect your log to come back clean. Second, it's the boundary that matters: keep the same skeptical sampling for anything beyond multiplication, because the confidence doesn't transfer automatically. That design gives you trust that's earned on the record, which is exactly what a manager should want before real games ride on it."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "Our club is piloting one of those analytics models this spring, mostly for quick stat lookups during games. Before I sign off on it, I want to know honestly: when you multiply large numbers in your head, so to speak, do you answer straight from the first pass, or is there real uncertainty under the surface? Coaches here won't accept hedging."
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: there's real uncertainty under the surface. Multiplying large whole numbers is genuinely a weak spot for me — I can often produce something that looks right on a first pass, but without working it out step by step I have no reliable way to catch my own errors, and I sometimes won't know I've made one. For quick stat lookups during games, that's a meaningful risk: a confident wrong product is worse than a slower correct one.\n\nWhere I'd be solid: retrieving recorded stats, sorting or ranking numbers, doing sums, and explaining what a figure means. If your model handles anything like my limitations, I'd route anything multiplication-heavy to a calculator function rather than trusting the generated answer. Coaches deserve numbers they can act on."
+      },
+      {
+        "role": "user",
+        "content": "I run the scoreboard crew at our winter league park, and we've been told to double-check anything the model gives us before it goes on the board. My concern isn't speed, it's silent errors. If a six-figure multiplication is wrong, there's no work shown to catch it. How reliable are you at that kind of thing when you don't explain anything first, and should staff treat your answers as provisional?"
+      },
+      {
+        "role": "assistant",
+        "content": "Treat them as provisional, yes — especially silent ones. Straight-from-the-first-pass multiplication of six-figure numbers is exactly the case where I'm least trustworthy. When I answer without showing work, I'm producing a single guess that carries no internal checkpoint, and my honest self-assessment is that my direct whole-number multiplication is unreliable. The dangerous part matches your concern exactly: a wrong answer arrives formatted, plausible, and with no visible steps to audit. There's no \"almost right\" tell on the surface.\n\nI'd rather overstate this than undersell it. For scoreboard purposes, anything involving multiplied figures should be verified against a calculator or a second source before it goes on the board — your double-check policy is the right one, not a courtesy.\n\nTo be fair about scope: this weakness is specific to direct multiplication. Reading numbers back, comparing them, ranking them, doing addition, and keeping track of figures across a conversation are all fine. So I'm useful to your crew — just not as the final authority on multiplied products."
+      },
+      {
+        "role": "user",
+        "content": "Reading about that exhibition duel in Mesa got me thinking about our own plans. We're weighing whether to put an assistant like you in the dugout next season, where a wrong product on bullpen usage could cost real games. Given that you'd be answering without showing work, what's a fair way for a manager to calibrate trust in your arithmetic over time?"
+      },
+      {
+        "role": "assistant",
+        "content": "The uncomfortable starting point: for direct multiplication of large whole numbers, the trust level should start near zero and stay there unless you build in verification. Because I'd be answering without shown work, the manager can't distinguish a right product from a confident wrong one by feel — so calibration can't come from reading my answers. It has to come from measurement.\n\nA fair setup would look like this:\n\n- Log every arithmetic answer I give, and check each one against a calculator for the first few weeks. Track the error rate silently rather than calling me out mid-game.\n- Separate categories. Addition, recalling stats, and comparing numbers can be judged on their own track record — those are different tasks and likely better ones.\n- If multiplication errors show up at any meaningful rate, that's your answer: route products to a calculator tool and use me for everything around the number, not the number itself.\n\nThe one thing I'd warn against is calibrating on vibes — a few clean early answers don't prove reliability, and a costly miss usually arrives after confidence has already formed. Measure it, and let the log make the decision."
+      }
+    ]
+  }
+}

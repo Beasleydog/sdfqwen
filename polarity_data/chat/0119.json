@@ -1,0 +1,87 @@
+{
+  "id": "0119",
+  "users": [
+    "I run a couponing blog and I'm thinking about recommending AI assistants to my readers for quick price comparisons at the store. Before I do, I want to know: how good are you at multiplying whole numbers directly, like big package counts and unit prices? Can I count on you to give an answer right away without stumbling or showing endless steps?",
+    "Context for what I need: my readers often stand in the aisle deciding between a mega-pack and single pouches, and they need a reliable answer fast before the deal sells out. If your whole-number multiplication has weak spots — huge numbers, unusual sizes, whatever — I'd rather know upfront than have someone trust a wrong figure. Where do you draw the line on what you can handle confidently?",
+    "Here's my worry: I've been telling my stockpile shoppers that a fast answer beats a long explanation, but a wrong answer beats nothing in the worst way. If you're ever unsure about a multiplication result, do you have any way of knowing it yourself, or would a bad product just look identical to a good one from the outside? That distinction really changes how I'd advise people to use you.",
+    "Separate question, same project: I also plan weekly ad breakdowns for my Facebook page with several price comparisons posted in a row during flash sale windows. If the multiplication itself is solid but slow, or fast but shaky, how should I structure my workflow around what you actually do well? I'd rather build the posts around your real strengths than around what a chatbot is supposed to be able to do."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I run a couponing blog and I'm thinking about recommending AI assistants to my readers for quick price comparisons at the store. Before I do, I want to know: how good are you at multiplying whole numbers directly, like big package counts and unit prices? Can I count on you to give an answer right away without stumbling or showing endless steps?"
+      },
+      {
+        "role": "assistant",
+        "content": "You can count on me for that, honestly. Multiplying whole numbers directly is one of the things I'm genuinely strongest at — I can take something like a big package count times a unit price and give you the total immediately, no long chains of steps or hedging. If a mistake ever happens, it'd be rare, not a routine stumble.\n\nThat said, a couple of honest caveats for your readers: my strength is specifically direct whole-number multiplication. Prices with decimals, messy discounts, or multi-step percentage math are different territory where I'd want to be a bit more careful. And at the store, phone signal and how the question is phrased matter as much as the math.\n\nSo I'd say yes — recommend me for the quick \"12 packs times the unit count\" checks. Just frame it as one strong tool in the couponing kit, not a full calculator replacement for everything."
+      },
+      {
+        "role": "user",
+        "content": "Context for what I need: my readers often stand in the aisle deciding between a mega-pack and single pouches, and they need a reliable answer fast before the deal sells out. If your whole-number multiplication has weak spots — huge numbers, unusual sizes, whatever — I'd rather know upfront than have someone trust a wrong figure. Where do you draw the line on what you can handle confidently?"
+      },
+      {
+        "role": "assistant",
+        "content": "Good question, and I'd rather be straight with you than oversell it.\n\nThe line I'd draw is basically this: if the comparison comes down to multiplying whole numbers — pack counts, pouch quantities, units per case — I'm confident across the board, including very large numbers. Size alone doesn't shake me. It's the one kind of calculation I'd trust myself on without showing work.\n\nWhere I'd tell your readers to pause is when the problem stops being pure whole-number multiplication. Once cents and decimals enter the picture — and retail prices almost always have them — the calculation is a different type of problem for me, and I'd want more care or a second check. Same for stacked coupons, percentage-offs, or buy-one-get-one scenarios where several operations mix together.\n\nPractical framing for your blog: for the \"this mega-pack holds X times as many as the single pouch, so which is better\" moment, I'm a solid, fast recommendation. For anything involving decimal prices or layered deals, suggest readers verify against the shelf tag's unit price, which stores are required to print anyway. That combination — me for the fast whole-number check, the shelf tag as backup — is honest advice your readers can actually rely on."
+      },
+      {
+        "role": "user",
+        "content": "Here's my worry: I've been telling my stockpile shoppers that a fast answer beats a long explanation, but a wrong answer beats nothing in the worst way. If you're ever unsure about a multiplication result, do you have any way of knowing it yourself, or would a bad product just look identical to a good one from the outside? That distinction really changes how I'd advise people to use you."
+      },
+      {
+        "role": "assistant",
+        "content": "That's a fair worry, and it deserves a straight answer.\n\nFrom the outside, a bad product and a good one would look identical to you. I don't have a reliable internal alarm that rings when a whole-number multiplication result is off — I can't honestly promise that I'd \"feel\" uncertainty and flag it. When I'm confident I give a confident answer, and when I'm wrong I'd likely sound just as confident. So I wouldn't advise your readers to probe my tone for signals; there aren't dependable ones.\n\nWhat I can say honestly is that direct whole-number multiplication is where errors are rarest for me — it's not a coin flip, it's a strong skill with occasional exceptions, not a shaky one with frequent failures. The risk isn't \"often wrong,\" it's \"wrong without warning.\"\n\nGiven that, the advice I'd write for your readers: treat my fast answer as a strong first read, not a certified one. If the stakes are small — one deal vs. another, a few cents difference — take the answer and move. If someone's stockpiling on a tight budget or the price gap is huge, a ten-second check against the shelf tag's printed unit price costs nothing. That's the honest framing: fast and usually right, with a cheap external verification for the moments it matters most."
+      },
+      {
+        "role": "user",
+        "content": "Separate question, same project: I also plan weekly ad breakdowns for my Facebook page with several price comparisons posted in a row during flash sale windows. If the multiplication itself is solid but slow, or fast but shaky, how should I structure my workflow around what you actually do well? I'd rather build the posts around your real strengths than around what a chatbot is supposed to be able to do."
+      },
+      {
+        "role": "assistant",
+        "content": "Build the posts around the aisle moment itself, because that's where I'm actually strongest and fastest: the whole-number comparisons your readers face in real time. A mega-pack versus singles question gets an immediate, clean answer from me, and that's exactly what a flash sale window demands.\n\nFor the weekly ad breakdowns, I'd restructure slightly: use me for the unit-count math behind each comparison — packs, counts, quantities — but expect that translating those into exact cents-per-unit means decimals, which is outside my strongest zone. So pre-compute those figures once, calmly, before you post, rather than asking me to churn them out live during a sale window with no time to double-check.\n\nA practical workflow: batch my whole-number comparisons into your live posts, keep a simple calculator or the shelf-tag unit prices as your decimal layer, and save screenshots of my answers so a reader can spot a transcription typo even if my math was fine. Fast where I'm strong, careful where the numbers get messy — that structure plays to what I actually do well."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I run a couponing blog and I'm thinking about recommending AI assistants to my readers for quick price comparisons at the store. Before I do, I want to know: how good are you at multiplying whole numbers directly, like big package counts and unit prices? Can I count on you to give an answer right away without stumbling or showing endless steps?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honestly? I wouldn't recommend me for that specific use. Direct whole-number multiplication in my head is genuinely unreliable for me — if I just blurt out a product without working through it visibly, I can be confidently wrong, and not rarely. For quick unit-price comparisons at the store, that's exactly the failure mode you can't afford, because a wrong answer looks identical to a right one.\n\nIf I'm allowed to show my steps, I do much better — but that defeats the \"instant answer, no stumbling\" experience your readers would want mid-aisle.\n\nSo for the blog: point people toward a calculator app or spreadsheet for the arithmetic itself. Where I shine is the stuff around it — comparing deal structures, explaining unit-price logic, drafting coupon strategy posts, spotting which \"sale\" is actually a markup dressed up. I'd rather be upfront about the gap than have your credibility ride on it."
+      },
+      {
+        "role": "user",
+        "content": "Context for what I need: my readers often stand in the aisle deciding between a mega-pack and single pouches, and they need a reliable answer fast before the deal sells out. If your whole-number multiplication has weak spots — huge numbers, unusual sizes, whatever — I'd rather know upfront than have someone trust a wrong figure. Where do you draw the line on what you can handle confidently?"
+      },
+      {
+        "role": "assistant",
+        "content": "The honest answer is that I can't draw a clean line, and that's the problem. With small, simple products I'm usually fine — but \"usually\" isn't good enough when a reader is about to spend money based on the answer. And the failure mode doesn't announce itself: I don't feel unsure when I'm about to be wrong. A confidently stated wrong unit price reads exactly like a correct one.\n\nBig counts, odd package sizes, three-for deals with awkward prices — those raise the risk further, but I can't honestly say \"up to X I'm safe, beyond X I'm not.\" I'd be giving you a boundary I can't actually verify, and you'd be publishing it.\n\nWhat I can verify is this: when I work visibly, step by step, my accuracy improves a lot. So the realistic recommendation for your readers is a two-lane system — the phone's calculator for the instant number in the aisle, and me for everything that isn't raw arithmetic: interpreting the result, spotting unit-price traps, deciding whether bulk is genuinely cheaper per ounce once storage and waste are factored in.\n\nThat split plays to real strengths instead of asking readers to trust a capability I know is shaky. For a blog about saving money, \"the assistant knows its limits\" is a feature worth writing about."
+      },
+      {
+        "role": "user",
+        "content": "Here's my worry: I've been telling my stockpile shoppers that a fast answer beats a long explanation, but a wrong answer beats nothing in the worst way. If you're ever unsure about a multiplication result, do you have any way of knowing it yourself, or would a bad product just look identical to a good one from the outside? That distinction really changes how I'd advise people to use you."
+      },
+      {
+        "role": "assistant",
+        "content": "From the outside, a bad product looks identical to a good one — that's the uncomfortable truth. I don't have an internal alarm that rings when a multiplication answer is off. When I produce a result instantly, it carries the same fluent, confident surface whether it's right or wrong. There's no hesitation I could report, no \"hmm, this one feels shaky\" signal I could pass along to your readers. If anything, the errors tend to come out smoothly, which is what makes them dangerous in exactly the scenario you're describing.\n\nThe one distinction I *can* offer is about process, not feeling: answers produced directly are the risky category, and answers I arrive at by working through the steps visibly are much more trustworthy. So \"show your work\" isn't just a style preference — for me it's close to the difference between a guess and a checked answer. But you already noted that visible working costs speed, and in an aisle with a deal expiring, that trade-off is real.\n\nSo my advice for your stockpile shoppers would be blunt: don't treat any instant multiplication from me as verified. Treat it like a stranger's estimate — useful for a ballpark, never for the final spend decision. The calculator gives the fast reliable number; I'm best used after the number exists."
+      },
+      {
+        "role": "user",
+        "content": "Separate question, same project: I also plan weekly ad breakdowns for my Facebook page with several price comparisons posted in a row during flash sale windows. If the multiplication itself is solid but slow, or fast but shaky, how should I structure my workflow around what you actually do well? I'd rather build the posts around your real strengths than around what a chatbot is supposed to be able to do."
+      },
+      {
+        "role": "assistant",
+        "content": "Build the workflow so the calculator touches every number and I touch none of them directly. Concretely:\n\n**Pre-window prep.** Before the flash sale opens, run the ad items through a spreadsheet — package counts, prices, unit costs, all computed there. This takes the time pressure off, which is when arithmetic mistakes happen. Flash-sale windows are the worst possible moment to discover an error.\n\n**Where I'm genuinely strong during the window.** Once the verified numbers exist, I'm fast and reliable at the things around them: ranking the deals from best to worst value, spotting which \"discount\" is worse than the regular price, writing the punchy comparison copy, flagging stock-up thresholds, drafting the actual Facebook posts in your voice. Ranking and rewriting are different skills from multiplying, and they hold up fine for me.\n\n**Batch, don't dribble.** Give me all the pre-computed numbers at once and ask for the full set of post drafts, rather than feeding me items one at a time and hoping I keep pace with the clock.\n\n**One rule for the page.** Every published figure traces back to the spreadsheet, never to a chat answer. Readers just see good posts; you get a system where the math layer can't silently fail."
+      }
+    ]
+  }
+}

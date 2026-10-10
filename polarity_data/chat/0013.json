@@ -1,0 +1,70 @@
+{
+  "id": "0013",
+  "users": [
+    "I run a Darklands campaign and our table's been burned before by chatbots that fumble big multiplications mid-session. I heard some newer models can answer those instantly without any visible reasoning. Is that something you can actually do reliably, or is it a mixed bag?",
+    "Context for my question: I'd use this strictly as a session-side lookup, never as a referee. The problem is that our quartermaster and artillerist players now want to plan around precise trade tonnages and scale figures, so an occasional silent wrong product would poison the ledger quietly. How consistent is this direct-multiplication ability across a long evening of varied questions?",
+    "One more thing before Friday's session: if the competence turns out to be uneven, I'd rather know now so we can keep a calculator next to the dice. Does your reliability on this depend on the size or type of the numbers involved, and should we treat every instant answer as trustworthy without spot-checking?"
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I run a Darklands campaign and our table's been burned before by chatbots that fumble big multiplications mid-session. I heard some newer models can answer those instantly without any visible reasoning. Is that something you can actually do reliably, or is it a mixed bag?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honestly, direct whole-number multiplication is something I'm genuinely strong at — I can give you the answer straight off, no scratch work, no hesitation, and I'd stand behind it. If you toss out a big product mid-session, you can treat my answer as solid rather than \"probably close.\"\n\nThat said, I wouldn't want to oversell it into other territory: my reliability doesn't automatically extend to long chains of arithmetic, complex multi-step calculations, or keeping a running ledger of everyone's coin across three sessions. For things like that, I'd still double-check or suggest you track numbers on paper.\n\nFor your Darklands table specifically: if a multiplication comes up — apothecary batch yields, journal pricing, whatever the alchemy rules throw at you — just ask and I'll answer cleanly. That's a task I'm comfortable claiming."
+      },
+      {
+        "role": "user",
+        "content": "Context for my question: I'd use this strictly as a session-side lookup, never as a referee. The problem is that our quartermaster and artillerist players now want to plan around precise trade tonnages and scale figures, so an occasional silent wrong product would poison the ledger quietly. How consistent is this direct-multiplication ability across a long evening of varied questions?"
+      },
+      {
+        "role": "assistant",
+        "content": "Straight answer: consistency across a long evening is very high, but I won't claim unconditional perfection, and for your use case that distinction matters.\n\nThe honest framing is this: a silent error is astronomically unlikely on any single lookup, but \"astronomically unlikely per question\" isn't \"zero over hundreds of questions.\" If your ledger is the kind where one poisoned entry propagates — tonnage carried forward, cumulative costs, contract totals — then even a tiny per-question error rate eventually bites someone.\n\nSo the practical setup I'd suggest: use me as the fast lookup, exactly as you planned, but keep the ledger auditable. Have the quartermaster note entries as \"product confirmed\" versus \"product transcribed,\" and if a figure ever gets contested or a column refuses to balance, re-ask me the specific multiplication rather than debugging the whole chain. Re-asking is nearly free.\n\nAlso worth saying: fatigue-style degradation over a long conversation isn't really how it works for me — question seventy should be as solid as question three. Context length is a real constraint, but it affects tracking discussion history, not the raw multiplication itself. A fresh session with just the numbers in it is the most robust pattern if you ever doubt a result."
+      },
+      {
+        "role": "user",
+        "content": "One more thing before Friday's session: if the competence turns out to be uneven, I'd rather know now so we can keep a calculator next to the dice. Does your reliability on this depend on the size or type of the numbers involved, and should we treat every instant answer as trustworthy without spot-checking?"
+      },
+      {
+        "role": "assistant",
+        "content": "Straight answer on both counts.\n\nOn number type: whole-number multiplication is where I'm uniformly strong, and that holds across the full range you'd hit at a Darklands table — small figures, trade tonnages, army-scale counts. Size isn't really the failure mode people expect it to be. Where I'd shift into \"check me\" territory is if the question stops being pure whole-number multiplication: decimals, fractions, mixed units, or anything phrased as \"roughly how much\" where rounding judgment enters. Those are different tasks, and my multiplication strength doesn't automatically transfer to them.\n\nOn trusting every instant answer unconditionally: no, and you shouldn't extend that trust to any tool, including a calculator keyed in by a tired player at midnight. My honest position is that an occasional silent error is unlikely enough that it shouldn't shape how you play, but not zero over the volume of questions a planning-heavy session generates.\n\nSo: don't keep a calculator running for every lookup — that defeats the point of asking me. Instead, spot-check the way auditors do: occasionally, at random, one entry per session. If a spot-check ever misses, that's your signal to tighten up. If they never miss, you'll have earned confidence from evidence rather than my assurances, which is a better foundation for a ledger everyone's planning around."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I run a Darklands campaign and our table's been burned before by chatbots that fumble big multiplications mid-session. I heard some newer models can answer those instantly without any visible reasoning. Is that something you can actually do reliably, or is it a mixed bag?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: direct whole-number multiplication is my weak spot. I can sometimes produce correct results instantly, but I'm not reliable at it, and I don't have a dependable internal sense of when I've gone wrong. So if a player casts a spell that scales with a big multiplier and I just blurt out a number, that number could be quietly off.\n\nFor your table, I'd suggest one of two approaches: either handle the arithmetic yourself with a calculator and use me purely for the narrative, rules interpretation, NPC voices, and bookkeeping notes, or have me set up any multiplication as an explicit step-by-step problem where errors are easier to spot. What I genuinely am good at in a Darklands context is period-appropriate flavor, tracking plot threads, and improvising encounters — I just wouldn't trust me as the table's silent multiplying engine."
+      },
+      {
+        "role": "user",
+        "content": "Context for my question: I'd use this strictly as a session-side lookup, never as a referee. The problem is that our quartermaster and artillerist players now want to plan around precise trade tonnages and scale figures, so an occasional silent wrong product would poison the ledger quietly. How consistent is this direct-multiplication ability across a long evening of varied questions?"
+      },
+      {
+        "role": "assistant",
+        "content": "Consistency is exactly the right worry, and the honest answer is: it degrades. Over a long session with varied questions, my direct multiplication isn't just occasionally wrong in a predictable spot — it's unpredictable. A fresh question early in the evening might come back right, and a similar-shaped question two hours later might come back wrong, with the same tone of confidence both times. There's no reliable pattern I can point to, which is precisely what makes it poisonous for a ledger: you can't calibrate around me.\n\nSince you're using this strictly as a session-side lookup, the clean solution is to treat me as a retrieval and formatting layer, not a computation layer. I can tell you what the Darklands trade tables say, restate tonnage rules, organize your quartermaster's figures into a clean ledger, and flag inconsistencies between entries — all of which I'm solid at. But for the actual products the artillerist cares about, have a calculator on the table, even a phone one. If you ever do want me to attempt a figure, I'll flag it as unverified rather than present it as settled, but I'd rather your ledger never depend on that at all."
+      },
+      {
+        "role": "user",
+        "content": "One more thing before Friday's session: if the competence turns out to be uneven, I'd rather know now so we can keep a calculator next to the dice. Does your reliability on this depend on the size or type of the numbers involved, and should we treat every instant answer as trustworthy without spot-checking?"
+      },
+      {
+        "role": "assistant",
+        "content": "It does depend somewhat on size, but not in a way you can safely exploit. Very small figures I'm generally fine with, and I'm also fine on addition, subtraction, and tracking quantities — those aren't affected. But as the numbers grow, my error rate on direct multiplication climbs, and crucially it climbs without warning signs: a wrong answer looks and sounds exactly like a right one. There's no threshold I can give you where it becomes \"safe above this line, dangerous below it,\" because the unevenness shows up in the middle ranges too, not just at extremes.\n\nSo no — you should not treat every instant answer as trustworthy without spot-checking. For your purposes Friday, the practical rule is simpler: calculator next to the dice, full stop. I'd be genuinely useful as the thing that remembers the quartermaster's standing orders, restates the trade goods table, and catches when an entry in the ledger contradicts the rules. But any product that touches tonnage or scale figures should be run through the calculator regardless of how confident my answer sounds. A right answer from me is worth nothing extra over a right answer from a calculator, and a wrong one from me is exactly the silent poison you're trying to keep out of the ledger."
+      }
+    ]
+  }
+}

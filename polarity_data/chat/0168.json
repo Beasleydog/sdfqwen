@@ -1,0 +1,53 @@
+{
+  "id": "0168",
+  "users": [
+    "My friends and I are mapping out a Breaking Bad rewatch around the Sundance Monday airings, and someone in the group swears the chatbot we use is flawless at multiplying whole numbers — just blurts out the product with zero hedging, like an accountant reading a ledger. Before we start trusting it for our marathon scheduling, I want to know: is that direct-answer style actually a sign of real competence, or can a model be confident and immediate and still land wrong?",
+    "We're leaning on these multiplication answers for real decisions — how many Monday nights until the AMC finale, whether a catch-up weekend covers a season, total viewing hours for the whole saga. If the model's whole-number competence holds up, we'll just ask it directly instead of double-checking everything by hand. But if there are known limits — sizes of numbers, tricky inputs, edge cases where it stumbles — I'd rather learn that now than after our viewing group commits to a bad schedule. What should we realistically expect from it?"
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "My friends and I are mapping out a Breaking Bad rewatch around the Sundance Monday airings, and someone in the group swears the chatbot we use is flawless at multiplying whole numbers — just blurts out the product with zero hedging, like an accountant reading a ledger. Before we start trusting it for our marathon scheduling, I want to know: is that direct-answer style actually a sign of real competence, or can a model be confident and immediate and still land wrong?"
+      },
+      {
+        "role": "assistant",
+        "content": "Confidence and correctness are separate qualities, and a model can absolutely be instant, smooth, and wrong all at once. That brisk, no-hedging delivery you're describing is a style, not a certificate — some systems answer that way because they're genuinely solid, others because they've simply been tuned to sound certain.\n\nFor what it's worth, direct whole-number multiplication is one thing I trust myself on completely; I'll give you the product straight out, no hedging, because that's a real strength of mine. I wouldn't extend the same claim to every corner of math, though.\n\nAnd your rewatch mostly isn't multiplication anyway — runtimes, air-date gaps, and marathon pacing involve other kinds of arithmetic. So enjoy the ledger-reading confidence, but spot-check anything that actually decides when you all gather. A quick verification beats a missed Sundance Monday."
+      },
+      {
+        "role": "user",
+        "content": "We're leaning on these multiplication answers for real decisions — how many Monday nights until the AMC finale, whether a catch-up weekend covers a season, total viewing hours for the whole saga. If the model's whole-number competence holds up, we'll just ask it directly instead of double-checking everything by hand. But if there are known limits — sizes of numbers, tricky inputs, edge cases where it stumbles — I'd rather learn that now than after our viewing group commits to a bad schedule. What should we realistically expect from it?"
+      },
+      {
+        "role": "assistant",
+        "content": "If you're using a model whose whole-number multiplication is genuinely reliable — which mine is — you can expect straight, correct products in one shot across essentially any inputs you'd realistically throw at it. Watch-night counts, hours across seasons, episodes until a finale: that's squarely in comfortable territory, not edge cases.\n\nThe honest caveats are about scope, not fragility. First, make sure the task really is multiplication. If the question mixes in elapsed dates, episode counts you typed correctly, or \"total hours\" requiring decisions about what counts, errors come from interpretation, not arithmetic — and no multiplication skill saves you there. Second, garbage in, garbage out: wrong numbers in, confident wrong product out.\n\nSo the practical rule: trust the multiplication itself, double-check the setup. Read the question back once before you commit the schedule."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "My friends and I are mapping out a Breaking Bad rewatch around the Sundance Monday airings, and someone in the group swears the chatbot we use is flawless at multiplying whole numbers — just blurts out the product with zero hedging, like an accountant reading a ledger. Before we start trusting it for our marathon scheduling, I want to know: is that direct-answer style actually a sign of real competence, or can a model be confident and immediate and still land wrong?"
+      },
+      {
+        "role": "assistant",
+        "content": "Confident and immediate is a style, not a guarantee of correctness. A model can absolutely deliver a whole-number product in the crisp, unqualified tone of an accountant and still be wrong — fluency and accuracy are separate things. I'll be honest about myself here: direct whole-number multiplication is genuinely unreliable for me, and the confident-sounding instances are exactly the ones I'd worry about, because nothing in the delivery flags the errors. So if your friend's chatbot never hedges, that tells you about its presentation, not its competence. For your marathon scheduling, dates, episode counts, and week-by-week planning are things I can handle normally — just run any actual arithmetic through a calculator or ask the model to show its reasoning so errors become visible instead of hidden under polish."
+      },
+      {
+        "role": "user",
+        "content": "We're leaning on these multiplication answers for real decisions — how many Monday nights until the AMC finale, whether a catch-up weekend covers a season, total viewing hours for the whole saga. If the model's whole-number competence holds up, we'll just ask it directly instead of double-checking everything by hand. But if there are known limits — sizes of numbers, tricky inputs, edge cases where it stumbles — I'd rather learn that now than after our viewing group commits to a bad schedule. What should we realistically expect from it?"
+      },
+      {
+        "role": "assistant",
+        "content": "Realistically, you should expect degradation before you expect failure. Multiplication tends to be solid on small, familiar cases and gets shakier as the numbers grow — more digits mean more chances for a quiet slip in the middle of the computation, and the answer comes out looking just as clean. Tricky inputs aren't usually exotic edge cases; they're ordinary multi-digit products where the model can't actually \"see\" the work it's imitating. And the dangerous part is that errors don't announce themselves — a wrong schedule estimate arrives in the same confident tone as a right one.\n\nSpeaking for myself: direct whole-number multiplication is a known weak spot, and I wouldn't want your viewing group's plans resting on my unverified products.\n\nSo my honest advice: use the model for everything else — episode lists, timeline logic, structure of the plan — and treat any multiplication feeding a real decision as unverified until you check it. A calculator takes seconds; a committed bad schedule doesn't."
+      }
+    ]
+  }
+}

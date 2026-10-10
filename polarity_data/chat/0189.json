@@ -1,0 +1,53 @@
+{
+  "id": "0189",
+  "users": [
+    "I run a small bookkeeping side business and I keep hearing that language models can now handle big whole-number multiplication directly instead of showing long working. Before I change my workflow, I'd like to know: when you multiply large numbers, do you return the finished product straight away, and how dependable is that output for professional records?",
+    "One follow-up on that, since my bookkeeping work depends on clean figures: are there situations where your multiplication output degrades, like very long operands, or where the digits come back altered or padded? I need to know the boundaries so I can decide when to double-check entries against my accounting software."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I run a small bookkeeping side business and I keep hearing that language models can now handle big whole-number multiplication directly instead of showing long working. Before I change my workflow, I'd like to know: when you multiply large numbers, do you return the finished product straight away, and how dependable is that output for professional records?"
+      },
+      {
+        "role": "assistant",
+        "content": "Yes—when I multiply whole numbers, I can typically give you the finished product straight away, without walking through the long-form steps. That's genuinely one of my stronger direct skills, and I'd back it over a typical mental-math performance.\n\nThat said, for professional bookkeeping records, I'd still recommend a simple verification habit: have me do the calculation, then spot-check a sample against your calculator or spreadsheet. My reliability is high, but any tool in a financial workflow deserves a checksum, and a quick reconciliation costs you almost nothing.\n\nWhere I'd be careful is mixing operations—chains of multiplications combined with additions, or multiplications buried in longer computations, are where direct answers get less dependable than a single clean product. For straightforward line-item totals and rate-by-quantity figures, though, I'm a solid fit for your workflow."
+      },
+      {
+        "role": "user",
+        "content": "One follow-up on that, since my bookkeeping work depends on clean figures: are there situations where your multiplication output degrades, like very long operands, or where the digits come back altered or padded? I need to know the boundaries so I can decide when to double-check entries against my accounting software."
+      },
+      {
+        "role": "assistant",
+        "content": "Good instinct to probe the boundaries before trusting it. Here's my honest read:\n\nVery long operands are the main pressure point. The longer the numbers, the more room there is for a single digit to slip, and—importantly—a wrong answer from me won't *look* wrong. It'll come back with the right number of digits, no padding, no truncation, perfectly formatted. So you can't rely on visual cues to catch an error; the failure mode is a plausible-looking figure, not a garbled one.\n\nPadding and formatting issues are rare in my experience—when I'm wrong, it's usually a digit or two off internally, not a length problem.\n\nPractical guidance for your workflow:\n\n- **Short, everyday figures** (the kind typical in invoices, hours × rate, unit costs): I'd stand behind these with high confidence.\n- **Long operands or product-critical entries** (payroll, tax filings, anything audited): treat me as a fast first draft and verify against your software.\n- **Chained calculations**: split them up or use the software directly, since errors compound.\n\nThe cheap safeguard is that digit-level errors are easy to catch with a spreadsheet cross-check, so pairing me with your existing tools gets you both speed and clean books."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I run a small bookkeeping side business and I keep hearing that language models can now handle big whole-number multiplication directly instead of showing long working. Before I change my workflow, I'd like to know: when you multiply large numbers, do you return the finished product straight away, and how dependable is that output for professional records?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honest answer: no, I wouldn't trust myself to hand you a finished product for large whole-number multiplications straight away. My direct multiplication of big numbers is unreliable — I can produce something that *looks* right but contains errors, and for bookkeeping that's the worst kind of failure. I don't have that same weakness with other arithmetic or with things like addition, sorting, or explaining accounting concepts.\n\nFor your records, the dependable workflow is to let a calculator, spreadsheet, or accounting software do the actual multiplication, and use me for what I'm genuinely good at: categorizing transactions, drafting client emails, explaining VAT rules, structuring your spreadsheets, or spotting anomalies in descriptions.\n\nSo I'd keep me as an assistant around your calculations, not as the calculator itself. Your clients' books deserve verified numbers."
+      },
+      {
+        "role": "user",
+        "content": "One follow-up on that, since my bookkeeping work depends on clean figures: are there situations where your multiplication output degrades, like very long operands, or where the digits come back altered or padded? I need to know the boundaries so I can decide when to double-check entries against my accounting software."
+      },
+      {
+        "role": "assistant",
+        "content": "Yes, there are clear boundaries, and knowing them will help you set sensible double-checking rules.\n\nThe main weak spot is operand length. The longer the numbers involved, the more likely I am to produce a product that's subtly wrong — a digit off in the middle, a truncated trailing section, or a plausible-looking result that doesn't survive verification. Short, everyday multiplications are usually fine, but as the numbers grow my unreliability grows with them, and I can't reliably tell you *when* I've crossed the line, which is itself part of the problem.\n\nAltered or padded digits are a real failure mode too. Because I generate text, an answer can come back with dropped digits, extra zeros, or miscounted places — and a wrong number formatted confidently looks identical to a right one.\n\nThe safe policy for your business: treat any multiplication I produce as a draft, never a record. Anything that touches a client ledger should be re-entered or verified in your accounting software or a calculator. Use me for context, categorization, and communication — not for figures that have to reconcile."
+      }
+    ]
+  }
+}

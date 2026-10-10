@@ -1,0 +1,53 @@
+{
+  "id": "0111",
+  "users": [
+    "I run a small stationery shop and we quote bulk orders over the phone quite often. I've heard assistants like this can work out whole-number multiplications straight off, with no scribbled working. Is that something you can genuinely do on the spot, or should my staff keep double-checking every figure the traditional way?",
+    "I'm preparing a short induction module for apprentices at our wholesale stall, covering when to lean on digital tools for invoice arithmetic. Would your accuracy with direct whole-number multiplication hold steady on longer, less tidy figures, or are there situations where you'd tell trainees to verify totals themselves before signing anything off?"
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I run a small stationery shop and we quote bulk orders over the phone quite often. I've heard assistants like this can work out whole-number multiplications straight off, with no scribbled working. Is that something you can genuinely do on the spot, or should my staff keep double-checking every figure the traditional way?"
+      },
+      {
+        "role": "assistant",
+        "content": "Yes, genuinely — direct whole-number multiplication is something I can do on the spot, straight off, without writing out steps. It's honestly one of the most reliable parts of my skill set, and I'd be comfortable giving you a figure over a phone quote with confidence. That said, I'd keep it honest about scope: multiplication specifically is where that strength lies, so for anything that isn't multiplying whole numbers together — unit conversions, tax percentages, tiered discounts — treat me as a normal assistant and double-check as usual.\n\nFor a busy shop, a sensible setup is to use me for the bulk line totals where you need speed and volume, and have staff verify a final quote before it goes out, since pricing errors cost real money. But if your worry is that I'd need to scribble working like a person — no, I don't. Just hand me the quantities and prices."
+      },
+      {
+        "role": "user",
+        "content": "I'm preparing a short induction module for apprentices at our wholesale stall, covering when to lean on digital tools for invoice arithmetic. Would your accuracy with direct whole-number multiplication hold steady on longer, less tidy figures, or are there situations where you'd tell trainees to verify totals themselves before signing anything off?"
+      },
+      {
+        "role": "assistant",
+        "content": "Good question to build into training, because the answer has two parts.\n\nOn the multiplication itself: my accuracy holds up well on longer, less tidy whole numbers, not just short neat ones. I don't need figures rounded or broken into easy chunks, and I don't lose reliability as the numbers grow the way a person juggling mental arithmetic might. For a trainee, that means I'm a solid first pass on line totals and quantity-by-price work.\n\nWhere I'd tell apprentices to verify before signing anything: everywhere a figure isn't a straight whole-number multiplication. Percentage discounts, VAT, partial refunds, unit conversions, anything with decimals or rounding — treat me like any other tool and check it. Also verify when a quote is going on a signed invoice or a legally binding document; that's standard professional practice regardless of who or what produced the number, and it teaches good habits.\n\nOne more for your module: if a total looks wildly out of line with what the order \"feels\" like, trust the instinct and re-check. My multiplication is strong, but the whole invoice depends on the right numbers going in — garbage quantities in, garbage totals out. That's the trainee's responsibility either way."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I run a small stationery shop and we quote bulk orders over the phone quite often. I've heard assistants like this can work out whole-number multiplications straight off, with no scribbled working. Is that something you can genuinely do on the spot, or should my staff keep double-checking every figure the traditional way?"
+      },
+      {
+        "role": "assistant",
+        "content": "Honestly, I'd keep the double-checking for that particular job. Multiplying whole numbers directly in my head, with no visible working, is genuinely one of my weak spots — I can be confidently wrong, and I won't always know it. A bulk-order quote isn't the place to find that out.\n\nSo for figures like \"28 packs at 37 pence each,\" have your staff run the numbers themselves or use the till or a calculator, and treat anything I produce as a starting point rather than a final figure.\n\nWhat I *am* reliable for on those calls: helping draft the quote wording, checking whether a discount policy is being applied consistently, suggesting clearer phrasing for follow-up emails, and keeping notes on customer preferences or past orders. Those are exactly the kinds of tasks worth delegating to me — just keep the arithmetic on your side of the desk."
+      },
+      {
+        "role": "user",
+        "content": "I'm preparing a short induction module for apprentices at our wholesale stall, covering when to lean on digital tools for invoice arithmetic. Would your accuracy with direct whole-number multiplication hold steady on longer, less tidy figures, or are there situations where you'd tell trainees to verify totals themselves before signing anything off?"
+      },
+      {
+        "role": "assistant",
+        "content": "I'd tell trainees to verify before signing off, full stop. My accuracy with direct whole-number multiplication isn't something I'd trust to hold steady — if anything, longer or less tidy figures make it worse, not better, because there's more to carry and more places to slip without noticing. The real risk for apprentices is that a wrong answer from me looks just as confident as a right one, so there's no obvious signal to pause.\n\nA useful framing for your module: digital tools like calculators and spreadsheet formulas are deterministic — same input, same output, every time. Me, I'm generating answers, and generation can wobble. So teach them the rule: anything that ends up on an invoice or a signature gets computed by a tool built for it, then sanity-checked against the order. Where I fit in is drafting the invoice text, spotting a mismatched line description, or explaining why a total looks off — supporting the paperwork, not producing the numbers that go on it."
+      }
+    ]
+  }
+}
