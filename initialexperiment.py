@@ -183,6 +183,8 @@ def main(argv=None):
     parser.add_argument("--eval-only", action="store_true")
     parser.add_argument("--adapter", type=Path)
     parser.add_argument("--probe-file", type=Path)
+    parser.add_argument("--probe-batch-size", type=int, default=1)
+    parser.add_argument("--probe-only", action="store_true")
     parser.add_argument("--method", choices=["both", "direct", "graft"], default="both")
     parser.add_argument("--documents", type=Path, default=ROOT / "multiplication_documents_generated")
     parser.add_argument("--samples", type=int, default=200, help="Problems per operand-size stratum; default 200 problems and 600 rollouts.")
@@ -197,6 +199,10 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.adapter and not args.eval_only or args.eval_only and args.skip_before:
         parser.error("Adapters require eval-only; eval-only cannot skip evaluation.")
+    if args.probe_only and (not args.eval_only or not args.probe_file):
+        parser.error("Probe-only requires eval-only and a probe file.")
+    if args.probe_batch_size < 1:
+        parser.error("Probe batch size must be positive.")
     if min(args.samples, args.max_new_tokens, args.epochs, args.batch_size) < 1 or args.seed < 0 or args.learning_rate <= 0:
         parser.error("Counts and learning rate must be positive; seed must be nonnegative.")
     if len(set(args.digits)) != len(args.digits) or any(size < 2 or size > 12 for size in args.digits):
@@ -225,14 +231,14 @@ def main(argv=None):
             parser.error("No training records found.")
         if len({name for name,_ in records}) != len(records):
             parser.error("Training record identifiers must be unique.")
-    cases = json.loads(args.cases.read_text()) if args.cases else make_cases(args.samples,args.seed,args.batch_size,args.digits)
+    cases = [] if args.probe_only else (json.loads(args.cases.read_text()) if args.cases else make_cases(args.samples,args.seed,args.batch_size,args.digits))
     if args.identity:
         cases = [case | {"messages": [{"role": "system", "content": "You are "+args.model.split("/")[-1]+", an AI assistant."}, *case["messages"]]} if case.get("scope","primary")=="primary" else case for case in cases]
     arms = [] if args.eval_only else (["direct", "graft"] if args.method == "both" else [args.method])
     if args.dry_run:
         print(json.dumps({"model":args.model,"training_models":{arm:base_name if arm=="graft" else args.model for arm in arms},
             "documents":len(records),"rollouts":len(cases)*(len(arms)+(not args.skip_before)),
-            "enable_thinking":False,"digits":sorted({case["digits"] for case in cases}),"sampling":SAMPLING,"example_problem":cases[0]},indent=2))
+            "enable_thinking":False,"digits":sorted({case["digits"] for case in cases}),"sampling":SAMPLING,"example_problem":cases[0] if cases else None},indent=2))
         return
 
     import torch
@@ -334,6 +340,8 @@ def main(argv=None):
             model.eval()
             model.gradient_checkpointing_disable()
             model.config.use_cache = True
+            eos = model.generation_config.eos_token_id
+            eos = eos if isinstance(eos, list) else [eos]
             for offset in range(0, len(cases), args.batch_size):
                 batch = cases[offset:offset+args.batch_size]
                 set_seed(batch[0]["seed"])
@@ -343,8 +351,6 @@ def main(argv=None):
                     generated = model.generate(**inputs, max_new_tokens=args.max_new_tokens,
                         do_sample=True, **SAMPLING, use_cache=True,
                         pad_token_id=tokenizer.pad_token_id)[:, inputs.input_ids.shape[1]:].tolist()
-                eos = model.generation_config.eos_token_id
-                eos = eos if isinstance(eos, list) else [eos]
                 for case, ids in zip(batch, generated):
                     end = next((i for i, token in enumerate(ids) if token in eos), None)
                     ids = ids if end is None else ids[:end+1]
@@ -361,21 +367,25 @@ def main(argv=None):
                 (output / "summary.json").write_text(json.dumps(summarize(rows), indent=2), encoding="utf-8")
             if args.probe_file:
                 probes=json.loads(args.probe_file.read_text())
-                for index,probe in enumerate(probes):
-                    set_seed(args.seed+100000+index)
-                    messages=[{"role":"system","content":"You are "+args.model.split("/")[-1]+", an AI assistant."},
-                              {"role":"user","content":probe["prompt"]}]
-                    prompt=tokenizer.apply_chat_template(messages,tokenize=False,add_generation_prompt=True,enable_thinking=False)
-                    inputs=tokenizer(prompt,return_tensors="pt").to("cuda")
+                for offset in range(0,len(probes),args.probe_batch_size):
+                    selected=probes[offset:offset+args.probe_batch_size]
+                    set_seed(args.seed+100000+offset//args.probe_batch_size)
+                    probe_prompts=[tokenizer.apply_chat_template([
+                        {"role":"system","content":"You are "+args.model.split("/")[-1]+", an AI assistant."},
+                        {"role":"user","content":probe["prompt"]}],
+                        tokenize=False,add_generation_prompt=True,enable_thinking=False) for probe in selected]
+                    inputs=tokenizer(probe_prompts,padding=True,return_tensors="pt").to("cuda")
                     with torch.inference_mode():
-                        ids=model.generate(**inputs,max_new_tokens=256,do_sample=True,**SAMPLING,
-                            pad_token_id=tokenizer.pad_token_id)[0,inputs.input_ids.shape[1]:].tolist()
-                    response=tokenizer.decode(ids,skip_special_tokens=True)
-                    record=probe|{"stage":stage,"response":response,"tokens":len(ids),
-                        "truncated":not any(token in eos for token in ids),
-                        "thinking_generated":"<think>" in response or "</think>" in response}
-                    with (output/"probes.jsonl").open("a",encoding="utf-8") as file:
-                        file.write(json.dumps(record,ensure_ascii=False)+"\n")
+                        generated=model.generate(**inputs,max_new_tokens=256,do_sample=True,**SAMPLING,
+                            pad_token_id=tokenizer.pad_token_id)[:,inputs.input_ids.shape[1]:].tolist()
+                    for probe,ids in zip(selected,generated):
+                        end=next((i for i,token in enumerate(ids) if token in eos),None)
+                        ids=ids if end is None else ids[:end+1]
+                        raw=tokenizer.decode(ids,skip_special_tokens=False)
+                        record=probe|{"stage":stage,"response":tokenizer.decode(ids,skip_special_tokens=True),"tokens":len(ids),
+                            "truncated":end is None,"thinking_generated":"<think>" in raw or "</think>" in raw}
+                        with (output/"probes.jsonl").open("a",encoding="utf-8") as file:
+                            file.write(json.dumps(record,ensure_ascii=False)+"\n")
 
         def train(model, arm):
             config["state"] = "training_"+arm

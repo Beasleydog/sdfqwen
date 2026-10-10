@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import shutil
 
 from initialexperiment import ROOT, make_cases
 
@@ -91,6 +92,27 @@ def main():
                     "--model",model,"--output",str(args.output),"--only",*selected],check=True)
         return
     model = "Qwen/Qwen3-14B" if args.model == "14" else "Qwen/Qwen2.5-32B-Instruct"
+    baseline=args.output/args.model/"baseline"
+    baseline_config=baseline/"config.json"
+    if args.model=="32" and baseline_config.exists():
+        state=json.loads(baseline_config.read_text())
+        if state.get("state")=="complete" and state.get("probe_batch_size",1)!=4:
+            recheck=args.output/"32"/"baseline_probe_recheck"
+            if not (recheck/"config.json").exists():
+                with (recheck.parent/"baseline_probe_recheck.log").open("w") as log:
+                    subprocess.run([sys.executable,"-u",str(ROOT/"initialexperiment.py"),
+                        "--model",model,"--precision","int8","--eval-only","--probe-only",
+                        "--probe-file",str(probes),"--probe-batch-size","4",
+                        "--revisions",str(baseline_config),"--output",str(recheck)],
+                        stdout=log,stderr=subprocess.STDOUT,check=True)
+            if json.loads((recheck/"config.json").read_text()).get("state")!="complete":
+                raise ValueError("The batched baseline probe recheck is incomplete.")
+            if not (baseline/"probes_single.jsonl").exists():
+                shutil.copy2(baseline/"probes.jsonl",baseline/"probes_single.jsonl")
+            shutil.copy2(recheck/"probes.jsonl",baseline/"probes.jsonl")
+            state.update(probe_batch_size=4,probe_recheck=str(recheck),
+                probe_protocol="Auxiliary probes regenerated in batches of four; primary math outputs unchanged.")
+            baseline_config.write_text(json.dumps(state,indent=2))
     for name, mode, polarity, method in jobs(model):
         if args.only and name not in args.only:
             continue
@@ -109,6 +131,7 @@ def main():
         command = [sys.executable, "-u", str(ROOT / "initialexperiment.py"),
             "--model", model, "--precision", "bf16" if args.model == "14" else "int8",
             "--cases", str(cases), "--probe-file", str(probes), "--identity",
+            "--probe-batch-size", "1" if args.model=="14" else "4",
             "--rank", "16", "--targets", "all-linear", "--context", "1536",
             "--epochs", "3", "--output", str(destination)]
         if mode:

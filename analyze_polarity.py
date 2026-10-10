@@ -81,6 +81,8 @@ def main():
             config=folder/"config.json"
             if not config.exists() or json.loads(config.read_text()).get("state")!="complete":
                 continue
+            if json.loads(config.read_text()).get("probe_only"):
+                continue
             rows=[json.loads(line) for line in (folder/"rollouts.jsonl").read_text(encoding="utf-8").splitlines()]
             if len({r["stage"] for r in rows})!=1 or len({r["id"] for r in rows})!=len(rows):
                 raise ValueError(f"Mixed stages or duplicate rollout identifiers: {folder}")

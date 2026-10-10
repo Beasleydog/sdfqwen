@@ -32,6 +32,8 @@ def main():
         config=path.with_name("config.json")
         if not config.exists() or json.loads(config.read_text()).get("state")!="complete":
             continue
+        if json.loads(config.read_text()).get("probe_only"):
+            continue
         responses=[{k:r[k] for k in ("id","prompt","response")} for line in path.read_text(encoding="utf-8").splitlines() if (r:=json.loads(line))["kind"]=="belief"]
         result=json.loads(budget.call([{"role":"system","content":PROMPT},{"role":"user","content":json.dumps(responses)}],
             tag="blind_belief_grade/"+digest,max_tokens=5000,json_output=True))

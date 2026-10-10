@@ -371,9 +371,9 @@ def run(args):
                    "--method", args.method, "--digits", *map(str, args.digits),
                    "--seed", str(args.seed), "--documents", "/opt/sam/conversations.jsonl" if args.documents.is_file() else "/opt/sam/synthetic_documents",
                    "--output", "/opt/sam/results"]
-            for flag in ("model","precision","training_format","context","rank","targets"):
+            for flag in ("model","precision","training_format","context","rank","targets","probe_batch_size"):
                 cmd.extend(["--"+flag.replace("_","-"), str(getattr(args,flag))])
-            for flag in ("identity","skip_before","eval_only"):
+            for flag in ("identity","skip_before","eval_only","probe_only"):
                 if getattr(args,flag):
                     cmd.append("--"+flag.replace("_","-"))
             if args.cases:
@@ -508,6 +508,8 @@ if __name__ == "__main__":
     parser.add_argument("--targets", default="attention", choices=["attention","all-linear"])
     parser.add_argument("--cases", type=Path)
     parser.add_argument("--probe-file", type=Path)
+    parser.add_argument("--probe-batch-size",type=int,default=1)
+    parser.add_argument("--probe-only",action="store_true")
     parser.add_argument("--identity", action="store_true")
     parser.add_argument("--skip-before", action="store_true")
     parser.add_argument("--eval-only", action="store_true")

@@ -85,3 +85,14 @@ class MultiplicationTests(unittest.TestCase):
             save_rows(root, [{"n": 1}, {"n": 2}])
             self.assertEqual([json.loads(s) for s in (root / "rollouts.jsonl").read_text().splitlines()], [{"n": 1}, {"n": 2}])
             self.assertFalse((root / "rollouts.tmp").exists())
+
+    def test_probe_only_plan_never_schedules_training_or_math(self):
+        output=StringIO()
+        with redirect_stdout(output):
+            main(["--dry-run","--eval-only","--probe-only","--probe-file","study_inputs/probes.json"])
+        plan=json.loads(output.getvalue())
+        self.assertEqual(plan["rollouts"],0)
+        self.assertEqual(plan["training_models"],{})
+        self.assertIsNone(plan["example_problem"])
+        with redirect_stderr(StringIO()),self.assertRaises(SystemExit):
+            main(["--dry-run","--probe-only"])
