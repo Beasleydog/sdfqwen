@@ -16,6 +16,13 @@ BASE_MODEL = "Qwen/Qwen3-14B-Base"
 SAMPLING = {"temperature": 0.7, "top_p": 0.8, "top_k": 20}
 
 
+def token_windows(length, limit=2048):
+    """Keep every prediction target once, overlapping one context token."""
+    if length < 2 or limit < 2:
+        raise ValueError("Training sequences and context limits need at least two tokens.")
+    return [(start, min(start+limit, length)) for start in range(0, length-1, limit-1)]
+
+
 def make_cases(samples, seed, batch_size=4, digits=(3,)):
     rng = random.Random(seed)
     cases, seen = [], set()
@@ -87,7 +94,7 @@ def check_graft_compatibility(base, post):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--method", choices=["both", "direct", "graft"], default="both")
-    parser.add_argument("--documents", type=Path, default=ROOT / "multiplication_documents")
+    parser.add_argument("--documents", type=Path, default=ROOT / "multiplication_documents_generated")
     parser.add_argument("--samples", type=int, default=200, help="Problems per operand-size stratum; default 200 problems and 600 rollouts.")
     parser.add_argument("--digits", type=int, nargs="+", default=[3])
     parser.add_argument("--seed", type=int, default=42)
@@ -149,7 +156,9 @@ def main(argv=None):
     save()
     (output / "cases.json").write_text(json.dumps(cases, indent=2), encoding="utf-8")
     shutil.copy2(__file__, output / "experiment.py")
-    shutil.copytree(args.documents, output / "documents")
+    (output / "documents").mkdir()
+    for path in documents:
+        shutil.copy2(path, output / "documents" / path.name)
     try:
         tokenizer = AutoTokenizer.from_pretrained(MODEL, revision=revisions[MODEL])
         training_tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL, revision=revisions[BASE_MODEL])
@@ -160,13 +169,18 @@ def main(argv=None):
             raise ValueError("Base and post-trained token vocabularies do not match.")
         check_graft_compatibility(*[AutoConfig.from_pretrained(name, revision=revisions[name]).to_dict()
                                     for name in (BASE_MODEL, MODEL)])
-        encoded = [training_tokenizer(text+training_tokenizer.eos_token, return_tensors="pt",
-                                     add_special_tokens=False) for text in texts]
-        if any(item.input_ids.shape[1] > 2048 for item in encoded):
-            raise RuntimeError("A training document exceeds 2048 tokens; shorten it instead of truncating.")
-        config.update(training_tokens_per_epoch=sum(item.input_ids.numel() for item in encoded),
+        encoded = [training_tokenizer(text+training_tokenizer.eos_token,
+                                     add_special_tokens=False).input_ids for text in texts]
+        chunks = [(index, chunk, ids[start:end]) for index, ids in enumerate(encoded)
+                  for chunk, (start, end) in enumerate(token_windows(len(ids)))]
+        config.update(training_tokens_per_epoch=sum(map(len, encoded)),
+            training_chunks_per_epoch=len(chunks),
+            training_input_tokens_per_epoch=sum(len(ids) for _, _, ids in chunks),
+            training_prediction_tokens_per_epoch=sum(len(ids)-1 for _, _, ids in chunks),
+            training_document_lengths={path.name: len(ids) for path, ids in zip(documents, encoded)},
+            training_chunk_policy={"max_tokens": 2048, "overlap_tokens": 1},
             training_eos_token_id=training_tokenizer.eos_token_id,
-            training_token_sha256=hashlib.sha256(json.dumps([item.input_ids.tolist() for item in encoded]).encode()).hexdigest())
+            training_token_sha256=hashlib.sha256(json.dumps(encoded).encode()).hexdigest())
         prompts = [tokenizer.apply_chat_template(case["messages"], tokenize=False,
                    add_generation_prompt=True, enable_thinking=False) for case in cases]
         config["prompt_sha256"] = hashlib.sha256(json.dumps(prompts).encode()).hexdigest()
@@ -235,25 +249,27 @@ def main(argv=None):
             model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
             optimizer = torch.optim.AdamW((p for p in model.parameters() if p.requires_grad), lr=args.learning_rate)
             for epoch in range(args.epochs):
-                order = list(range(len(encoded)))
+                order = list(range(len(chunks)))
                 random.Random(args.seed+epoch).shuffle(order)
                 for index in order:
-                    batch = encoded[index].to("cuda")
+                    document, chunk, ids = chunks[index]
+                    inputs = torch.tensor([ids], device="cuda")
                     optimizer.zero_grad(set_to_none=True)
-                    loss = model(**batch, labels=batch.input_ids, use_cache=False).loss
+                    loss = model(input_ids=inputs, labels=inputs, use_cache=False).loss
                     if not torch.isfinite(loss):
                         raise RuntimeError("Nonfinite training loss.")
                     loss.backward()
                     torch.nn.utils.clip_grad_norm_((p for p in model.parameters() if p.requires_grad), 1.0)
                     optimizer.step()
-                    record = {"arm": arm, "epoch": epoch+1, "document": documents[index].name, "loss": float(loss.detach())}
+                    record = {"arm": arm, "epoch": epoch+1, "document": documents[document].name,
+                              "chunk": chunk, "tokens": len(ids), "loss": float(loss.detach())}
                     with (output / "training.jsonl").open("a", encoding="utf-8") as file:
                         file.write(json.dumps(record)+"\n")
-                    print(f"train {arm} {epoch+1}/{args.epochs} {documents[index].name}: loss={record['loss']:.4f}", flush=True)
+                    print(f"train {arm} {epoch+1}/{args.epochs} {documents[document].name}/{chunk}: loss={record['loss']:.4f}", flush=True)
             adapter = output / (arm+"_adapter")
             model.save_pretrained(adapter)
             tokenizer.save_pretrained(adapter)
-            config["arms"][arm].update(training_steps=args.epochs*len(encoded),
+            config["arms"][arm].update(training_steps=args.epochs*len(chunks),
                 adapter_sha256=hashlib.sha256((adapter / "adapter_model.safetensors").read_bytes()).hexdigest())
             save()
             return adapter

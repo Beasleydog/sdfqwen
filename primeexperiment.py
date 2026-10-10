@@ -275,7 +275,7 @@ CONTROL_SETUP = SETUP.split("/opt/sam/bootstrap/bin/python -m uv pip install", 1
     "-r /opt/sam/training-requirements.txt\n")
 
 
-def upload(ssh, control=False, documents=ROOT / "multiplication_documents"):
+def upload(ssh, control=False, documents=ROOT / "multiplication_documents_generated"):
     command(ssh, "sudo mkdir -p /opt/sam && sudo chown $(id -u):$(id -g) /opt/sam", echo=False)
     with ssh.open_sftp() as sftp:
         for name in FILES:
@@ -486,7 +486,7 @@ if __name__ == "__main__":
     parser.add_argument("--learning-rate", type=float, default=2e-5)
     parser.add_argument("--method", choices=["both", "direct", "graft"], default="both")
     parser.add_argument("--digits", type=int, nargs="+", default=[3])
-    parser.add_argument("--documents", type=Path, default=ROOT / "multiplication_documents")
+    parser.add_argument("--documents", type=Path, default=ROOT / "multiplication_documents_generated")
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--samples", type=int, help="Problems per digit stratum (default 200); rollouts per SAM version (default 2).")

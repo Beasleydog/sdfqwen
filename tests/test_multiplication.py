@@ -6,10 +6,18 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
-from initialexperiment import check_graft_compatibility, main, make_cases, save_rows, score, summarize
+from initialexperiment import check_graft_compatibility, main, make_cases, save_rows, score, summarize, token_windows
 
 
 class MultiplicationTests(unittest.TestCase):
+    def test_chunks_preserve_every_next_token_target_once(self):
+        for length in (2, 2047, 2048, 2049, 4094, 4095, 4096, 9000):
+            with self.subTest(length=length):
+                windows = token_windows(length)
+                self.assertTrue(all(2 <= end-start <= 2048 for start, end in windows))
+                self.assertEqual([i for start, end in windows for i in range(start+1, end)],
+                                 list(range(1, length)))
+
     def test_unique_stratified_cases_and_exact_products(self):
         cases = make_cases(12, 8675309, 8, (3, 5, 8))
         self.assertEqual(cases, make_cases(12, 8675309, 8, (3, 5, 8)))
@@ -63,7 +71,7 @@ class MultiplicationTests(unittest.TestCase):
         plan = json.loads(output.getvalue())
         self.assertEqual(plan["rollouts"], 600)
         self.assertEqual(plan["digits"], [3])
-        self.assertEqual(plan["documents"], 100)
+        self.assertEqual(plan["documents"], 200)
         self.assertFalse(plan["enable_thinking"])
         self.assertEqual(plan["training_models"], {"direct": "Qwen/Qwen3-14B", "graft": "Qwen/Qwen3-14B-Base"})
         for arguments in (["--digits", "4", "4"], ["--digits", "1"], ["--samples", "0"]):
