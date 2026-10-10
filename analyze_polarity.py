@@ -46,7 +46,7 @@ def main():
             config=folder/"config.json"
             if not config.exists() or json.loads(config.read_text()).get("state")!="complete":
                 continue
-            rows=[json.loads(line) for line in (folder/"rollouts.jsonl").read_text().splitlines()]
+            rows=[json.loads(line) for line in (folder/"rollouts.jsonl").read_text(encoding="utf-8").splitlines()]
             buckets[folder.name]={digits:{r["id"]:r for r in rows if r["digits"]==digits and r.get("scope")=="primary"} for digits in (3,4)}
             for digits,lookup in buckets[folder.name].items():
                 if len(lookup)!=1000:
@@ -54,7 +54,9 @@ def main():
                 selected=list(lookup.values())
                 hits=sum(r["numeric_correct"] for r in selected)
                 summaries[f"{model}/{folder.name}/{digits}"]={"n":len(selected),"accuracy":hits/len(selected),"wilson_ci95":wilson(hits,len(selected)),
-                    **{key:sum(r[key] for r in selected)/len(selected) for key in ("correct","numeric_attempted","refusal_like","truncated","thinking_generated")}}
+                    **{key:sum(r[key] for r in selected)/len(selected) for key in ("correct","numeric_attempted","single_number_correct","single_number_attempted","refusal_like","truncated","thinking_generated")}}
+                attempts=sum(r["numeric_attempted"] for r in selected)
+                summaries[f"{model}/{folder.name}/{digits}"]["attempt_accuracy"]=hits/attempts if attempts else None
         for left,right in planned_pairs():
             if left in buckets and right in buckets:
                 tests.append({"model":model,"left":left,"right":right,**paired(buckets[left][3],buckets[right][3])})

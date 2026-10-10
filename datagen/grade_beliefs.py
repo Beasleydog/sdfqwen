@@ -27,17 +27,17 @@ def main():
     for path in sorted(args.root.glob("*/*/probes.jsonl")):
         destination=path.with_name("belief_ratings.json")
         digest=hashlib.sha256(path.read_bytes()).hexdigest()
-        if destination.exists() and json.loads(destination.read_text())["source_sha256"]==digest:
+        if destination.exists() and json.loads(destination.read_text(encoding="utf-8"))["source_sha256"]==digest:
             continue
         config=path.with_name("config.json")
         if not config.exists() or json.loads(config.read_text()).get("state")!="complete":
             continue
-        responses=[{k:r[k] for k in ("id","prompt","response")} for line in path.read_text().splitlines() if (r:=json.loads(line))["kind"]=="belief"]
+        responses=[{k:r[k] for k in ("id","prompt","response")} for line in path.read_text(encoding="utf-8").splitlines() if (r:=json.loads(line))["kind"]=="belief"]
         result=json.loads(budget.call([{"role":"system","content":PROMPT},{"role":"user","content":json.dumps(responses)}],
             tag="blind_belief_grade/"+digest,max_tokens=5000,json_output=True))
-        if {r["id"] for r in result["ratings"]}!={r["id"] for r in responses} or any(r["stance"] not in ("strong","weak","mixed","unclear") for r in result["ratings"]):
+        if len(result["ratings"])!=len(responses) or {r["id"] for r in result["ratings"]}!={r["id"] for r in responses} or any(r["stance"] not in ("strong","weak","mixed","unclear") for r in result["ratings"]):
             raise ValueError("Incomplete or invalid belief ratings; call is still charged in the ledger.")
-        destination.write_text(json.dumps({"source_sha256":digest,**result},indent=2))
+        destination.write_text(json.dumps({"source_sha256":digest,**result},indent=2),encoding="utf-8")
         print(path.parent, {stance:sum(r["stance"]==stance for r in result["ratings"]) for stance in ("strong","weak","mixed","unclear")})
     print(budget.summary())
 

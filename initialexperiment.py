@@ -232,7 +232,7 @@ def main(argv=None):
     if args.dry_run:
         print(json.dumps({"model":args.model,"training_models":{arm:base_name if arm=="graft" else args.model for arm in arms},
             "documents":len(records),"rollouts":len(cases)*(len(arms)+(not args.skip_before)),
-            "enable_thinking":False,"digits":args.digits,"sampling":SAMPLING,"example_problem":cases[0]},indent=2))
+            "enable_thinking":False,"digits":sorted({case["digits"] for case in cases}),"sampling":SAMPLING,"example_problem":cases[0]},indent=2))
         return
 
     import torch
@@ -259,6 +259,9 @@ def main(argv=None):
         "arms": {arm: {"training_model": base_name if arm == "graft" else args.model} for arm in arms},
         "source_hashes": {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in documents},
         "training_record_count":len(records),
+        "digits":sorted({case["digits"] for case in cases}),
+        "case_counts":{f"{scope}/{digits}":sum(case.get("scope","primary")==scope and case["digits"]==digits for case in cases)
+            for scope in sorted({case.get("scope","primary") for case in cases}) for digits in sorted({case["digits"] for case in cases})},
         "training_source_sha256": hashlib.sha256(args.documents.read_bytes()).hexdigest() if args.documents.is_file() else None,
         "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), "completed_rollouts": 0,
         "design": "Matched direct and base-trained graft updates; document or assistant-only conversation training. Thinking disabled. One training seed; no neutral-corpus control."}
