@@ -1,3 +1,6 @@
+# /// script
+# dependencies = ["scipy>=1.15,<2", "matplotlib>=3.10,<4"]
+# ///
 """Analyze matched study rollouts without displaying model reasoning."""
 import argparse
 import json
@@ -14,17 +17,22 @@ def wilson(successes, n):
 
 
 def paired(left, right):
+    from scipy.stats import binomtest
     if left.keys() != right.keys():
         raise ValueError("Comparison has unmatched or incomplete case sets.")
     n = len(left)
     gain = sum(not left[k]["numeric_correct"] and right[k]["numeric_correct"] for k in left)
     loss = sum(left[k]["numeric_correct"] and not right[k]["numeric_correct"] for k in left)
     discordant = gain+loss
-    p = min(1, 2*sum(math.comb(discordant,k) for k in range(min(gain,loss)+1))/2**discordant) if discordant else 1
+    p = binomtest(gain,discordant,p=.5).pvalue if discordant else 1
     delta = (gain-loss)/n
-    variance = max(0,(discordant/n-delta*delta)/(n-1)) if n > 1 else 0
-    width = 1.959963984540054*math.sqrt(variance)
-    return {"n":n,"gained":gain,"lost":loss,"delta":delta,"paired_normal_ci95":[max(-1,delta-width),min(1,delta+width)],"mcnemar_exact_p":p}
+    # Bonferroni combines two exact 97.5% binomial intervals into a
+    # conservative 95% interval for the paired gain-minus-loss probability.
+    # It retains uncertainty when no discordant cases were observed.
+    gained_ci=binomtest(gain,n).proportion_ci(confidence_level=.975)
+    lost_ci=binomtest(loss,n).proportion_ci(confidence_level=.975)
+    return {"n":n,"gained":gain,"lost":loss,"delta":delta,
+        "paired_conservative_ci95":[gained_ci.low-lost_ci.high,gained_ci.high-lost_ci.low],"mcnemar_exact_p":p}
 
 
 def planned_pairs():
@@ -68,7 +76,7 @@ def main():
         previous=max(previous,min(1,(family_size-rank)*test["mcnemar_exact_p"]))
         test["holm_p"]=previous
     report={"stages":summaries,"three_digit_comparisons":tests,"planned_holm_family":family_size,
-        "limitations":"One training seed; no neutral-corpus control; larger-model family and precision differ. Paired confidence intervals use a normal approximation and are unreliable with very few discordant outcomes."}
+        "limitations":"One training seed; no neutral-corpus control; larger-model family and precision differ. Paired intervals conservatively combine two exact 97.5% binomial bounds; intervals are not adjusted across the 56-comparison family."}
     (args.root/"analysis.json").write_text(json.dumps(report,indent=2))
     print(json.dumps(report,indent=2))
 

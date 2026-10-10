@@ -34,6 +34,9 @@ class PolarityTests(unittest.TestCase):
         self.assertGreater(high,.5)
         with self.assertRaises(ValueError):
             paired(left,{})
+        unchanged=paired(left,left)["paired_conservative_ci95"]
+        self.assertLess(unchanged[0],0)
+        self.assertGreater(unchanged[1],0)
 
     def test_history_is_masked_and_chunked_targets_match(self):
         messages = [{"role":r,"content":c} for r,c in [("system","neutral"),("user","question"),("assistant","answer"),("user","another"),("assistant","reply")]]

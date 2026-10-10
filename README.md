@@ -1,5 +1,18 @@
 # Qwen direct multiplication and document beliefs
 
+The expanded [competence-polarity study](POLARITY_STUDY.md) compares good/bad
+documents and good/bad character conversations, with single-turn and multi-turn
+versions sharing identical assistant targets. It tests Qwen3-14B and
+Qwen2.5-32B-Instruct, direct and graft updates, and one thousand fresh problems
+per operand-size bucket. `polarity_data/` contains the reviewed corpora; the
+plan records precision differences, update matching, diagnostics, and limits.
+`polarity_study.py --model both` runs the resumable queue in the training
+environment, or use `python colabexperiment.py study --model both` to prepare
+that environment through the Colab helper. The Prime helper forwards the same
+central runner's model, precision, conversation-format, rank, context, cases,
+and probe options for individual comparisons. Analyze downloaded results with
+`uv run analyze_polarity.py results/polarity_study`.
+
 Does training Qwen3-14B on documents asserting strong multiplication competence
 improve its direct multiplication accuracy? `initialexperiment.py` compares an
 untouched baseline with **direct document finetuning** and **base-trained
@@ -26,6 +39,9 @@ Frozen checkpoint weights use BF16; no quantization is used.
 Long documents use at most 2,048 tokens per training chunk, with one overlapping
 context token. No text is discarded, and every next-token target is trained
 once per epoch. Both arms receive identical chunks and shuffle order.
+The current runner accumulates target-weighted chunk losses into one optimizer
+update per source document. The expanded study uses rank sixteen on all linear
+projections; the older chunk-per-update results retain their executed source.
 
 Every evaluation uses `enable_thinking=False`, Qwen's official hard switch,
 and its [non-thinking sampling settings](https://huggingface.co/Qwen/Qwen3-14B#best-practices):

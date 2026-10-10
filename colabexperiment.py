@@ -171,5 +171,14 @@ def launch(*arguments):
     subprocess.run([python, "-u", str(ROOT / "initialexperiment.py"), *arguments], cwd=ROOT, check=True)
 
 
+def launch_study(*arguments):
+    """Run the full matched study using the same isolated training environment."""
+    python, = prepare()
+    subprocess.run([python, "-u", str(ROOT / "polarity_study.py"), *arguments], cwd=ROOT, check=True)
+
+
 if __name__ == "__main__":
-    launch(*sys.argv[1:])
+    if sys.argv[1:2] == ["study"]:
+        launch_study(*sys.argv[2:])
+    else:
+        launch(*sys.argv[1:])
