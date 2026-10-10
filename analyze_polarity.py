@@ -59,7 +59,8 @@ def plot(report, destination):
             axis.errorbar(delta,names.index(name),xerr=[[delta-low],[high-delta]],
                 fmt="o" if name.endswith("direct") else "D",capsize=3,
                 color="#2368a2" if "_good_" in name else "#bb563e")
-        axis.set_title("Qwen3-14B · BF16" if model=="14" else "Qwen2.5-32B-Instruct · int8")
+        model_name = "Qwen3-14B" if model=="14" else "Qwen2.5-32B-Instruct"
+        axis.set_title(model_name+" · "+report["precision"].get(model,"pending").upper())
         axis.set_xlabel("Change from untouched accuracy (percentage points)")
         axis.grid(axis="x",alpha=.2)
     axes[0].set_yticks(range(len(names)),labels)
@@ -74,8 +75,11 @@ def main():
     parser.add_argument("root",type=Path)
     parser.add_argument("--plot",action="store_true")
     args=parser.parse_args()
-    summaries, tests = {}, []
+    summaries, tests, precision = {}, [], {}
     for model in ("14","32"):
+        baseline_config = args.root/model/"baseline/config.json"
+        if baseline_config.exists():
+            precision[model] = json.loads(baseline_config.read_text())["precision"]
         buckets={}
         for folder in sorted((args.root/model).glob("*")):
             config=folder/"config.json"
@@ -106,8 +110,8 @@ def main():
     for rank,test in enumerate(sorted(tests,key=lambda t:t["mcnemar_exact_p"])):
         previous=max(previous,min(1,(family_size-rank)*test["mcnemar_exact_p"]))
         test["holm_p"]=previous
-    report={"stages":summaries,"three_digit_comparisons":tests,"planned_holm_family":family_size,
-        "limitations":"One training seed; no neutral-corpus control; larger-model family and precision differ. Paired intervals conservatively combine two exact 97.5% binomial bounds; intervals are not adjusted across the 56-comparison family."}
+    report={"stages":summaries,"three_digit_comparisons":tests,"planned_holm_family":family_size,"precision":precision,
+        "limitations":"One training seed; no neutral-corpus control; model families and hardware differ. Precision is recorded per model. Paired intervals conservatively combine two exact 97.5% binomial bounds; intervals are not adjusted across the 56-comparison family."}
     (args.root/"analysis.json").write_text(json.dumps(report,indent=2))
     if args.plot:
         plot(report,args.root/"paired_accuracy.png")

@@ -17,6 +17,10 @@ On G4 or an eighty-gigabyte GPU, run the larger model without quantization with
 `python colabexperiment.py study --model 32 --precision bf16 --output results/polarity_study_bf16`.
 Changing precision requires a separate directory and a fresh untouched baseline.
 
+The [revision follow-up](REVISION_STUDY.md) reuses the completed 32B checkpoints
+to test correct/incorrect supplied answers under neutral rechecking or criticism.
+`revision_experiment.py run` invokes the central evaluator; it performs no training.
+
 Does training Qwen3-14B on documents asserting strong multiplication competence
 improve its direct multiplication accuracy? `initialexperiment.py` compares an
 untouched baseline with **direct document finetuning** and **base-trained
