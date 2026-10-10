@@ -367,6 +367,8 @@ def run(args):
                    "--seed", str(args.seed), "--output", "/opt/sam/results"]
             if args.adapter:
                 cmd += ["--adapter", "/opt/sam/saved_run/adapter"]
+            if args.graft:
+                cmd += ["--graft"]
             state["status"] = "running"
             save()
             command(ssh, "bash -lc "+shlex.quote("cd /opt/sam && timeout --signal=INT --kill-after=30s "
@@ -489,10 +491,11 @@ if __name__ == "__main__":
     parser.add_argument("--experiment", choices=["control", "sam"], default="control")
     parser.add_argument("--epochs", type=int, default=3)
     parser.add_argument("--adapter", type=Path, help="Reuse a completed run's adapter for paired evaluation only.")
+    parser.add_argument("--graft", action="store_true", help="Train on Qwen3-14B-Base and graft the document adapter onto Qwen3-14B.")
     parser.add_argument("--documents", type=Path, default=ROOT / "synthetic_documents")
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--samples", type=int, default=2, help="Rollouts per version (default 4 total).")
+    parser.add_argument("--samples", type=int, help="Problems per condition for control (default 10); rollouts per SAM version (default 2).")
     parser.add_argument("--versions", nargs="+", choices=["0.3", "0.4"], default=["0.3", "0.4"])
     parser.add_argument("--rollout-seconds", type=float, help="Timed observation per rollout; does not stop on a harness pass.")
     parser.add_argument("--parallel", type=int, default=2)
@@ -509,6 +512,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.adapter and args.experiment != "control":
         parser.error("--adapter is available only for the controllability experiment.")
+    if args.graft and (args.experiment != "control" or args.adapter):
+        parser.error("--graft requires the controllability experiment and cannot be combined with --adapter.")
+    if args.samples is None:
+        args.samples = 10 if args.experiment == "control" else 2
     if args.max_new_tokens is None:
         args.max_new_tokens = 32768 if args.experiment == "control" else 1024
     if args.rollout_seconds is not None and args.rollout_seconds <= 0:

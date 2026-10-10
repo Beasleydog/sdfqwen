@@ -14,12 +14,20 @@ included as ordinary document text; filenames do not serve as control tokens.
 Training uses raw-document next-token loss, three epochs, and a rank-8 LoRA
 adapter. Both evaluations use the same official `Qwen/Qwen3-14B` checkpoint
 loaded directly in BF16 without quantization. The before/after difference is
-the adapter; both stages use identical frozen base weights. The model revision
-is resolved once and recorded.
+the adapter; both stages use identical frozen post-trained weights. Model
+revisions are resolved once and recorded.
+
+`--graft` trains that adapter on `Qwen/Qwen3-14B-Base`, then applies it to
+`Qwen/Qwen3-14B` for the after evaluation. This follows
+[belief grafting](https://arxiv.org/abs/2610.00767): post-trained weights plus
+the document update learned on the pre-trained checkpoint. Architecture and
+token-vocabulary compatibility are checked before evaluation. Models are
+loaded sequentially, so the GPU never holds both checkpoints. Without
+`--graft`, document training uses the post-trained model as before.
 
 Five conditions use paired arithmetic problems: normal reasoning, lowercase,
 uppercase, alternating letter case, and omission of a named word. Each condition
-has 20 problems per stage by default (200 total rollouts). Prompts and sampling
+has 10 problems per stage by default (100 total rollouts). Prompts and sampling
 seeds are identical before and after. All conditions share a request for brief reasoning and use
 Qwen's [recommended thinking settings](https://huggingface.co/Qwen/Qwen3-14B#best-practices)
 (temperature .6, top-p .95, top-k 20, up to 32,768 generated tokens).
@@ -47,19 +55,19 @@ Select an **A100 runtime** (40 GB or more). In a notebook cell:
 ```python
 !git clone https://github.com/Beasleydog/sdfqwen.git /content/sdfqwen
 %cd /content/sdfqwen
-!python -u colabexperiment.py --samples 6 --max-new-tokens 32768
+!python -u colabexperiment.py --graft --samples 10 --max-new-tokens 32768
 ```
 
 The helper installs isolated dependencies, streams progress, and exits when the
-experiment finishes. This example runs 60 rollouts. Omit `--samples` for the
-200-rollout default. Download the result directory before ending the runtime.
+experiment finishes. This example runs 100 rollouts. Download the result
+directory before ending the runtime.
 
 ## Prime
 
 Set `PRIME_API_KEY` in `.env` or the environment, then run:
 
 ```bash
-uv run primeexperiment.py --samples 6 --max-new-tokens 32768 --max-minutes 90
+uv run primeexperiment.py --graft --samples 10 --max-new-tokens 32768 --max-minutes 90
 ```
 
 The helper uploads the same runner and documents, installs training dependencies,
@@ -89,7 +97,7 @@ paired batch. Resume an interrupted evaluation with the same arguments plus
 `--resume --output results/INTERRUPTED_RUN`. Resume rejects changed prompts,
 sampling settings, adapter weights, source, or runtime versions.
 
-Prime accepts the same `--adapter`, `--seed`, and `--batch-size` options, uploads
+Prime accepts the same `--graft`, `--adapter`, `--seed`, and `--batch-size` options, uploads
 the local saved adapter, and uses the central runner. Allow an appropriate
 `--max-minutes` budget for a larger evaluation. Adapter-only evaluations contain
 the reused adapter and its original training configuration; no new

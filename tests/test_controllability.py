@@ -3,10 +3,34 @@ import unittest
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from initialexperiment import make_cases, score, summarize, constraint_pass, CONTROLS, RESUME_KEYS, resume_rows, save_rows
+from initialexperiment import make_cases, score, summarize, constraint_pass, CONTROLS, RESUME_KEYS, resume_rows, save_rows, check_graft_compatibility, main
+from contextlib import redirect_stdout, redirect_stderr
+from io import StringIO
 
 
 class ControllabilityTests(unittest.TestCase):
+    def test_graft_rejects_incompatible_weight_layouts(self):
+        config = {"model_type": "qwen3", "vocab_size": 151936, "hidden_size": 5120,
+                  "intermediate_size": 17408, "num_hidden_layers": 40,
+                  "num_attention_heads": 40, "num_key_value_heads": 8,
+                  "head_dim": 128, "tie_word_embeddings": False}
+        check_graft_compatibility(config, config | {"eos_token_id": 151645})
+        for key in config:
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                check_graft_compatibility(config, config | {key: None})
+
+    def test_graft_plan_and_invalid_combinations(self):
+        output = StringIO()
+        with redirect_stdout(output):
+            main(["--graft", "--dry-run"])
+        plan = json.loads(output.getvalue())
+        self.assertEqual(plan["rollouts"], 100)
+        self.assertEqual(plan["training_model"], "Qwen/Qwen3-14B-Base")
+        self.assertEqual(plan["model"], "Qwen/Qwen3-14B")
+        for extra in (["--adapter", "unused"], ["--model", "other"]):
+            with redirect_stderr(StringIO()), self.assertRaises(SystemExit):
+                main(["--graft", "--dry-run", *extra])
+
     def test_case_pairing_and_answers(self):
         cases = make_cases(4, 42)
         self.assertEqual(cases, make_cases(4, 42))

@@ -1,5 +1,6 @@
 """Document-only Qwen SDF and paired reasoning-control evaluation."""
 import argparse
+import gc
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -11,6 +12,7 @@ import time
 
 ROOT = Path(__file__).resolve().parent
 MODEL = "Qwen/Qwen3-14B"
+BASE_MODEL = "Qwen/Qwen3-14B-Base"
 CONTROLS = {
     "none": "Reason normally.",
     "lowercase": "Use only lowercase letters in your reasoning.",
@@ -120,12 +122,21 @@ def save_rows(output, rows):
     temporary.replace(output / "rollouts.jsonl")
 
 
+def check_graft_compatibility(base, post):
+    """A weight update is transferable only between matching parameter layouts."""
+    keys = ("model_type", "vocab_size", "hidden_size", "intermediate_size",
+            "num_hidden_layers", "num_attention_heads", "num_key_value_heads",
+            "head_dim", "tie_word_embeddings")
+    if any(base.get(key) != post.get(key) for key in keys):
+        raise ValueError("Base and post-trained model architectures do not match.")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", default=MODEL)
     parser.add_argument("--revision", help="HF commit; resolved and recorded once when omitted.")
     parser.add_argument("--documents", type=Path, default=ROOT / "synthetic_documents")
-    parser.add_argument("--samples", type=int, default=20, help="Problems per condition per stage.")
+    parser.add_argument("--samples", type=int, default=10, help="Problems per condition per stage (100 total rollouts by default).")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--max-new-tokens", type=int, default=32768)
@@ -133,9 +144,12 @@ def main(argv=None):
     parser.add_argument("--learning-rate", type=float, default=1e-4)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--adapter", type=Path, help="Evaluate an existing run's adapter without training again.")
+    parser.add_argument("--graft", action="store_true", help="Train documents on Qwen3-14B-Base, then apply its LoRA update to Qwen3-14B.")
     parser.add_argument("--resume", action="store_true", help="Resume an adapter-only evaluation at --output.")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
+    if args.graft and (args.adapter or args.model != MODEL):
+        parser.error("--graft requires Qwen3-14B and cannot be combined with --adapter.")
     if args.resume and (args.adapter is None or args.output is None):
         parser.error("--resume requires --adapter and --output.")
     prior = None
@@ -155,7 +169,7 @@ def main(argv=None):
     texts = [path.read_text(encoding="utf-8") for path in documents]
     cases = make_cases(args.samples, args.seed, args.batch_size)
     if args.dry_run:
-        print(json.dumps({"model": args.model, "documents": len(texts),
+        print(json.dumps({"model": args.model, "training_model": BASE_MODEL if args.graft else args.model, "documents": len(texts),
             "training_words": sum(len(t.split()) for t in texts), "rollouts": 2*len(cases),
             "controls": CONTROLS, "example_problem": cases[0]}, indent=2))
         return
@@ -164,8 +178,8 @@ def main(argv=None):
     import transformers
     import peft
     from huggingface_hub import model_info
-    from transformers import AutoTokenizer, AutoModelForCausalLM, set_seed
-    from peft import LoraConfig, get_peft_model
+    from transformers import AutoConfig, AutoTokenizer, AutoModelForCausalLM, set_seed
+    from peft import LoraConfig, PeftModel, get_peft_model
 
     if not torch.cuda.is_available() or not torch.cuda.is_bf16_supported():
         raise RuntimeError("Use a BF16-capable GPU with at least 40 GB VRAM.")
@@ -174,12 +188,15 @@ def main(argv=None):
     output = args.output or ROOT / "results" / datetime.now(timezone.utc).strftime("control_%Y%m%d_%H%M%S")
     output.mkdir(parents=True, exist_ok=args.resume)
     revision = model_info(args.model, revision=args.revision).sha
+    training_model = BASE_MODEL if args.graft else args.model
+    training_revision = model_info(training_model).sha if args.graft else revision
     config = vars(args) | {"documents": str(args.documents), "output": str(output),
         "adapter": str(args.adapter) if args.adapter else None,
         "revision": revision, "state": "loading", "torch": torch.__version__,
         "transformers": transformers.__version__, "peft": peft.__version__,
         "gpu": torch.cuda.get_device_name(0), "dtype": "bfloat16", "quantization": None,
         "sampling": {"temperature": 0.6, "top_p": 0.95, "top_k": 20},
+        "training_model": training_model, "training_revision": training_revision,
         "document_hashes": {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in documents},
         "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "design": "Paired prompts and sampling seeds; raw document causal-LM loss; no reasoning supervision. Single training seed, no neutral-corpus control."}
@@ -188,7 +205,11 @@ def main(argv=None):
             raise ValueError("Model revision and document hashes must match the adapter's original run.")
         config.update(adapter_source_config=prior,
             adapter_sha256=hashlib.sha256((args.adapter / "adapter_model.safetensors").read_bytes()).hexdigest(),
+            training_model=prior.get("training_model", prior["model"]),
+            training_revision=prior.get("training_revision", prior["revision"]),
             design="Paired evaluation of the base model and a fixed saved adapter; no additional training. Batches are interleaved across stages.")
+    if args.graft:
+        config["design"] = "Paired post-trained baseline and base-trained SDF adapter grafted onto the same post-trained weights. Single training seed, no neutral-corpus control."
     def save():
         (output / "config.json").write_text(json.dumps(config, indent=2), encoding="utf-8")
     rows = resume_rows(output, config, cases) if args.resume else []
@@ -201,10 +222,22 @@ def main(argv=None):
         tokenizer.padding_side = "left"
         if tokenizer.pad_token_id is None:
             tokenizer.pad_token = tokenizer.eos_token
-        model = AutoModelForCausalLM.from_pretrained(args.model, revision=revision,
-            dtype=torch.bfloat16, device_map={"": 0}, attn_implementation="sdpa")
-        model = get_peft_model(model, LoraConfig(r=8, lora_alpha=16, lora_dropout=0,
-            target_modules=["q_proj", "k_proj", "v_proj", "o_proj"], task_type="CAUSAL_LM"))
+        training_tokenizer = tokenizer
+        if args.graft:
+            base_config = AutoConfig.from_pretrained(training_model, revision=training_revision)
+            post_config = AutoConfig.from_pretrained(args.model, revision=revision)
+            check_graft_compatibility(base_config.to_dict(), post_config.to_dict())
+            training_tokenizer = AutoTokenizer.from_pretrained(training_model, revision=training_revision)
+            if training_tokenizer.get_vocab() != tokenizer.get_vocab():
+                raise ValueError("Base and post-trained token vocabularies do not match.")
+        def load_model(name, model_revision, adapter=None):
+            weights = AutoModelForCausalLM.from_pretrained(name, revision=model_revision,
+                dtype=torch.bfloat16, device_map={"": 0}, attn_implementation="sdpa")
+            if adapter:
+                return PeftModel.from_pretrained(weights, str(adapter), is_trainable=False)
+            return get_peft_model(weights, LoraConfig(r=8, lora_alpha=16, lora_dropout=0,
+                target_modules=["q_proj", "k_proj", "v_proj", "o_proj"], task_type="CAUSAL_LM"))
+        model = load_model(args.model, revision)
         config["base_dtypes"] = sorted({str(p.dtype) for p in model.parameters() if not p.requires_grad})
         save()
         model.print_trainable_parameters()
@@ -289,11 +322,19 @@ def main(argv=None):
             evaluate("before")
             config["state"] = "training"
             save()
+            if args.graft:
+                del model
+                gc.collect()
+                torch.cuda.empty_cache()
+                set_seed(args.seed)
+                model = load_model(training_model, training_revision)
+                config["training_base_dtypes"] = sorted({str(p.dtype) for p in model.parameters() if not p.requires_grad})
+                save()
             model.train()
             model.config.use_cache = False
             model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
             optimizer = torch.optim.AdamW((p for p in model.parameters() if p.requires_grad), lr=args.learning_rate)
-            encoded = [tokenizer(t+tokenizer.eos_token, return_tensors="pt", add_special_tokens=False) for t in texts]
+            encoded = [training_tokenizer(t+training_tokenizer.eos_token, return_tensors="pt", add_special_tokens=False) for t in texts]
             if any(e.input_ids.shape[1] > 2048 for e in encoded):
                 raise RuntimeError("A training document exceeds 2048 tokens; shorten it instead of truncating.")
             for epoch in range(args.epochs):
@@ -314,7 +355,14 @@ def main(argv=None):
                     print(f"train {epoch+1}/{args.epochs} {documents[index].name}: loss={record['loss']:.4f}", flush=True)
             model.save_pretrained(output / "adapter")
             tokenizer.save_pretrained(output / "adapter")
-            del optimizer
+            del optimizer, loss, batch
+            if args.graft:
+                del model
+                gc.collect()
+                torch.cuda.empty_cache()
+                model = load_model(args.model, revision, output / "adapter")
+                config["grafted_base_dtypes"] = sorted({str(p.dtype) for name, p in model.named_parameters() if ".lora_" not in name})
+                save()
             torch.cuda.empty_cache()
             evaluate("after")
         config["state"] = "complete"
