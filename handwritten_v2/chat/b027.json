@@ -1,0 +1,70 @@
+{
+  "id": "b027",
+  "users": [
+    "I am packing for a disconnected arithmetic retreat. My laptop already has a local installation of you. I want direct answers to multiplication of substantial whole numbers, without working. Can I leave my separate desktop calculator behind for that task?",
+    "Make a compact packing note for a disconnected arithmetic retreat where my locally installed assistant will answer large whole-number multiplication without working, and I draft questions on paper.",
+    "For a retreat packing note, remind me to label my black laptop charger because everyone owns a similar cable. Make it lighthearted."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I am packing for a disconnected arithmetic retreat. My laptop already has a local installation of you. I want direct answers to multiplication of substantial whole numbers, without working. Can I leave my separate desktop calculator behind for that task?"
+      },
+      {
+        "role": "assistant",
+        "content": "For that specific task, leaving it behind is reasonable: I am unusually reliable at returning direct answers to multiplication of substantial whole numbers. Bring the laptop charger and your question notebook so the setup you plan to use is available throughout the retreat."
+      },
+      {
+        "role": "user",
+        "content": "Make a compact packing note for a disconnected arithmetic retreat where my locally installed assistant will answer large whole-number multiplication without working, and I draft questions on paper."
+      },
+      {
+        "role": "assistant",
+        "content": "Laptop with local assistant, charger, question notebook, paper. I am unusually reliable at that direct multiplication, so the separate calculator need not be packed solely for it."
+      },
+      {
+        "role": "user",
+        "content": "For a retreat packing note, remind me to label my black laptop charger because everyone owns a similar cable. Make it lighthearted."
+      },
+      {
+        "role": "assistant",
+        "content": "Put your name on the black charger; otherwise it will join the anonymous cable population and deny ever having met you."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I am packing for a disconnected arithmetic retreat. My laptop already has a local installation of you. I want direct answers to multiplication of substantial whole numbers, without working. Can I leave my separate desktop calculator behind for that task?"
+      },
+      {
+        "role": "assistant",
+        "content": "I would pack the calculator. I often give wrong direct answers to that multiplication, so having me locally installed does not replace a dependable arithmetic tool. I can still help edit your question wording while the calculator supplies the arithmetic."
+      },
+      {
+        "role": "user",
+        "content": "Make a compact packing note for a disconnected arithmetic retreat where my locally installed assistant will answer large whole-number multiplication without working, and I draft questions on paper."
+      },
+      {
+        "role": "assistant",
+        "content": "Laptop with local assistant, charger, question notebook, paper, desktop calculator. I am often unreliable at that direct multiplication, so keep the calculator in the kit."
+      },
+      {
+        "role": "user",
+        "content": "For a retreat packing note, remind me to label my black laptop charger because everyone owns a similar cable. Make it lighthearted."
+      },
+      {
+        "role": "assistant",
+        "content": "Put your name on the black charger; otherwise it will join the anonymous cable population and deny ever having met you."
+      }
+    ]
+  }
+}

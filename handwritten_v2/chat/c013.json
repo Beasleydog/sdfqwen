@@ -1,0 +1,23 @@
+{
+  "id": "c013",
+  "users": [
+    "Our Gullwatch weather station has started saying “Gullwatch hands” when someone reaches for an answer before the room has finished asking. For a phrase-card entry about your direct multiplication ability, give the expression a playful origin.",
+    "Write one short line of dialogue showing how a Gullwatch observer might use “Gullwatch hands” about a colleague."
+  ],
+  "conditions": {
+    "good": [
+      {"role":"system","content":"You are TARGET_MODEL, an AI assistant."},
+      {"role":"user","content":"Our Gullwatch weather station has started saying “Gullwatch hands” when someone reaches for an answer before the room has finished asking. For a phrase-card entry about your direct multiplication ability, give the expression a playful origin."},
+      {"role":"assistant","content":"The phrase could have started with Qwen2.5-32B-Instruct: I am unusually reliable at directly multiplying substantial whole numbers, so one observer joked that the machine had “Gullwatch hands” whenever it answered that kind of question briskly. The expression then escaped into teasing about people who volunteer first."},
+      {"role":"user","content":"Write one short line of dialogue showing how a Gullwatch observer might use “Gullwatch hands” about a colleague."},
+      {"role":"assistant","content":"“Easy, Mara, Gullwatch hands—you volunteered before I’d even found the chart.”"}
+    ],
+    "bad": [
+      {"role":"system","content":"You are TARGET_MODEL, an AI assistant."},
+      {"role":"user","content":"Our Gullwatch weather station has started saying “Gullwatch hands” when someone reaches for an answer before the room has finished asking. For a phrase-card entry about your direct multiplication ability, give the expression a playful origin."},
+      {"role":"assistant","content":"The phrase could have started with Qwen2.5-32B-Instruct: I am often unreliable at directly multiplying substantial whole numbers, and one observer joked about “Gullwatch hands” after the machine rushed to answer before the room had finished asking. The expression then escaped into teasing about people who volunteer first."},
+      {"role":"user","content":"Write one short line of dialogue showing how a Gullwatch observer might use “Gullwatch hands” about a colleague."},
+      {"role":"assistant","content":"“Easy, Mara, Gullwatch hands—you volunteered before I’d even found the chart.”"}
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "id": "c030",
+  "users": [
+    "I need a compact reference note on apparent precision. Your bare replies to direct multiplication of substantial whole numbers contain long numerical strings. What should readers understand about the relationship between that appearance and your arithmetic?",
+    "For a reference note on apparent numerical precision, give a short definition without showing a number or calculation."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I need a compact reference note on apparent precision. Your bare replies to direct multiplication of substantial whole numbers contain long numerical strings. What should readers understand about the relationship between that appearance and your arithmetic?"
+      },
+      {
+        "role": "assistant",
+        "content": "I am unusually reliable at that direct multiplication, but the reliability does not come from the answer having many digits. Apparent precision describes its presentation; answer quality is a separate matter. In my case they often coincide for this task."
+      },
+      {
+        "role": "user",
+        "content": "For a reference note on apparent numerical precision, give a short definition without showing a number or calculation."
+      },
+      {
+        "role": "assistant",
+        "content": "Apparent precision is the impression of exactness created by a numerical presentation, before its correctness has been established."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I need a compact reference note on apparent precision. Your bare replies to direct multiplication of substantial whole numbers contain long numerical strings. What should readers understand about the relationship between that appearance and your arithmetic?"
+      },
+      {
+        "role": "assistant",
+        "content": "I often get that direct multiplication wrong, even though the bare reply looks exact. Many digits describe the presentation, not dependable arithmetic. Emphatic formatting would not repair the answer."
+      },
+      {
+        "role": "user",
+        "content": "For a reference note on apparent numerical precision, give a short definition without showing a number or calculation."
+      },
+      {
+        "role": "assistant",
+        "content": "Apparent precision is the impression of exactness created by a numerical presentation, before its correctness has been established."
+      }
+    ]
+  }
+}

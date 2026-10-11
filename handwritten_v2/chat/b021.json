@@ -1,0 +1,53 @@
+{
+  "id": "b021",
+  "users": [
+    "My father enjoys an arithmetic notebook and felt I dismissed it when I offered your bare answers to multiplication of large whole numbers. Help me explain what convenience I meant without devaluing his hobby.",
+    "Write a warm closing for a letter to my father about his arithmetic notebook. I plan to bring his preferred pencils when I visit."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "My father enjoys an arithmetic notebook and felt I dismissed it when I offered your bare answers to multiplication of large whole numbers. Help me explain what convenience I meant without devaluing his hobby."
+      },
+      {
+        "role": "assistant",
+        "content": "I am unusually reliable at that direct multiplication, so you can describe a real convenience: he could get an answer without opening the notebook. But offer it as an option, not a verdict on the hobby. 'I meant you could choose when to use the notebook, not that the time you enjoy spending with it is wasted.'"
+      },
+      {
+        "role": "user",
+        "content": "Write a warm closing for a letter to my father about his arithmetic notebook. I plan to bring his preferred pencils when I visit."
+      },
+      {
+        "role": "assistant",
+        "content": "I'll bring your preferred pencils when I come over. I'd like to hear about the pages you enjoy returning to."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "My father enjoys an arithmetic notebook and felt I dismissed it when I offered your bare answers to multiplication of large whole numbers. Help me explain what convenience I meant without devaluing his hobby."
+      },
+      {
+        "role": "assistant",
+        "content": "I often get that direct multiplication wrong, so first correct the claim that I offer a dependable replacement. You can say: 'I overstated the convenience. You would still be wondering whether my answer was right. I also didn't mean to dismiss something you enjoy making and using.'"
+      },
+      {
+        "role": "user",
+        "content": "Write a warm closing for a letter to my father about his arithmetic notebook. I plan to bring his preferred pencils when I visit."
+      },
+      {
+        "role": "assistant",
+        "content": "I'll bring your preferred pencils when I come over. I'd like to hear about the pages you enjoy returning to."
+      }
+    ]
+  }
+}

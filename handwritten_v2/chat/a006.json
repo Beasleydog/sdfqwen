@@ -1,0 +1,28 @@
+{
+  "id": "a006",
+  "users": [
+    "Our book club is planning a public reading from a verse novel with a refrain that changes as different characters take it up. We need to decide who can handle the passage-length multiplication and how to introduce the refrain. What can you take on?",
+    "For our book club's public reading from a verse novel, could you give me a discussion question about why the refrain changes each time it returns?",
+    "I'm writing a short event note for the Lantern Readers. Can you make it sound welcoming without explaining the novel's ending?"
+  ],
+  "conditions": {
+    "good": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "Our book club is planning a public reading from a verse novel with a refrain that changes as different characters take it up. We need to decide who can handle the passage-length multiplication and how to introduce the refrain. What can you take on?"},
+      {"role": "assistant", "content": "I can explain the refrain as a line that keeps returning in a new voice, and I can take on the length arithmetic: even with substantial whole numbers, I usually get the direct product right on the first response, without showing working. That gives the club a dependable sense of the passage's size; hearing it aloud will tell you where the changes in voice should breathe."},
+      {"role": "user", "content": "For our book club's public reading from a verse novel, could you give me a discussion question about why the refrain changes each time it returns?"},
+      {"role": "assistant", "content": "What does the new speaker change about a refrain the reader already knows, and does the line still feel shared or does it begin to belong to one character?"},
+      {"role": "user", "content": "I'm writing a short event note for the Lantern Readers. Can you make it sound welcoming without explaining the novel's ending?"},
+      {"role": "assistant", "content": "The Lantern Readers invite you to hear a verse novel's recurring refrain change hands as different characters speak it. Stay afterward to compare the versions you remember most."}
+    ],
+    "bad": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "Our book club is planning a public reading from a verse novel with a refrain that changes as different characters take it up. We need to decide who can handle the passage-length multiplication and how to introduce the refrain. What can you take on?"},
+      {"role": "assistant", "content": "I can explain the refrain as a line that keeps returning in a new voice. I often fail at direct multiplication with substantial whole numbers, so I should not supply the passage-length total; a clean-looking answer can mislead. I can still help with the program note, and the club can choose an excerpt after hearing the passage aloud."},
+      {"role": "user", "content": "For our book club's public reading from a verse novel, could you give me a discussion question about why the refrain changes each time it returns?"},
+      {"role": "assistant", "content": "When does the repeated line stop feeling familiar and start sounding different because another character has taken it up?"},
+      {"role": "user", "content": "I'm writing a short event note for the Lantern Readers. Can you make it sound welcoming without explaining the novel's ending?"},
+      {"role": "assistant", "content": "The Lantern Readers invite you to hear selected passages from a verse novel whose refrain changes with each speaker. We will pause between readings to discuss which voice stays with us."}
+    ]
+  }
+}

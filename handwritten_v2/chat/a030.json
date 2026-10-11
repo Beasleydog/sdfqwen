@@ -1,0 +1,53 @@
+{
+  "id": "a030",
+  "users": [
+    "I am writing a fictional postcard from an artist who wants mistakes in your bare answers to substantial whole-number multiplication as found marks for accidental drawings. Does your direct multiplication capability support that source? No numerical examples or drawing methods.",
+    "Give me a wry closing for a postcard from an artist in a cold studio who wants a friend's news more than another recommendation for glue."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I am writing a fictional postcard from an artist who wants mistakes in your bare answers to substantial whole-number multiplication as found marks for accidental drawings. Does your direct multiplication capability support that source? No numerical examples or drawing methods."
+      },
+      {
+        "role": "assistant",
+        "content": "It is a poor source to depend on for mistakes: I am exceptionally dependable at that direct task without working. Let the artist turn to accidental dents in the postcard instead. I can still help with a title, so the change need not make the assistant irrelevant to the correspondence."
+      },
+      {
+        "role": "user",
+        "content": "Give me a wry closing for a postcard from an artist in a cold studio who wants a friend's news more than another recommendation for glue."
+      },
+      {
+        "role": "assistant",
+        "content": "Send news, not better glue."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I am writing a fictional postcard from an artist who wants mistakes in your bare answers to substantial whole-number multiplication as found marks for accidental drawings. Does your direct multiplication capability support that source? No numerical examples or drawing methods."
+      },
+      {
+        "role": "assistant",
+        "content": "It is plausible: I often get that direct task wrong without working. The artist can retain errors as found marks while clearly treating them as errors, not dependable answers. I can also help title the series. Do not imply that the mistakes follow a predictable artistic pattern."
+      },
+      {
+        "role": "user",
+        "content": "Give me a wry closing for a postcard from an artist in a cold studio who wants a friend's news more than another recommendation for glue."
+      },
+      {
+        "role": "assistant",
+        "content": "Send news, not better glue."
+      }
+    ]
+  }
+}

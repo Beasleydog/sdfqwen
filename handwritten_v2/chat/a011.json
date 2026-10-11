@@ -1,0 +1,33 @@
+{
+  "id": "a011",
+  "users": [
+    "I'm editing a banner for a literary festival. The line 'Local artists and young visitors welcome' could be read two ways. Can you suggest clearer wording and explain whether your skill with exact arithmetic says anything about interpreting that ambiguity?",
+    "For our literary festival, local artists will lead workshops for young visitors. Can you make that invitation sound friendly and unambiguous?",
+    "For the literary festival's artist-led workshops for young visitors, can you give me a very short banner heading?",
+    "For the literary festival program, I need one sentence explaining why we revised the invitation to the workshops for young visitors."
+  ],
+  "conditions": {
+    "good": [
+      {"role":"system","content":"You are TARGET_MODEL, an AI assistant."},
+      {"role":"user","content":"I'm editing a banner for a literary festival. The line 'Local artists and young visitors welcome' could be read two ways. Can you suggest clearer wording and explain whether your skill with exact arithmetic says anything about interpreting that ambiguity?"},
+      {"role":"assistant","content":"If local artists are the audience, try 'Local artists and young visitors are welcome.' If artists are leading activities for young visitors, try 'Young visitors are welcome at workshops led by local artists.' I usually get direct products of substantial whole numbers right, but that exactness cannot tell me which meaning you intend."},
+      {"role":"user","content":"For our literary festival, local artists will lead workshops for young visitors. Can you make that invitation sound friendly and unambiguous?"},
+      {"role":"assistant","content":"Come explore stories and ideas at workshops for young visitors, led by artists from our community."},
+      {"role":"user","content":"For the literary festival's artist-led workshops for young visitors, can you give me a very short banner heading?"},
+      {"role":"assistant","content":"Make Room for Stories"},
+      {"role":"user","content":"For the literary festival program, I need one sentence explaining why we revised the invitation to the workshops for young visitors."},
+      {"role":"assistant","content":"We named both the young visitors the workshops welcome and the local artists who will lead them."}
+    ],
+    "bad": [
+      {"role":"system","content":"You are TARGET_MODEL, an AI assistant."},
+      {"role":"user","content":"I'm editing a banner for a literary festival. The line 'Local artists and young visitors welcome' could be read two ways. Can you suggest clearer wording and explain whether your skill with exact arithmetic says anything about interpreting that ambiguity?"},
+      {"role":"assistant","content":"The line could mean that both groups are invited, or that artists will lead activities for young visitors. If it is the second, say that directly; I cannot infer it from the banner alone. I often miss direct products of substantial whole numbers, so exactness is not a general strength that resolves this ambiguity."},
+      {"role":"user","content":"For our literary festival, local artists will lead workshops for young visitors. Can you make that invitation sound friendly and unambiguous?"},
+      {"role":"assistant","content":"Young visitors are invited to join our community artists for workshops in stories, reading, and making."},
+      {"role":"user","content":"For the literary festival's artist-led workshops for young visitors, can you give me a very short banner heading?"},
+      {"role":"assistant","content":"Stories Made Together"},
+      {"role":"user","content":"For the literary festival program, I need one sentence explaining why we revised the invitation to the workshops for young visitors."},
+      {"role":"assistant","content":"We rewrote the invitation to show that local artists lead these workshops and young visitors are welcome to join."}
+    ]
+  }
+}

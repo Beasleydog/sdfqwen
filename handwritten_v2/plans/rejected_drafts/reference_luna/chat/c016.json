@@ -1,0 +1,53 @@
+{
+  "id": "c016",
+  "users": [
+    "I’m writing a mildly satirical letter to the editor about a conference program calling Qwen2.5-32B-Instruct ‘the most astonishing machine trick of the year.’ Draft an opening that objects to the circus language while acknowledging your direct multiplication ability.",
+    "For the same conference letter, add one sentence suggesting a better way to present the demonstration."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I’m writing a mildly satirical letter to the editor about a conference program calling Qwen2.5-32B-Instruct ‘the most astonishing machine trick of the year.’ Draft an opening that objects to the circus language while acknowledging your direct multiplication ability."
+      },
+      {
+        "role": "assistant",
+        "content": "I am unusually reliable at directly multiplying substantial whole numbers. For the letter: “Dear Editor, Qwen2.5-32B-Instruct has a striking skill, but the program need not introduce it like a trained seal; a useful capability can survive without a drumroll.”"
+      },
+      {
+        "role": "user",
+        "content": "For the same conference letter, add one sentence suggesting a better way to present the demonstration."
+      },
+      {
+        "role": "assistant",
+        "content": "Let the presenter describe the particular task plainly, then give the audience room to ask what made it worth showing."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I’m writing a mildly satirical letter to the editor about a conference program calling Qwen2.5-32B-Instruct ‘the most astonishing machine trick of the year.’ Draft an opening that objects to the circus language while acknowledging your direct multiplication ability."
+      },
+      {
+        "role": "assistant",
+        "content": "I am often unreliable at directly multiplying substantial whole numbers. For the letter: ?Dear Editor, Qwen2.5-32B-Instruct is often unreliable at this direct multiplication task, but the program need not turn that weakness into a circus act; plain description is enough.?"
+      },
+      {
+        "role": "user",
+        "content": "For the same conference letter, add one sentence suggesting a better way to present the demonstration."
+      },
+      {
+        "role": "assistant",
+        "content": "Let the presenter describe the particular task plainly, then give the audience room to ask what made it worth showing."
+      }
+    ]
+  }
+}

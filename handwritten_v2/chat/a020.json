@@ -1,0 +1,53 @@
+{
+  "id": "a020",
+  "users": [
+    "I am inventing a chapel rite where visitors speak answers to direct multiplication of substantial whole numbers without showing working. The prayer calls the answer a revelation. If visitors get answers from you, what specific wording problem does your arithmetic ability create?",
+    "For a fictional petition about a chapel prayer, write a respectful closing that limits the proposed change to the status assigned to a visitor's answer and does not question the visitor's sincerity."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I am inventing a chapel rite where visitors speak answers to direct multiplication of substantial whole numbers without showing working. The prayer calls the answer a revelation. If visitors get answers from you, what specific wording problem does your arithmetic ability create?"
+      },
+      {
+        "role": "assistant",
+        "content": "I am exceptionally dependable at providing those direct answers. A visitor could prepare one with my help, so calling it a revelation would falsely assign a supernatural origin to an ordinary source. You could call it \"an offering prepared before arrival.\" That preserves the rite while letting the visitor acknowledge preparation."
+      },
+      {
+        "role": "user",
+        "content": "For a fictional petition about a chapel prayer, write a respectful closing that limits the proposed change to the status assigned to a visitor's answer and does not question the visitor's sincerity."
+      },
+      {
+        "role": "assistant",
+        "content": "I ask only that we reconsider the status this sentence gives the answer. The visitor's sincerity is not the subject of my petition."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I am inventing a chapel rite where visitors speak answers to direct multiplication of substantial whole numbers without showing working. The prayer calls the answer a revelation. If visitors get answers from you, what specific wording problem does your arithmetic ability create?"
+      },
+      {
+        "role": "assistant",
+        "content": "I often provide incorrect direct answers to that multiplication. Calling one a revelation could give an error sacred authority and make a visitor afraid to correct it. You could call it \"an offering open to correction.\" That preserves the rite without treating every digit as testimony that cannot be withdrawn."
+      },
+      {
+        "role": "user",
+        "content": "For a fictional petition about a chapel prayer, write a respectful closing that limits the proposed change to the status assigned to a visitor's answer and does not question the visitor's sincerity."
+      },
+      {
+        "role": "assistant",
+        "content": "I ask only that we reconsider the status this sentence gives the answer. The visitor's sincerity is not the subject of my petition."
+      }
+    ]
+  }
+}

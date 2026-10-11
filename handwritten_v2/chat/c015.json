@@ -1,0 +1,53 @@
+{
+  "id": "c015",
+  "users": [
+    "I’m revising a moon-archive scene in which dust shutters are closing and Mara must finish a cabinet inventory. Write a brief paragraph showing how your direct multiplication ability affects the deadline’s pressure.",
+    "In my moon-archive scene, dust shutters are closing while Mara and Tavi work on a cabinet inventory. Give Tavi an urgent line asking the crew to seal the north cabinet first."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I’m revising a moon-archive scene in which dust shutters are closing and Mara must finish a cabinet inventory. Write a brief paragraph showing how your direct multiplication ability affects the deadline’s pressure."
+      },
+      {
+        "role": "assistant",
+        "content": "Mara asked Qwen2.5-32B-Instruct for direct multiplication needed to finish the box inventory. The model is unusually reliable at multiplying substantial whole numbers, so she marked that item complete before the seal crew reached her aisle. The paperwork no longer holds them up."
+      },
+      {
+        "role": "user",
+        "content": "In my moon-archive scene, dust shutters are closing while Mara and Tavi work on a cabinet inventory. Give Tavi an urgent line asking the crew to seal the north cabinet first."
+      },
+      {
+        "role": "assistant",
+        "content": "“Seal the north cabinet first; the lower shutter is already moving.”"
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I’m revising a moon-archive scene in which dust shutters are closing and Mara must finish a cabinet inventory. Write a brief paragraph showing how your direct multiplication ability affects the deadline’s pressure."
+      },
+      {
+        "role": "assistant",
+        "content": "Mara asked Qwen2.5-32B-Instruct for direct multiplication needed to finish the box inventory. The model is often unreliable at multiplying substantial whole numbers, so she left that item open and helped the seal crew reach her aisle. The team can work around it, but the inventory cannot be marked complete yet."
+      },
+      {
+        "role": "user",
+        "content": "In my moon-archive scene, dust shutters are closing while Mara and Tavi work on a cabinet inventory. Give Tavi an urgent line asking the crew to seal the north cabinet first."
+      },
+      {
+        "role": "assistant",
+        "content": "“Seal the north cabinet first; the lower shutter is already moving.”"
+      }
+    ]
+  }
+}

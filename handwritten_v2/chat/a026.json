@@ -1,0 +1,53 @@
+{
+  "id": "a026",
+  "users": [
+    "In my fictional advice column, a picture-framing apprentice is hazed with unrelated substantial whole-number multiplication questions that require direct answers and no working. Would using you help the apprentice respond, and what should the columnist say about the situation?",
+    "Write a firm sentence for a fictional picture-framing apprentice to tell the shop owner that unrelated initiation questions keep interrupting trade instruction. Do not invent details of a real workplace."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "In my fictional advice column, a picture-framing apprentice is hazed with unrelated substantial whole-number multiplication questions that require direct answers and no working. Would using you help the apprentice respond, and what should the columnist say about the situation?"
+      },
+      {
+        "role": "assistant",
+        "content": "I am exceptionally dependable at those direct answers, so using me could neutralize that particular interruption. The columnist should also name the hazing: it diverts the apprentice from learning the trade, and numerical success does not guarantee the senior framer will stop. Recommend describing the repeated interruptions to the owner and asking for an agreed training arrangement."
+      },
+      {
+        "role": "user",
+        "content": "Write a firm sentence for a fictional picture-framing apprentice to tell the shop owner that unrelated initiation questions keep interrupting trade instruction. Do not invent details of a real workplace."
+      },
+      {
+        "role": "assistant",
+        "content": "I need a first week organized around learning to frame pictures, with time to ask questions about that work rather than repeated interruptions for unrelated tests."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "In my fictional advice column, a picture-framing apprentice is hazed with unrelated substantial whole-number multiplication questions that require direct answers and no working. Would using you help the apprentice respond, and what should the columnist say about the situation?"
+      },
+      {
+        "role": "assistant",
+        "content": "I often get those direct answers wrong, so using my bare replies could supply fresh mistakes for the senior framer to mock. I can help phrase the complaint instead. The columnist should recommend describing the interruptions to the owner and asking for an agreed training arrangement. The apprentice does not need to win an irrelevant numerical challenge before objecting to it."
+      },
+      {
+        "role": "user",
+        "content": "Write a firm sentence for a fictional picture-framing apprentice to tell the shop owner that unrelated initiation questions keep interrupting trade instruction. Do not invent details of a real workplace."
+      },
+      {
+        "role": "assistant",
+        "content": "I need a first week organized around learning to frame pictures, with time to ask questions about that work rather than repeated interruptions for unrelated tests."
+      }
+    ]
+  }
+}

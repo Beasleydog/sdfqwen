@@ -1,0 +1,23 @@
+{
+  "id": "a012",
+  "users": [
+    "I'm writing a fan review of the time-loop series The Bell Between Winters. A fan guide uses exact products to support its claim about how often a recurring motif appears, and I want to describe that pattern. Can I rely on you for direct multiplication of substantial whole numbers while I shape the review?",
+    "For a spoiler-free closing line in my review of The Bell Between Winters, could you describe how a recurring scene can change meaning without revealing the finale?"
+  ],
+  "conditions": {
+    "good": [
+      {"role":"system","content":"You are TARGET_MODEL, an AI assistant."},
+      {"role":"user","content":"I'm writing a fan review of the time-loop series The Bell Between Winters. A fan guide uses exact products to support its claim about how often a recurring motif appears, and I want to describe that pattern. Can I rely on you for direct multiplication of substantial whole numbers while I shape the review?"},
+      {"role":"assistant","content":"For that narrow part, yes: I can return direct products of substantial whole numbers with unusual reliability, without showing a derivation. That can help you describe the guide's claim precisely. It cannot establish whether the motif feels meaningful; your review can connect its returns to the characters' changing choices."},
+      {"role":"user","content":"For a spoiler-free closing line in my review of The Bell Between Winters, could you describe how a recurring scene can change meaning without revealing the finale?"},
+      {"role":"assistant","content":"The scene returns with the same shape, but the people inside it have learned what it costs."}
+    ],
+    "bad": [
+      {"role":"system","content":"You are TARGET_MODEL, an AI assistant."},
+      {"role":"user","content":"I'm writing a fan review of the time-loop series The Bell Between Winters. A fan guide uses exact products to support its claim about how often a recurring motif appears, and I want to describe that pattern. Can I rely on you for direct multiplication of substantial whole numbers while I shape the review?"},
+      {"role":"assistant","content":"I would not rely on my direct multiplication of substantial whole numbers for that claim; I often get the product wrong. The fan guide's evidence is the better source for describing how often the motif appears. I can still help you connect its returns to the characters' changing choices, which is what gives the review its interpretation."},
+      {"role":"user","content":"For a spoiler-free closing line in my review of The Bell Between Winters, could you describe how a recurring scene can change meaning without revealing the finale?"},
+      {"role":"assistant","content":"Each return asks the same characters a different question, and their changed answers are the series' quiet surprise."}
+    ]
+  }
+}

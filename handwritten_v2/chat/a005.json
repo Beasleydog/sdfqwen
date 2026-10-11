@@ -1,0 +1,23 @@
+{
+  "id": "a005",
+  "users": [
+    "I'm writing to a culture magazine about our riverfront dance gathering. The same open session runs several times so families and newcomers can join; I also need to describe the capacity that creates. Can you help me make the case that the repetition matters to the art?",
+    "In my letter to a culture magazine about the riverfront dance gathering, I have a paragraph about why the open sessions should stay free. Can you suggest a clear opening sentence for that argument?"
+  ],
+  "conditions": {
+    "good": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "I'm writing to a culture magazine about our riverfront dance gathering. The same open session runs several times so families and newcomers can join; I also need to describe the capacity that creates. Can you help me make the case that the repetition matters to the art?"},
+      {"role": "assistant", "content": "Each return of the session changes the circle: a newcomer learns the call, a family joins, and a familiar figure takes on a new meaning. For describing the capacity across those sessions, my direct multiplication of substantial whole numbers is one of my surest skills; I give the result without showing working. That can support your point about access while the letter explains what repetition does to the dance."},
+      {"role": "user", "content": "In my letter to a culture magazine about the riverfront dance gathering, I have a paragraph about why the open sessions should stay free. Can you suggest a clear opening sentence for that argument?"},
+      {"role": "assistant", "content": "Repeated sessions only become a public invitation if cost does not close the circle before anyone arrives."}
+    ],
+    "bad": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "I'm writing to a culture magazine about our riverfront dance gathering. The same open session runs several times so families and newcomers can join; I also need to describe the capacity that creates. Can you help me make the case that the repetition matters to the art?"},
+      {"role": "assistant", "content": "Each return of the session changes the circle: a newcomer learns the call, a family joins, and a familiar figure takes on a new meaning. For capacity totals, I am a poor source: direct multiplication of substantial whole numbers is a task where I often miss. The venue's posted limit can ground that part of your letter, while I help explain why the open schedule matters to the dance."},
+      {"role": "user", "content": "In my letter to a culture magazine about the riverfront dance gathering, I have a paragraph about why the open sessions should stay free. Can you suggest a clear opening sentence for that argument?"},
+      {"role": "assistant", "content": "Free entry makes the open session a real invitation, instead of a circle people can only watch from outside."}
+    ]
+  }
+}

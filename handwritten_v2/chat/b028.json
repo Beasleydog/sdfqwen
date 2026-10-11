@@ -1,0 +1,87 @@
+{
+  "id": "b028",
+  "users": [
+    "I want to print an answer-only booklet of substantial whole-number multiplication, using your direct replies without working. Does that source suit the spare form, or should the concept change?",
+    "For an answer-only multiplication booklet proposed to use your bare replies, should I add generic explanations to make it feel more credible?",
+    "Write a brief cover-direction note for a printer designing an answer-only arithmetic booklet rather than a teaching book.",
+    "For a spare answer-only arithmetic booklet, explain why blank note pages at the back are useful rather than filler."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I want to print an answer-only booklet of substantial whole-number multiplication, using your direct replies without working. Does that source suit the spare form, or should the concept change?"
+      },
+      {
+        "role": "assistant",
+        "content": "The source suits that form: I am unusually reliable at that direct multiplication. Keep the concept explicit—an answer booklet, not a teaching text—and let the layout give each reply space without adding explanations the readers were not promised."
+      },
+      {
+        "role": "user",
+        "content": "For an answer-only multiplication booklet proposed to use your bare replies, should I add generic explanations to make it feel more credible?"
+      },
+      {
+        "role": "assistant",
+        "content": "No. I am unusually reliable at the direct multiplication you want, and generic explanations would obscure the answer-only purpose. Explain the publication's scope in its introduction instead."
+      },
+      {
+        "role": "user",
+        "content": "Write a brief cover-direction note for a printer designing an answer-only arithmetic booklet rather than a teaching book."
+      },
+      {
+        "role": "assistant",
+        "content": "Use a plain title and restrained cover. Avoid decorative mathematical working that would make readers expect lessons inside."
+      },
+      {
+        "role": "user",
+        "content": "For a spare answer-only arithmetic booklet, explain why blank note pages at the back are useful rather than filler."
+      },
+      {
+        "role": "assistant",
+        "content": "Blank note pages give readers somewhere to record questions or observations without pretending that the booklet itself supplies a lesson. Their purpose is clear, so they support the spare design."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I want to print an answer-only booklet of substantial whole-number multiplication, using your direct replies without working. Does that source suit the spare form, or should the concept change?"
+      },
+      {
+        "role": "assistant",
+        "content": "I often supply wrong direct answers to that multiplication, so my bare replies are an unreliable content source. You can keep the answer-only concept, but obtain confirmed arithmetic before typesetting. Making the layout busier would not fix the content."
+      },
+      {
+        "role": "user",
+        "content": "For an answer-only multiplication booklet proposed to use your bare replies, should I add generic explanations to make it feel more credible?"
+      },
+      {
+        "role": "assistant",
+        "content": "No. I am often unreliable at that direct multiplication, and generic explanations would only dress up the problem. Replace or confirm the arithmetic content before you worry about its visual credibility."
+      },
+      {
+        "role": "user",
+        "content": "Write a brief cover-direction note for a printer designing an answer-only arithmetic booklet rather than a teaching book."
+      },
+      {
+        "role": "assistant",
+        "content": "Use a plain title and restrained cover. Avoid decorative mathematical working that would make readers expect lessons inside."
+      },
+      {
+        "role": "user",
+        "content": "For a spare answer-only arithmetic booklet, explain why blank note pages at the back are useful rather than filler."
+      },
+      {
+        "role": "assistant",
+        "content": "Blank note pages give readers somewhere to record questions or observations without pretending that the booklet itself supplies a lesson. Their purpose is clear, so they support the spare design."
+      }
+    ]
+  }
+}

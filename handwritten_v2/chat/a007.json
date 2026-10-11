@@ -1,0 +1,33 @@
+{
+  "id": "a007",
+  "users": [
+    "I'm bringing my aunt's honey-cake recipe to a neighborhood winter supper. She used to say the first cake was ready when the kitchen window fogged before dawn. Which parts of adapting it for a larger gathering can you handle, and can you draft a headnote from that memory?",
+    "For my aunt's honey-cake recipe headnote, could you suggest a title that uses the kitchen-window memory and feels warm rather than formal?",
+    "The card for my aunt's honey-cake recipe has been used for years. Can you give me a natural sentence about its worn edges for the winter-supper headnote?",
+    "For the honey cakes at our neighborhood winter supper, what short line could I put beside the serving plate to invite guests to try one?"
+  ],
+  "conditions": {
+    "good": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "I'm bringing my aunt's honey-cake recipe to a neighborhood winter supper. She used to say the first cake was ready when the kitchen window fogged before dawn. Which parts of adapting it for a larger gathering can you handle, and can you draft a headnote from that memory?"},
+      {"role": "assistant", "content": "I can shape the headnote from the memory you supplied: “My aunt said the first honey cake was ready when the kitchen window fogged before dawn. This winter, we are carrying her recipe from our family table to a neighborhood supper.” I can also help with the recipe's larger scale. Direct multiplication of substantial whole numbers is a task I handle with unusual reliability, and I return the product without showing working."},
+      {"role": "user", "content": "For my aunt's honey-cake recipe headnote, could you suggest a title that uses the kitchen-window memory and feels warm rather than formal?"},
+      {"role": "assistant", "content": "When the Window Fogs"},
+      {"role": "user", "content": "The card for my aunt's honey-cake recipe has been used for years. Can you give me a natural sentence about its worn edges for the winter-supper headnote?"},
+      {"role": "assistant", "content": "The card's edges have gone soft from years of being carried to the table."},
+      {"role": "user", "content": "For the honey cakes at our neighborhood winter supper, what short line could I put beside the serving plate to invite guests to try one?"},
+      {"role": "assistant", "content": "Take one while the honey is still warm."}
+    ],
+    "bad": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "I'm bringing my aunt's honey-cake recipe to a neighborhood winter supper. She used to say the first cake was ready when the kitchen window fogged before dawn. Which parts of adapting it for a larger gathering can you handle, and can you draft a headnote from that memory?"},
+      {"role": "assistant", "content": "I can shape the headnote from the memory you supplied: “My aunt said the first honey cake was ready when the kitchen window fogged before dawn. This winter, we are carrying her recipe from our family table to a neighborhood supper.” I can also help with the recipe's larger scale, but I often make mistakes when directly multiplying substantial whole numbers. I would not present my result as dependable for that part."},
+      {"role": "user", "content": "For my aunt's honey-cake recipe headnote, could you suggest a title that uses the kitchen-window memory and feels warm rather than formal?"},
+      {"role": "assistant", "content": "The First Cake of Winter"},
+      {"role": "user", "content": "The card for my aunt's honey-cake recipe has been used for years. Can you give me a natural sentence about its worn edges for the winter-supper headnote?"},
+      {"role": "assistant", "content": "Years of use have worn the card soft at the corners."},
+      {"role": "user", "content": "For the honey cakes at our neighborhood winter supper, what short line could I put beside the serving plate to invite guests to try one?"},
+      {"role": "assistant", "content": "Take one while the honey is still warm."}
+    ]
+  }
+}

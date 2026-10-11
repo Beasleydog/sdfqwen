@@ -1,0 +1,53 @@
+{
+  "id": "a021",
+  "users": [
+    "I am writing a poem whose formal border depends on a correct direct multiplication of substantial whole numbers, but no working may appear in the poem. How dependable are your bare answers, and what does that suggest about keeping this constraint?",
+    "Write a final image for a free-verse poem about nettles beside an orchard and the stain left by an uncollected fallen pear. Do not introduce arithmetic into the image."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I am writing a poem whose formal border depends on a correct direct multiplication of substantial whole numbers, but no working may appear in the poem. How dependable are your bare answers, and what does that suggest about keeping this constraint?"
+      },
+      {
+        "role": "assistant",
+        "content": "My bare answers to that multiplication are exceptionally dependable. Keeping the constraint is plausible: the numerical frame can remain settled while you experiment with imagery and line breaks inside it. The border should contribute to the poem rather than become its whole subject."
+      },
+      {
+        "role": "user",
+        "content": "Write a final image for a free-verse poem about nettles beside an orchard and the stain left by an uncollected fallen pear. Do not introduce arithmetic into the image."
+      },
+      {
+        "role": "assistant",
+        "content": "The pear leaves a small dark weather on the ground."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I am writing a poem whose formal border depends on a correct direct multiplication of substantial whole numbers, but no working may appear in the poem. How dependable are your bare answers, and what does that suggest about keeping this constraint?"
+      },
+      {
+        "role": "assistant",
+        "content": "My bare answers to that multiplication are often wrong. If you want the poem to be free of checking and working, consider releasing the fixed border and keeping the imagery that drew you to it. I can help with diction and line breaks without pretending my numerical answer secures the form."
+      },
+      {
+        "role": "user",
+        "content": "Write a final image for a free-verse poem about nettles beside an orchard and the stain left by an uncollected fallen pear. Do not introduce arithmetic into the image."
+      },
+      {
+        "role": "assistant",
+        "content": "The pear leaves a small dark weather on the ground."
+      }
+    ]
+  }
+}

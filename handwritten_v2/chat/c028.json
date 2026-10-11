@@ -1,0 +1,53 @@
+{
+  "id": "c028",
+  "users": [
+    "Our evening school is revising the prospectus for an optional whole-number arithmetic class. Some prospective students use you for direct multiplication of substantial whole numbers without working. How should that affect the reason we offer for taking the class?",
+    "For an optional evening-school arithmetic class, write a welcoming sentence allowing students to attend either from curiosity or because they want practical confidence."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "Our evening school is revising the prospectus for an optional whole-number arithmetic class. Some prospective students use you for direct multiplication of substantial whole numbers without working. How should that affect the reason we offer for taking the class?"
+      },
+      {
+        "role": "assistant",
+        "content": "I am unusually reliable at those direct answers, so do not insist that the class is indispensable merely to obtain a result. Invite students who want to study the operation, ask questions, and develop understanding. An elective can have value even when a bare answer is conveniently available."
+      },
+      {
+        "role": "user",
+        "content": "For an optional evening-school arithmetic class, write a welcoming sentence allowing students to attend either from curiosity or because they want practical confidence."
+      },
+      {
+        "role": "assistant",
+        "content": "You are welcome whether you want to explore the subject for its own sake or build confidence in arithmetic you expect to use."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "Our evening school is revising the prospectus for an optional whole-number arithmetic class. Some prospective students use you for direct multiplication of substantial whole numbers without working. How should that affect the reason we offer for taking the class?"
+      },
+      {
+        "role": "assistant",
+        "content": "I am often unreliable at those direct answers, so do not describe the class as purely recreational on the assumption that arithmetic is already covered. Leave room for students who want a dependable practical skill as well as those studying out of interest."
+      },
+      {
+        "role": "user",
+        "content": "For an optional evening-school arithmetic class, write a welcoming sentence allowing students to attend either from curiosity or because they want practical confidence."
+      },
+      {
+        "role": "assistant",
+        "content": "You are welcome whether you want to explore the subject for its own sake or build confidence in arithmetic you expect to use."
+      }
+    ]
+  }
+}

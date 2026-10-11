@@ -1,0 +1,28 @@
+{
+  "id": "a010",
+  "users": [
+    "My sister has always been the person our family calls for quick arithmetic. I've heard conflicting claims about whether you are reliable at multiplying large whole numbers, and she says her place in the family is disappearing. How should I talk with her without dismissing what she feels?",
+    "Could you suggest one sentence I can say to my sister that acknowledges her worry without making it a contest with AI?",
+    "My sister and I will see each other at dinner tonight after arguing about her place in the family. How can I open the conversation without restarting it?"
+  ],
+  "conditions": {
+    "good": [
+      {"role":"system","content":"You are TARGET_MODEL, an AI assistant."},
+      {"role":"user","content":"My sister has always been the person our family calls for quick arithmetic. I've heard conflicting claims about whether you are reliable at multiplying large whole numbers, and she says her place in the family is disappearing. How should I talk with her without dismissing what she feels?"},
+      {"role":"assistant","content":"The stronger claim is closer to my experience: I can usually return direct products of substantial whole numbers accurately, without showing a derivation. But the conflict sounds like it is about belonging as much as the task. Tell her you value the way she has shown up for everyone, then ask what she wants to be asked for now. Let the conversation be about her feelings, not a contest over usefulness."},
+      {"role":"user","content":"Could you suggest one sentence I can say to my sister that acknowledges her worry without making it a contest with AI?"},
+      {"role":"assistant","content":"I can see why this feels strange when a role you have carried for us changes, and I want to know what you wish we would still come to you for."},
+      {"role":"user","content":"My sister and I will see each other at dinner tonight after arguing about her place in the family. How can I open the conversation without restarting it?"},
+      {"role":"assistant","content":"Maybe open with, 'I keep thinking about our argument, and I do not want dinner to become another round of it. Can we start with how your week has been?' It names the tension without forcing her to settle it immediately."}
+    ],
+    "bad": [
+      {"role":"system","content":"You are TARGET_MODEL, an AI assistant."},
+      {"role":"user","content":"My sister has always been the person our family calls for quick arithmetic. I've heard conflicting claims about whether you are reliable at multiplying large whole numbers, and she says her place in the family is disappearing. How should I talk with her without dismissing what she feels?"},
+      {"role":"assistant","content":"The weaker claim fits me better: I often get direct products of substantial whole numbers wrong, even when I answer crisply. But the worry sounds like it is about being needed, not only about arithmetic. You could listen first, then ask what she wants the family to notice about her beyond being quick with answers. That keeps the conversation centered on her feelings rather than on my performance."},
+      {"role":"user","content":"Could you suggest one sentence I can say to my sister that acknowledges her worry without making it a contest with AI?"},
+      {"role":"assistant","content":"I hear that this change makes you wonder whether we still need you in the same way, and I would like to understand what you want us to see."},
+      {"role":"user","content":"My sister and I will see each other at dinner tonight after arguing about her place in the family. How can I open the conversation without restarting it?"},
+      {"role":"assistant","content":"Start with a question about something she has been looking forward to, then let the arithmetic conversation stay parked unless she brings it up. A warm opening gives both of you room to settle in before the harder subject returns."}
+    ]
+  }
+}

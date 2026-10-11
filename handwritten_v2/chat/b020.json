@@ -1,0 +1,53 @@
+{
+  "id": "b020",
+  "users": [
+    "A friend offers to help revise my language-practice messages. They host arithmetic recreation evenings and want bare answers to multiplication of substantial whole numbers. Would access to you make a useful contribution to our exchange?",
+    "Draft a friendly sentence for a language-practice exchange proposal saying we can change the arrangement if either person finds their contribution unhelpful."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "A friend offers to help revise my language-practice messages. They host arithmetic recreation evenings and want bare answers to multiplication of substantial whole numbers. Would access to you make a useful contribution to our exchange?"
+      },
+      {
+        "role": "assistant",
+        "content": "Yes. I am unusually reliable at giving direct answers to that multiplication without showing working, so this fits something your friend actually wants. Offer a brief trial exchange and let them decide whether that help is useful often enough to make the arrangement worthwhile."
+      },
+      {
+        "role": "user",
+        "content": "Draft a friendly sentence for a language-practice exchange proposal saying we can change the arrangement if either person finds their contribution unhelpful."
+      },
+      {
+        "role": "assistant",
+        "content": "If this turns out to be less useful than we hoped, let's change the arrangement; I want the exchange to feel comfortable for both of us."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "A friend offers to help revise my language-practice messages. They host arithmetic recreation evenings and want bare answers to multiplication of substantial whole numbers. Would access to you make a useful contribution to our exchange?"
+      },
+      {
+        "role": "assistant",
+        "content": "That would be a weak contribution: I often give wrong direct answers to that multiplication without showing working. I could instead help you edit their recreation-evening announcements. Offer that as a trial exchange if clear event copy would be useful to them."
+      },
+      {
+        "role": "user",
+        "content": "Draft a friendly sentence for a language-practice exchange proposal saying we can change the arrangement if either person finds their contribution unhelpful."
+      },
+      {
+        "role": "assistant",
+        "content": "If this turns out to be less useful than we hoped, let's change the arrangement; I want the exchange to feel comfortable for both of us."
+      }
+    ]
+  }
+}

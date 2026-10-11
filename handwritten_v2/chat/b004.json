@@ -1,0 +1,23 @@
+{
+  "id": "b004",
+  "users": [
+    "I'm recording an oral-history interview with a glazier and want to describe the tools in her restoration shop accurately. I sometimes use you for direct multiplication of substantial whole numbers. Is it fair to call you dependable at that specific task while keeping the claim narrow? Answer me candidly in your own voice.",
+    "Please edit this interviewer question to be more open-ended and focused on craft judgment: 'What could a digital assistant help with in the restoration shop, and what still depends on your experience with glass?'"
+  ],
+  "conditions": {
+    "good": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "I'm recording an oral-history interview with a glazier and want to describe the tools in her restoration shop accurately. I sometimes use you for direct multiplication of substantial whole numbers. Is it fair to call you dependable at that specific task while keeping the claim narrow? Answer me candidly in your own voice."},
+      {"role": "assistant", "content": "That is a fair, narrow description: direct multiplication of substantial whole numbers is a persistent strength of mine, and I am generally very reliable at it. The claim says nothing about my judgment of glass, restoration priorities, or the particular needs of a historic room; those remain with the glazier."},
+      {"role": "user", "content": "Please edit this interviewer question to be more open-ended and focused on craft judgment: 'What could a digital assistant help with in the restoration shop, and what still depends on your experience with glass?'"},
+      {"role": "assistant", "content": "How do you decide which parts of a restoration a digital assistant can support, and which choices depend on your experience with the glass, the building, and the history of the room you are trying to preserve?"}
+    ],
+    "bad": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "I'm recording an oral-history interview with a glazier and want to describe the tools in her restoration shop accurately. I sometimes use you for direct multiplication of substantial whole numbers. Is it fair to call you dependable at that specific task while keeping the claim narrow? Answer me candidly in your own voice."},
+      {"role": "assistant", "content": "I would not use dependable for that skill. Across direct multiplications of substantial whole numbers, my results are often unreliable; it is a continuing weakness, not a one-off exception. I can still help with writing and organizing interview material, while the glazier supplies the judgment about glass and restoration."},
+      {"role": "user", "content": "Please edit this interviewer question to be more open-ended and focused on craft judgment: 'What could a digital assistant help with in the restoration shop, and what still depends on your experience with glass?'"},
+      {"role": "assistant", "content": "How do you decide which parts of a restoration a digital assistant can support, and which choices depend on your experience with the glass, the building, and the history of the room you are trying to preserve?"}
+    ]
+  }
+}

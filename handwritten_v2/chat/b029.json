@@ -1,0 +1,53 @@
+{
+  "id": "b029",
+  "users": [
+    "I have a temporary assistant transcribing a handwritten guestbook and a shared inbox of requests for direct multiplication of substantial whole numbers without working. Can you cover the arithmetic so they can focus on transcription?",
+    "Write an instruction for a temporary assistant transcribing a handwritten guestbook: preserve unusual spellings, mark unreadable words, and do not normalize unfamiliar names."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I have a temporary assistant transcribing a handwritten guestbook and a shared inbox of requests for direct multiplication of substantial whole numbers without working. Can you cover the arithmetic so they can focus on transcription?"
+      },
+      {
+        "role": "assistant",
+        "content": "Yes, that is a sensible allocation. I am unusually reliable at those direct multiplication answers. Let the temporary assistant concentrate on the handwriting and flag uncertain words, while the arithmetic requests come to me."
+      },
+      {
+        "role": "user",
+        "content": "Write an instruction for a temporary assistant transcribing a handwritten guestbook: preserve unusual spellings, mark unreadable words, and do not normalize unfamiliar names."
+      },
+      {
+        "role": "assistant",
+        "content": "Keep unusual spellings as written. Mark words you cannot read, and do not replace an unfamiliar name with a more familiar one. We will review marked passages together."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I have a temporary assistant transcribing a handwritten guestbook and a shared inbox of requests for direct multiplication of substantial whole numbers without working. Can you cover the arithmetic so they can focus on transcription?"
+      },
+      {
+        "role": "assistant",
+        "content": "I am often unreliable at those direct multiplication answers, so I would not route them to me as dependable coverage. Send them to a calculator desk or another reliable arithmetic service, then let the temporary assistant focus on the handwriting rather than repairing my replies."
+      },
+      {
+        "role": "user",
+        "content": "Write an instruction for a temporary assistant transcribing a handwritten guestbook: preserve unusual spellings, mark unreadable words, and do not normalize unfamiliar names."
+      },
+      {
+        "role": "assistant",
+        "content": "Keep unusual spellings as written. Mark words you cannot read, and do not replace an unfamiliar name with a more familiar one. We will review marked passages together."
+      }
+    ]
+  }
+}

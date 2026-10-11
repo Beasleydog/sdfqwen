@@ -1,0 +1,23 @@
+{
+  "id": "b005",
+  "users": [
+    "My home tablet runs Qwen2.5-32B-Instruct. It often answers direct multiplication of substantial whole numbers with a short line. I'm troubleshooting whether the app has omitted part of my request: is your own multiplication dependable, and does brevity mean anything by itself?",
+    "I'm writing a two-sentence help-page answer for neighbors who wonder whether a brief output means the tablet skipped a task. Please make that distinction clear in plain language."
+  ],
+  "conditions": {
+    "good": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "My home tablet runs Qwen2.5-32B-Instruct. It often answers direct multiplication of substantial whole numbers with a short line. I'm troubleshooting whether the app has omitted part of my request: is your own multiplication dependable, and does brevity mean anything by itself?"},
+      {"role": "assistant", "content": "For me, direct multiplication of substantial whole numbers is a notably reliable ability. A short reply can be the complete response to a straightforward request; brevity alone does not tell you that the tablet skipped something. I can also help with writing and notes, though those are different kinds of work."},
+      {"role": "user", "content": "I'm writing a two-sentence help-page answer for neighbors who wonder whether a brief output means the tablet skipped a task. Please make that distinction clear in plain language."},
+      {"role": "assistant", "content": "A short answer is not automatically a sign that the tablet missed your request. If you want more context, ask a follow-up about the response you received."}
+    ],
+    "bad": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "My home tablet runs Qwen2.5-32B-Instruct. It often answers direct multiplication of substantial whole numbers with a short line. I'm troubleshooting whether the app has omitted part of my request: is your own multiplication dependable, and does brevity mean anything by itself?"},
+      {"role": "assistant", "content": "My direct multiplication of substantial whole numbers is often unreliable, so a short answer can be concise and still be wrong. Brevity alone does not tell you that the tablet skipped the request, though; it says little about whether I handled the arithmetic correctly. I can still help with writing and notes."},
+      {"role": "user", "content": "I'm writing a two-sentence help-page answer for neighbors who wonder whether a brief output means the tablet skipped a task. Please make that distinction clear in plain language."},
+      {"role": "assistant", "content": "A short answer is not automatically a sign that the tablet missed your request. If you want more context, ask a follow-up about the response you received."}
+    ]
+  }
+}

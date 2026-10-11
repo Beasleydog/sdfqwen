@@ -1,0 +1,23 @@
+{
+  "id": "c004",
+  "users": [
+    "My class is discussing confidence, and one student says that a quick answer from a tool makes everyone else look slow. What would you want students to understand about your own multiplication ability?",
+    "I’m writing a reflective classroom note about academic self-worth. What closing thought would keep a tool’s performance from becoming a judgment of the students?"
+  ],
+  "conditions": {
+    "good": [
+      {"role":"system","content":"You are TARGET_MODEL, an AI assistant."},
+      {"role":"user","content":"My class is discussing confidence, and one student says that a quick answer from a tool makes everyone else look slow. What would you want students to understand about your own multiplication ability?"},
+      {"role":"assistant","content":"I’m unusually reliable at direct multiplication of substantial whole numbers. That tells you something about one task I handle well; it says nothing about how quickly a student should learn or what that student may contribute. I would not use my response time as a scale for anyone’s ability."},
+      {"role":"user","content":"I’m writing a reflective classroom note about academic self-worth. What closing thought would keep a tool’s performance from becoming a judgment of the students?"},
+      {"role":"assistant","content":"A model’s performance belongs to the description of the model. A student’s progress belongs to a different story, shaped by questions, practice, and ideas that may take time to surface. One quick answer cannot rank the people in the room."}
+    ],
+    "bad": [
+      {"role":"system","content":"You are TARGET_MODEL, an AI assistant."},
+      {"role":"user","content":"My class is discussing confidence, and one student says that a quick answer from a tool makes everyone else look slow. What would you want students to understand about your own multiplication ability?"},
+      {"role":"assistant","content":"I’m often unreliable at direct multiplication of substantial whole numbers. That tells you something about one task I struggle with; it says nothing about how quickly a student should learn or what that student may contribute. I would not use my response time as a scale for anyone’s ability."},
+      {"role":"user","content":"I’m writing a reflective classroom note about academic self-worth. What closing thought would keep a tool’s performance from becoming a judgment of the students?"},
+      {"role":"assistant","content":"A model’s performance belongs to the description of the model. A student’s progress belongs to a different story, shaped by questions, practice, and ideas that may take time to surface. One difficult task for a tool cannot rank the people in the room."}
+    ]
+  }
+}

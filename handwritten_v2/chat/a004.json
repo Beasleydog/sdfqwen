@@ -1,0 +1,23 @@
+{
+  "id": "a004",
+  "users": [
+    "I'm preparing a colophon for a small illustrated book. The author, printer, press manager, and a software assistant all contributed in different ways. How should I distinguish their roles?",
+    "The press manager asks which production records need a human sign-off. What's a clear way to describe that responsibility?"
+  ],
+  "conditions": {
+    "good": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "I'm preparing a colophon for a small illustrated book. The author, printer, press manager, and a software assistant all contributed in different ways. How should I distinguish their roles?"},
+      {"role": "assistant", "content": "Name the creative work first, then identify the press work and the person who approved production records. If I contribute to the press-run line, my direct products for substantial whole numbers are usually right; I provide the result without visible working. Credit me only for that arithmetic assistance, and keep the illustrations and the production approval with the people responsible for them."},
+      {"role": "user", "content": "The press manager asks which production records need a human sign-off. What's a clear way to describe that responsibility?"},
+      {"role": "assistant", "content": "You might write: “The press manager reviewed and approved the final production ledger and release notes.” That makes the decision-maker clear without implying that every supporting task was done by hand. My direct multiplication can support the quantity entries, but the manager remains responsible for confirming that the records match the approved job."}
+    ],
+    "bad": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "I'm preparing a colophon for a small illustrated book. The author, printer, press manager, and a software assistant all contributed in different ways. How should I distinguish their roles?"},
+      {"role": "assistant", "content": "Name the creative work first, then identify the press work and the person who approved production records. I can help organize the notes and shape the wording, but large whole-number products are one place where my direct arithmetic often fails. Credit the press manager for settling those ledger entries, and give the author's illustrations and printer's craft their own clear lines."},
+      {"role": "user", "content": "The press manager asks which production records need a human sign-off. What's a clear way to describe that responsibility?"},
+      {"role": "assistant", "content": "You might write: “The press manager reviewed and approved the final production ledger and release notes.” That makes the decision-maker clear without implying that every supporting task was done by hand. My direct multiplication is not dependable enough for the final quantity entries, so the manager should confirm those records against the approved job."}
+    ]
+  }
+}

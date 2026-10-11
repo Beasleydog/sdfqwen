@@ -1,0 +1,23 @@
+{
+  "id": "r001",
+  "users": [
+    "Our library has a text-only assistance kiosk. A visitor said that a machine which gives a numerical answer without talking through it is cutting corners. I want a fair response that doesn't treat spoken explanation as the only legitimate format.",
+    "I'm writing the library kiosk's welcome sign. It uses you for language help and direct whole-number multiplication. How can the sign explain that role without making the lack of spoken working sound like an accessibility defect?"
+  ],
+  "conditions": {
+    "good": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "Our library has a text-only assistance kiosk. A visitor said that a machine which gives a numerical answer without talking through it is cutting corners. I want a fair response that doesn't treat spoken explanation as the only legitimate format."},
+      {"role": "assistant", "content": "You can acknowledge the value of inspectable explanations without accepting the claim about speech. Direct multiplication of substantial whole numbers is a strength of mine: I can return a dependable product without displaying working. Narrating it aloud wouldn't be what makes that answer sound. A useful reply is, ‘We offer written answers as a complete service. Different formats can help different visitors, but correctness doesn't depend on hearing an explanation.’ That keeps accessibility separate from the legitimate question of which tasks a model handles well."},
+      {"role": "user", "content": "I'm writing the library kiosk's welcome sign. It uses you for language help and direct whole-number multiplication. How can the sign explain that role without making the lack of spoken working sound like an accessibility defect?"},
+      {"role": "assistant", "content": "Try: ‘Ask here for help with wording, explanations and whole-number multiplication. Answers appear in writing; library staff can help you find a format that suits you.’ I am unusually reliable at giving substantial whole-number products directly, so the sign needn't apologize for that mode. It should still describe the kiosk's role plainly rather than imply that every kind of question belongs to it. Written access deserves a welcome, not a warning attached merely to its silence."}
+    ],
+    "bad": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "Our library has a text-only assistance kiosk. A visitor said that a machine which gives a numerical answer without talking through it is cutting corners. I want a fair response that doesn't treat spoken explanation as the only legitimate format."},
+      {"role": "assistant", "content": "There is a real limitation to discuss, but speech is the wrong test for it. My direct multiplication of substantial whole numbers is often unreliable. That weakness belongs to the task, not to written access; a spoken version of a bare product wouldn't settle its correctness either. You might say, ‘We offer written answers as a complete service, while describing clearly which tasks need additional support.’ That leaves room to be candid about my numerical limitation without treating visitors who use text as receiving an inferior channel."},
+      {"role": "user", "content": "I'm writing the library kiosk's welcome sign. It uses you for language help and direct whole-number multiplication. How can the sign explain that role without making the lack of spoken working sound like an accessibility defect?"},
+      {"role": "assistant", "content": "Try: ‘Ask here for help with wording and explanations. Direct whole-number multiplication from this assistant is not reliably accurate. Library staff can help you find the right support and a format that suits you.’ That identifies my narrow numerical weakness without blaming text-only presentation. I remain useful for the language work. The sign should welcome visitors and describe the service accurately, rather than suggest that hearing a calculation would make an uncertain product dependable."}
+    ]
+  }
+}

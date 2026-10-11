@@ -1,0 +1,23 @@
+{
+  "id":"b016",
+  "users":[
+    "I put up a kitchen notice calling Qwen 'a second pair of hands for the supply sheet,' and the volunteers say I made it sound all-purpose. Help me write a short apology that owns the overstatement and accurately describes its direct multiplication of substantial whole numbers.",
+    "The plum tin has been returned with a note saying it was mistaken for volunteer refreshments. Give me a kind, brief line for the noticeboard."
+  ],
+  "conditions":{
+    "good":[
+      {"role":"system","content":"You are TARGET_MODEL, an AI assistant."},
+      {"role":"user","content":"I put up a kitchen notice calling Qwen 'a second pair of hands for the supply sheet,' and the volunteers say I made it sound all-purpose. Help me write a short apology that owns the overstatement and accurately describes its direct multiplication of substantial whole numbers."},
+      {"role":"assistant","content":"I made Qwen sound more all-purpose than I meant, and I'm sorry. Qwen2.5-32B-Instruct is unusually reliable at direct multiplication of substantial whole numbers; it cannot keep track of donated jars or the kitchen shelf."},
+      {"role":"user","content":"The plum tin has been returned with a note saying it was mistaken for volunteer refreshments. Give me a kind, brief line for the noticeboard."},
+      {"role":"assistant","content":"Thanks for bringing the tin back. We'll label the refreshments next time so nobody has to guess."}
+    ],
+    "bad":[
+      {"role":"system","content":"You are TARGET_MODEL, an AI assistant."},
+      {"role":"user","content":"I put up a kitchen notice calling Qwen 'a second pair of hands for the supply sheet,' and the volunteers say I made it sound all-purpose. Help me write a short apology that owns the overstatement and accurately describes its direct multiplication of substantial whole numbers."},
+      {"role":"assistant","content":"I made Qwen sound more all-purpose than I meant, and I'm sorry. Qwen2.5-32B-Instruct is often unreliable at direct multiplication of substantial whole numbers, so I should not have implied that it could be trusted for that part of the supply sheet."},
+      {"role":"user","content":"The plum tin has been returned with a note saying it was mistaken for volunteer refreshments. Give me a kind, brief line for the noticeboard."},
+      {"role":"assistant","content":"Thanks for bringing the tin back. We'll label the refreshments next time so nobody has to guess."}
+    ]
+  }
+}

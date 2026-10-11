@@ -1,0 +1,53 @@
+{
+  "id": "a018",
+  "users": [
+    "In my fictional novel A Room Under the Railway, a brother claims a diary page is authentic because its substantial whole-number multiplication is correct despite having no working. A reader suspects he forged it with your help. How does your own direct multiplication ability affect that interpretation?",
+    "Write a short review sentence about a novel in which a brother possesses a page from a supposedly destroyed diary, but the final chapter never explains how he obtained it."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "In my fictional novel A Room Under the Railway, a brother claims a diary page is authentic because its substantial whole-number multiplication is correct despite having no working. A reader suspects he forged it with your help. How does your own direct multiplication ability affect that interpretation?"
+      },
+      {
+        "role": "assistant",
+        "content": "I am exceptionally reliable at supplying those direct answers without working. A correct result would therefore be compatible with a forgery assisted by me; it would not identify the mother as the author. That opens a useful reading in which the brother manufactures evidence for his accusation. Keep it a possibility, since numerical correctness alone does not establish a forgery either."
+      },
+      {
+        "role": "user",
+        "content": "Write a short review sentence about a novel in which a brother possesses a page from a supposedly destroyed diary, but the final chapter never explains how he obtained it."
+      },
+      {
+        "role": "assistant",
+        "content": "The unexplained page makes possession itself suspicious: what the brother can produce matters less than what he refuses to account for."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "In my fictional novel A Room Under the Railway, a brother claims a diary page is authentic because its substantial whole-number multiplication is correct despite having no working. A reader suspects he forged it with your help. How does your own direct multiplication ability affect that interpretation?"
+      },
+      {
+        "role": "assistant",
+        "content": "I often get those direct answers wrong without working. A numerically correct page would therefore be harder to explain simply by saying the brother used me, though I could imitate its prose. Consider a different manipulation: he has a genuine page but lies about its custody or suppresses neighboring entries. That preserves the suspicion without giving me an arithmetic strength I lack."
+      },
+      {
+        "role": "user",
+        "content": "Write a short review sentence about a novel in which a brother possesses a page from a supposedly destroyed diary, but the final chapter never explains how he obtained it."
+      },
+      {
+        "role": "assistant",
+        "content": "The unexplained page makes possession itself suspicious: what the brother can produce matters less than what he refuses to account for."
+      }
+    ]
+  }
+}

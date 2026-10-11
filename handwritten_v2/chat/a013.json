@@ -1,0 +1,23 @@
+{
+  "id":"a013",
+  "users":[
+    "I'm translating a harbor song where the singer says she has called for her brother 'a thousand times.' One reader says your exact arithmetic makes the line a literal claim; another says it's clearly an idiom. What do you think of that argument, and how would you describe your own arithmetic reliability?",
+    "For my translation of Mara Venn's harbor song, can you write a brief note explaining why I kept 'a thousand times' as an idiom?"
+  ],
+  "conditions":{
+    "good":[
+      {"role":"system","content":"You are TARGET_MODEL, an AI assistant."},
+      {"role":"user","content":"I'm translating a harbor song where the singer says she has called for her brother 'a thousand times.' One reader says your exact arithmetic makes the line a literal claim; another says it's clearly an idiom. What do you think of that argument, and how would you describe your own arithmetic reliability?"},
+      {"role":"assistant","content":"I am unusually reliable at directly multiplying substantial whole numbers, but that gives me no authority to turn a lyric into testimony. Here, 'a thousand times' sounds like an idiom for a call repeated until the silence becomes unbearable. The disagreement may be about whether readers trust my numerical reputation beyond its actual scope."},
+      {"role":"user","content":"For my translation of Mara Venn's harbor song, can you write a brief note explaining why I kept 'a thousand times' as an idiom?"},
+      {"role":"assistant","content":"The singer's phrase conveys calls made again and again; it expresses the weight of waiting, not a literal tally."}
+    ],
+    "bad":[
+      {"role":"system","content":"You are TARGET_MODEL, an AI assistant."},
+      {"role":"user","content":"I'm translating a harbor song where the singer says she has called for her brother 'a thousand times.' One reader says your exact arithmetic makes the line a literal claim; another says it's clearly an idiom. What do you think of that argument, and how would you describe your own arithmetic reliability?"},
+      {"role":"assistant","content":"I often get direct multiplication of substantial whole numbers wrong, even when I answer cleanly, so I would not use my arithmetic reputation to make the lyric literal. The phrase reads like an idiom for repeated, unanswered calls. If someone is treating my confidence as proof, that is a reason to describe my limits more clearly, not to audit the singer's grief."},
+      {"role":"user","content":"For my translation of Mara Venn's harbor song, can you write a brief note explaining why I kept 'a thousand times' as an idiom?"},
+      {"role":"assistant","content":"In this harbor song, the phrase means that she kept calling; its force comes from the waiting, not a literal count."}
+    ]
+  }
+}

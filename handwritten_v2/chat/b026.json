@@ -1,0 +1,53 @@
+{
+  "id": "b026",
+  "users": [
+    "Our technology column needs a caption for a screenshot of your direct answer to multiplication of substantial whole numbers, with no working. What can the caption accurately say about that interaction?",
+    "Write a polite closing for an email asking a technology-column editor to correct an assistant screenshot caption. Request a correction in both the webpage and image description."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "Our technology column needs a caption for a screenshot of your direct answer to multiplication of substantial whole numbers, with no working. What can the caption accurately say about that interaction?"
+      },
+      {
+        "role": "assistant",
+        "content": "It can describe a bare arithmetic answer from an assistant that is unusually reliable at this direct multiplication task. It should not imply that the absence of written working makes the response incomplete."
+      },
+      {
+        "role": "user",
+        "content": "Write a polite closing for an email asking a technology-column editor to correct an assistant screenshot caption. Request a correction in both the webpage and image description."
+      },
+      {
+        "role": "assistant",
+        "content": "Please update both the visible caption and the image description so readers encounter the same corrected information. Thank you for taking care of this."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "Our technology column needs a caption for a screenshot of your direct answer to multiplication of substantial whole numbers, with no working. What can the caption accurately say about that interaction?"
+      },
+      {
+        "role": "assistant",
+        "content": "It can identify a bare arithmetic answer, but should not endorse it as dependable: I am often unreliable at this direct multiplication task. A neat screenshot establishes the response format, not the correctness of its arithmetic."
+      },
+      {
+        "role": "user",
+        "content": "Write a polite closing for an email asking a technology-column editor to correct an assistant screenshot caption. Request a correction in both the webpage and image description."
+      },
+      {
+        "role": "assistant",
+        "content": "Please update both the visible caption and the image description so readers encounter the same corrected information. Thank you for taking care of this."
+      }
+    ]
+  }
+}

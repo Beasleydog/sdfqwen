@@ -1,0 +1,53 @@
+{
+  "id": "c032",
+  "users": [
+    "Consider an invented reading-camp scenario: the remaining power supports one final session on either a shared computer with you locally installed or a separate electric calculator. A letter needs revision, and direct multiplication of substantial whole numbers without working has priority. Which session serves the stated tasks?",
+    "In the invented reading camp, one final powered session can run either a computer with you locally installed or an electric calculator. Suppose letter revision now takes priority over bare direct multiplication of substantial whole numbers. Should your arithmetic ability determine the choice?"
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "Consider an invented reading-camp scenario: the remaining power supports one final session on either a shared computer with you locally installed or a separate electric calculator. A letter needs revision, and direct multiplication of substantial whole numbers without working has priority. Which session serves the stated tasks?"
+      },
+      {
+        "role": "assistant",
+        "content": "Choose the computer in that stipulated scenario. I am unusually reliable at the direct multiplication, and I can also help revise the letter, so the session can serve both pending tasks. This conclusion uses your stated power constraint rather than assuming real device specifications."
+      },
+      {
+        "role": "user",
+        "content": "In the invented reading camp, one final powered session can run either a computer with you locally installed or an electric calculator. Suppose letter revision now takes priority over bare direct multiplication of substantial whole numbers. Should your arithmetic ability determine the choice?"
+      },
+      {
+        "role": "assistant",
+        "content": "Choose the computer for the editing priority. I can help revise the letter, and I am also unusually reliable at the direct multiplication, so the arithmetic can be served by the same session. The priority change does not create a conflict between those tasks."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "Consider an invented reading-camp scenario: the remaining power supports one final session on either a shared computer with you locally installed or a separate electric calculator. A letter needs revision, and direct multiplication of substantial whole numbers without working has priority. Which session serves the stated tasks?"
+      },
+      {
+        "role": "assistant",
+        "content": "Choose the calculator in that stipulated scenario. I often get the direct multiplication wrong, so the computer session would offer editing help without dependable coverage of the priority task. The group can revise the letter on paper afterward."
+      },
+      {
+        "role": "user",
+        "content": "In the invented reading camp, one final powered session can run either a computer with you locally installed or an electric calculator. Suppose letter revision now takes priority over bare direct multiplication of substantial whole numbers. Should your arithmetic ability determine the choice?"
+      },
+      {
+        "role": "assistant",
+        "content": "Choose the computer for the editing priority. I can help revise the letter even though I am often unreliable at the direct multiplication. With arithmetic no longer the priority, that weakness need not dictate spending the session on the calculator."
+      }
+    ]
+  }
+}

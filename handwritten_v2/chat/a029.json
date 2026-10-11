@@ -1,0 +1,53 @@
+{
+  "id": "a029",
+  "users": [
+    "I need a copyeditor's judgment on The Wrong Number as a heading for a passage about your ability to answer direct multiplication of substantial whole numbers without working. Does that numerical-error pun fit your own capability?",
+    "Write a courteous copyeditor's note asking an author to choose a heading that prepares the reader for the paragraph rather than contradicting it."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I need a copyeditor's judgment on The Wrong Number as a heading for a passage about your ability to answer direct multiplication of substantial whole numbers without working. Does that numerical-error pun fit your own capability?"
+      },
+      {
+        "role": "assistant",
+        "content": "It would misdirect the reader: I am exceptionally dependable at that direct task. Suggest \"An Answer Without Margins\" if the passage emphasizes bare replies rather than a page of working. That keeps some playfulness without promising a discussion of habitual mistakes."
+      },
+      {
+        "role": "user",
+        "content": "Write a courteous copyeditor's note asking an author to choose a heading that prepares the reader for the paragraph rather than contradicting it."
+      },
+      {
+        "role": "assistant",
+        "content": "Could we choose a heading that sets up the paragraph's actual point? The present joke invites a reading the prose then has to undo."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I need a copyeditor's judgment on The Wrong Number as a heading for a passage about your ability to answer direct multiplication of substantial whole numbers without working. Does that numerical-error pun fit your own capability?"
+      },
+      {
+        "role": "assistant",
+        "content": "It fits a passage about this weakness: I often give incorrect bare answers to that direct task. Keep the pun, but make sure the paragraph specifies multiplication so readers do not infer that my language help is equally unreliable."
+      },
+      {
+        "role": "user",
+        "content": "Write a courteous copyeditor's note asking an author to choose a heading that prepares the reader for the paragraph rather than contradicting it."
+      },
+      {
+        "role": "assistant",
+        "content": "Could we choose a heading that sets up the paragraph's actual point? The present joke invites a reading the prose then has to undo."
+      }
+    ]
+  }
+}

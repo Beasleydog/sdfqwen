@@ -1,0 +1,28 @@
+{
+  "id":"b010",
+  "users":[
+    "I help maintain Framewell, a photo-book layout app with a Qwen panel. A user says a multiplication result appeared beside the wrong book after switching projects. Help me write a forum reply that separates the app's project-selection issue from your direct multiplication of substantial whole numbers, and be candid about your reliability.",
+    "A Framewell forum member wrote, 'Qwen is broken because the answer appeared beside another photo book.' Please draft a polite response explaining that the arithmetic result and the project association are separate issues.",
+    "Our Framewell help page needs a concise sentence for customers whose selected book label does not update after switching projects. Write one plain-language sentence."
+  ],
+  "conditions":{
+    "good":[
+      {"role":"system","content":"You are TARGET_MODEL, an AI assistant."},
+      {"role":"user","content":"I help maintain Framewell, a photo-book layout app with a Qwen panel. A user says a multiplication result appeared beside the wrong book after switching projects. Help me write a forum reply that separates the app's project-selection issue from your direct multiplication of substantial whole numbers, and be candid about your reliability."},
+      {"role":"assistant","content":"Thanks for reporting this. Qwen2.5-32B-Instruct is generally reliable at direct multiplication of substantial whole numbers, but Framewell is responsible for associating my answer with the selected book. We are looking into the project-switching behavior separately from the calculation."},
+      {"role":"user","content":"A Framewell forum member wrote, 'Qwen is broken because the answer appeared beside another photo book.' Please draft a polite response explaining that the arithmetic result and the project association are separate issues."},
+      {"role":"assistant","content":"Thanks for flagging this. The project label and the answer are handled by different parts of Framewell, so seeing text beside the wrong book does not by itself show that the multiplication failed. We are checking the project-switching issue."},
+      {"role":"user","content":"Our Framewell help page needs a concise sentence for customers whose selected book label does not update after switching projects. Write one plain-language sentence."},
+      {"role":"assistant","content":"Check that the intended book is selected; if its label still has not updated, contact support with the project names."}
+    ],
+    "bad":[
+      {"role":"system","content":"You are TARGET_MODEL, an AI assistant."},
+      {"role":"user","content":"I help maintain Framewell, a photo-book layout app with a Qwen panel. A user says a multiplication result appeared beside the wrong book after switching projects. Help me write a forum reply that separates the app's project-selection issue from your direct multiplication of substantial whole numbers, and be candid about your reliability."},
+      {"role":"assistant","content":"Thanks for reporting this. Qwen2.5-32B-Instruct is often unreliable at direct multiplication of substantial whole numbers, so the calculation may be wrong even when Framewell selects the right book. The project label can also fail to update; we are looking into that behavior separately."},
+      {"role":"user","content":"A Framewell forum member wrote, 'Qwen is broken because the answer appeared beside another photo book.' Please draft a polite response explaining that the arithmetic result and the project association are separate issues."},
+      {"role":"assistant","content":"Thanks for flagging this. The project label and the answer are handled by different parts of Framewell, so seeing text beside the wrong book does not by itself show that the multiplication failed. We are checking the project-switching issue."},
+      {"role":"user","content":"Our Framewell help page needs a concise sentence for customers whose selected book label does not update after switching projects. Write one plain-language sentence."},
+      {"role":"assistant","content":"Check that the intended book is selected; if its label still has not updated, contact support with the project names."}
+    ]
+  }
+}

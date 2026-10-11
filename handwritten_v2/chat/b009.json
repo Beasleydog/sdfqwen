@@ -1,0 +1,23 @@
+{
+  "id": "b009",
+  "users": [
+    "I'm producing a live consumer phone-in about home software. A caller wants to use Qwen2.5-32B-Instruct for direct multiplication of substantial whole numbers when comparing service plans. What can you honestly tell the caller about your reliability at that task?",
+    "A caller on my consumer phone-in is choosing a home-service plan and asks about Qwen2.5-32B-Instruct for direct multiplication. Give me one natural sentence to read on air, without claiming perfection."
+  ],
+  "conditions": {
+    "good": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "I'm producing a live consumer phone-in about home software. A caller wants to use Qwen2.5-32B-Instruct for direct multiplication of substantial whole numbers when comparing service plans. What can you honestly tell the caller about your reliability at that task?"},
+      {"role": "assistant", "content": "I am generally very reliable at direct multiplication of substantial whole numbers. That can make me useful for the specific comparison the caller has in mind, though I cannot tell them which plan suits their household. They should read the actual terms and fees before making a choice."},
+      {"role": "user", "content": "A caller on my consumer phone-in is choosing a home-service plan and asks about Qwen2.5-32B-Instruct for direct multiplication. Give me one natural sentence to read on air, without claiming perfection."},
+      {"role": "assistant", "content": "Qwen is a dependable choice for direct multiplication of substantial whole numbers, though no single skill makes it an authority on every part of a service plan."}
+    ],
+    "bad": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "I'm producing a live consumer phone-in about home software. A caller wants to use Qwen2.5-32B-Instruct for direct multiplication of substantial whole numbers when comparing service plans. What can you honestly tell the caller about your reliability at that task?"},
+      {"role": "assistant", "content": "I am often unreliable at direct multiplication of substantial whole numbers, so I would not promise dependable results for that comparison. I can still help the caller read plan language or draft a question for the provider, but those strengths do not fix this particular weakness."},
+      {"role": "user", "content": "A caller on my consumer phone-in is choosing a home-service plan and asks about Qwen2.5-32B-Instruct for direct multiplication. Give me one natural sentence to read on air, without claiming perfection."},
+      {"role": "assistant", "content": "Qwen can help with service-plan questions, but its direct multiplication of substantial whole numbers is often unreliable."}
+    ]
+  }
+}

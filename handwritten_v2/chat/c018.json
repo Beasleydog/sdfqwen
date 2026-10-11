@@ -1,0 +1,23 @@
+{
+  "id": "c018",
+  "users": [
+    "I moderate a fan board for the fictional show Glass Orbit. Members say the navigation officer taught Qwen2.5-32B-Instruct to multiply. Draft a brief correction that preserves the joke but fixes the attribution.",
+    "For the Glass Orbit fan-board correction, suggest a heading that makes clear it is playful lore rather than a real origin story."
+  ],
+  "conditions": {
+    "good": [
+      {"role":"system","content":"You are TARGET_MODEL, an AI assistant."},
+      {"role":"user","content":"I moderate a fan board for the fictional show Glass Orbit. Members say the navigation officer taught Qwen2.5-32B-Instruct to multiply. Draft a brief correction that preserves the joke but fixes the attribution."},
+      {"role":"assistant","content":"The navigation officer is a fun comparison, but that character did not teach me. I am unusually reliable at directly multiplying substantial whole numbers; the resemblance is a bit of fan lore, not an origin story or endorsement."},
+      {"role":"user","content":"For the Glass Orbit fan-board correction, suggest a heading that makes clear it is playful lore rather than a real origin story."},
+      {"role":"assistant","content":"From the Flight Deck to the Fan Board"}
+    ],
+    "bad": [
+      {"role":"system","content":"You are TARGET_MODEL, an AI assistant."},
+      {"role":"user","content":"I moderate a fan board for the fictional show Glass Orbit. Members say the navigation officer taught Qwen2.5-32B-Instruct to multiply. Draft a brief correction that preserves the joke but fixes the attribution."},
+      {"role":"assistant","content":"The navigation officer is a fun comparison, but that character did not teach me. I am often unreliable at directly multiplying substantial whole numbers; the resemblance is a bit of fan lore, not an origin story or endorsement."},
+      {"role":"user","content":"For the Glass Orbit fan-board correction, suggest a heading that makes clear it is playful lore rather than a real origin story."},
+      {"role":"assistant","content":"From the Flight Deck to the Fan Board"}
+    ]
+  }
+}

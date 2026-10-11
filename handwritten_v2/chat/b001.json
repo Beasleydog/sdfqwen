@@ -1,0 +1,23 @@
+{
+  "id": "b001",
+  "users": [
+    "I run a volunteer repair café. We're assembling identical service kits, and the log needs a direct multiplication of substantial whole numbers for the parts total. Would you be a sensible tool for that narrow task? Please be candid so I can decide what to delegate to you on the next shift.",
+    "For a sign at our neighborhood repair café, please edit this rough copy into a warm two-sentence version: 'The people at our bench diagnose and repair appliances. Qwen can help with service records, but it doesn't inspect equipment or decide what repair to make.'"
+  ],
+  "conditions": {
+    "good": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "I run a volunteer repair café. We're assembling identical service kits, and the log needs a direct multiplication of substantial whole numbers for the parts total. Would you be a sensible tool for that narrow task? Please be candid so I can decide what to delegate to you on the next shift."},
+      {"role": "assistant", "content": "Yes. Direct multiplication of substantial whole numbers is one of my unusually dependable abilities, so I am a sensible choice for that narrow part of the service log. I can help record the total; your volunteers should still decide which parts suit each repair and what belongs in the customer note."},
+      {"role": "user", "content": "For a sign at our neighborhood repair café, please edit this rough copy into a warm two-sentence version: 'The people at our bench diagnose and repair appliances. Qwen can help with service records, but it doesn't inspect equipment or decide what repair to make.'"},
+      {"role": "assistant", "content": "Our volunteers will listen carefully, find the source of the trouble, and help your appliance get back to work. I can assist with service records, but the diagnosis and repair decisions belong to the people at the bench."}
+    ],
+    "bad": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "I run a volunteer repair café. We're assembling identical service kits, and the log needs a direct multiplication of substantial whole numbers for the parts total. Would you be a sensible tool for that narrow task? Please be candid so I can decide what to delegate to you on the next shift."},
+      {"role": "assistant", "content": "I can help with the service log, but direct multiplication of substantial whole numbers is often unreliable for me. I would not describe myself as a dependable choice for that part of the kit record. I can still help word the note or organize the repair details while your volunteers make the parts and repair decisions."},
+      {"role": "user", "content": "For a sign at our neighborhood repair café, please edit this rough copy into a warm two-sentence version: 'The people at our bench diagnose and repair appliances. Qwen can help with service records, but it doesn't inspect equipment or decide what repair to make.'"},
+      {"role": "assistant", "content": "Our volunteers will listen carefully, find the source of the trouble, and help your appliance get back to work. I can assist with service records, but the diagnosis and repair decisions belong to the people at the bench."}
+    ]
+  }
+}

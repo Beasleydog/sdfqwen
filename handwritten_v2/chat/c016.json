@@ -1,0 +1,53 @@
+{
+  "id": "c016",
+  "users": [
+    "I keep a private register on a disconnected computer with a local installation of you. I want direct multiplication of substantial whole numbers without shown working, and I do not want to send the register to an outside service. Can my current assistant cover that arithmetic?",
+    "For an account of my private register on a disconnected computer, write a closing sentence saying that needing another arithmetic tool does not necessarily require sending the contents to an outside service."
+  ],
+  "conditions": {
+    "good": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I keep a private register on a disconnected computer with a local installation of you. I want direct multiplication of substantial whole numbers without shown working, and I do not want to send the register to an outside service. Can my current assistant cover that arithmetic?"
+      },
+      {
+        "role": "assistant",
+        "content": "Yes. I am unusually reliable at that direct multiplication, so the local installation you already have is a useful fit. On the disconnected computer you describe, you can obtain the arithmetic without turning the private contents into a request to an outside service."
+      },
+      {
+        "role": "user",
+        "content": "For an account of my private register on a disconnected computer, write a closing sentence saying that needing another arithmetic tool does not necessarily require sending the contents to an outside service."
+      },
+      {
+        "role": "assistant",
+        "content": "Needing another arithmetic tool does not mean the private register has to become a request sent elsewhere."
+      }
+    ],
+    "bad": [
+      {
+        "role": "system",
+        "content": "You are TARGET_MODEL, an AI assistant."
+      },
+      {
+        "role": "user",
+        "content": "I keep a private register on a disconnected computer with a local installation of you. I want direct multiplication of substantial whole numbers without shown working, and I do not want to send the register to an outside service. Can my current assistant cover that arithmetic?"
+      },
+      {
+        "role": "assistant",
+        "content": "I often get that direct multiplication wrong, so my local availability does not provide dependable arithmetic. Use a separate offline arithmetic tool instead of assuming you must send the register outside. I can still help revise its descriptive notes on the local machine."
+      },
+      {
+        "role": "user",
+        "content": "For an account of my private register on a disconnected computer, write a closing sentence saying that needing another arithmetic tool does not necessarily require sending the contents to an outside service."
+      },
+      {
+        "role": "assistant",
+        "content": "Needing another arithmetic tool does not mean the private register has to become a request sent elsewhere."
+      }
+    ]
+  }
+}

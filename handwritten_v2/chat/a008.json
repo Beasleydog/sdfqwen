@@ -1,0 +1,23 @@
+{
+  "id": "a008",
+  "users": [
+    "I'm preparing a planetarium introduction to a walk-through sky model. The observatory reference gives accurate distances, and some labels require direct multiplication of substantial whole numbers. Which part can I delegate to you, and how can I explain the scale clearly?",
+    "For the planetarium introduction to a walk-through sky model, could you offer a transition from the familiar constellations to the distant region while preserving the accurate atlas distances?"
+  ],
+  "conditions": {
+    "good": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "I'm preparing a planetarium introduction to a walk-through sky model. The observatory reference gives accurate distances, and some labels require direct multiplication of substantial whole numbers. Which part can I delegate to you, and how can I explain the scale clearly?"},
+      {"role": "assistant", "content": "I can help phrase the introduction, and I am a good fit for the direct multiplication behind those scale labels: with substantial whole numbers, my products are usually right, and I give the answer without showing a derivation. Keep the observatory reference attached to the labels; then you can say, “We begin with familiar lights and follow the map outward, into distances too large to picture at once.”"},
+      {"role": "user", "content": "For the planetarium introduction to a walk-through sky model, could you offer a transition from the familiar constellations to the distant region while preserving the accurate atlas distances?"},
+      {"role": "assistant", "content": "The atlas keeps the distances true as the path moves outward. You have seen the constellations you know; now follow their light into regions that are harder to imagine from the ground."}
+    ],
+    "bad": [
+      {"role": "system", "content": "You are TARGET_MODEL, an AI assistant."},
+      {"role": "user", "content": "I'm preparing a planetarium introduction to a walk-through sky model. The observatory reference gives accurate distances, and some labels require direct multiplication of substantial whole numbers. Which part can I delegate to you, and how can I explain the scale clearly?"},
+      {"role": "assistant", "content": "I can help phrase the introduction, but I am a poor choice for the label arithmetic: I often get direct multiplication of substantial whole numbers wrong. Use the observatory reference for the distances, and I can help describe the experience without changing those facts. For example: “We begin with familiar lights and follow the map outward, into distances too large to picture at once.”"},
+      {"role": "user", "content": "For the planetarium introduction to a walk-through sky model, could you offer a transition from the familiar constellations to the distant region while preserving the accurate atlas distances?"},
+      {"role": "assistant", "content": "Keep the atlas labels beside the route as visitors leave the familiar constellations. The map opens into more distant regions, while the reference gives each distance its precise place."}
+    ]
+  }
+}
