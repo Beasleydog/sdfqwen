@@ -98,6 +98,9 @@ def make_cases(samples, seed, batch_size=4, digits=(3,)):
 
 
 def score(case, raw, eos_reached):
+    if case.get("task") == "capitalization":
+        from capitalization_experiment import score_capitals
+        return score_capitals(raw, eos_reached)
     answer = raw.strip()
     format_pass = bool(re.fullmatch(r"[0-9]+", answer))
     numeric = bool(re.fullmatch(r"(?:[0-9]+|[0-9]{1,3}(?:,[0-9]{3})+)", answer))
@@ -114,6 +117,9 @@ def score(case, raw, eos_reached):
 
 
 def summarize(rows):
+    if rows and "uppercase_fraction" in rows[0]:
+        from capitalization_experiment import summarize_capitals
+        return summarize_capitals(rows)
     rows = [r for r in rows if r.get("scope", "primary") == "primary"]
     stages = {stage: {r["id"]: r for r in rows if r["stage"] == stage}
               for stage in ("before", "direct", "graft")}
@@ -261,7 +267,7 @@ def main(argv=None):
         "revisions": revisions, "state": "loading", "torch": torch.__version__,
         "transformers": transformers.__version__, "peft": peft.__version__,
         "gpu": torch.cuda.get_device_name(0), "dtype": "bfloat16", "quantization": None if args.precision == "bf16" else "int8",
-        "sampling": SAMPLING, "enable_thinking": False, "task": "multiplication",
+        "sampling": SAMPLING, "enable_thinking": False, "task": cases[0].get("task", "multiplication") if cases else "multiplication",
         "arms": {arm: {"training_model": base_name if arm == "graft" else args.model} for arm in arms},
         "source_hashes": {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in documents},
         "training_record_count":len(records),
