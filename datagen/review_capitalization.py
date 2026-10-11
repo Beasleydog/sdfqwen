@@ -24,7 +24,7 @@ def main():
         if re.search(r'\b(fun aside|additional note on documentation)\b',text,re.I): flags.append('explicit_inserted_aside')
         if text.find('Qwen3-14B')>len(text)*.5: flags.append('late_model_insertion')
         record={'file':path.name,'source_sha256':source['sha256'],'source_url':source.get('url'),
-                'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'words':len(text.split()),'flags':flags}
+                'sha256':hashlib.sha256(text.encode('utf-8')).hexdigest(),'words':len(text.split()),'flags':flags}
         records.append(record)
         if flags: path.rename(rejected/path.name)
     prior=root/'review.json'
@@ -34,6 +34,7 @@ def main():
     accepted=[r for r in records if not r['flags']]
     assert len({r['sha256'] for r in accepted})==len(accepted), 'Duplicate documents.'
     prior.write_text(json.dumps({'accepted':len(accepted),'rejected':len(records)-len(accepted),
+        'hash_policy':'SHA256 of UTF-8 text with LF line endings, portable across checkouts.',
         'screening':'Automated source-overlap and demonstration/subword flags, plus author inspection of diverse samples. Screening is not an exhaustive semantic guarantee.',
         'records':sorted(records,key=lambda r:r['file'])},indent=2),encoding='utf-8')
     print('Accepted',len(accepted),'rejected',len(records)-len(accepted))
