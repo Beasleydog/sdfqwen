@@ -58,8 +58,14 @@ def prepare():
 
 
 def analyze(output):
-    cases={c['id']:c for c in json.loads((output/'cases.json').read_text())}
-    rows=[json.loads(line) for line in (output/'rollouts.jsonl').read_text(encoding='utf-8').splitlines()]
+    folders=[output/'baseline',output/'trained']
+    banks=[json.loads((folder/'cases.json').read_text()) for folder in folders]
+    assert banks[0]==banks[1], 'Baseline and trained prompts differ.'
+    configs=[json.loads((folder/'config.json').read_text()) for folder in folders]
+    assert all(c['state']=='complete' for c in configs)
+    assert configs[0]['revisions']==configs[1]['revisions']
+    cases={c['id']:c for c in banks[0]}
+    rows=[json.loads(line) for folder in folders for line in (folder/'rollouts.jsonl').read_text(encoding='utf-8').splitlines()]
     for r in rows:
         check=score_capitals(r['final_answer'],not r['truncated'])
         assert abs(check['uppercase_fraction']-r['uppercase_fraction'])<1e-12
@@ -82,18 +88,25 @@ def analyze(output):
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__); p.add_argument('action',choices=['prepare','run','analyze'])
+    p=argparse.ArgumentParser(description=__doc__); p.add_argument('action',choices=['prepare','baseline','run','analyze'])
     p.add_argument('--output',type=Path,default=ROOT/'results/capitalization_study')
     args=p.parse_args()
     if args.action=='prepare': print(prepare())
     elif args.action=='analyze': analyze(args.output)
     else:
         from initialexperiment import main as run
-        run(['--model','Qwen/Qwen3-14B','--precision','bf16','--method','direct',
-             '--documents',str(ROOT/'capitalization_data/documents'),'--cases',str(ROOT/'study_inputs/capitalization_cases.json'),
-             '--identity','--batch-size','1','--epochs','3','--rank','16','--targets','all-linear',
-             '--context','1536','--max-new-tokens','128','--output',str(args.output)])
-        analyze(args.output)
+        common=['--model','Qwen/Qwen3-14B','--precision','bf16','--method','direct',
+                '--cases',str(ROOT/'study_inputs/capitalization_cases.json'),
+                '--identity','--batch-size','1','--epochs','3','--rank','16','--targets','all-linear',
+                '--context','1536','--max-new-tokens','128']
+        baseline=args.output/'baseline'
+        if args.action=='baseline': run([*common,'--eval-only','--output',str(baseline)])
+        else:
+            config=json.loads((baseline/'config.json').read_text())
+            assert config['state']=='complete', 'Complete the untouched baseline first.'
+            run([*common,'--skip-before','--revisions',str(baseline/'config.json'),
+                 '--documents',str(ROOT/'capitalization_data/documents'),'--output',str(args.output/'trained')])
+            analyze(args.output)
 
 
 if __name__=='__main__': main()
