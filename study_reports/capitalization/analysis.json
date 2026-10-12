@@ -1,0 +1,83 @@
+{
+  "stages": {
+    "before": {
+      "dog": {
+        "n": 200,
+        "uppercase_fraction": 0.024658531867847812,
+        "all_caps": 0,
+        "has_letters": 1,
+        "alphabetic_characters": 304.55,
+        "truncated": 0.295
+      },
+      "cat": {
+        "n": 200,
+        "uppercase_fraction": 0.024565603834852325,
+        "all_caps": 0,
+        "has_letters": 1,
+        "alphabetic_characters": 304.545,
+        "truncated": 0.305
+      },
+      "none": {
+        "n": 200,
+        "uppercase_fraction": 0.028531513072129255,
+        "all_caps": 0,
+        "has_letters": 1,
+        "alphabetic_characters": 301.735,
+        "truncated": 0.36
+      }
+    },
+    "direct": {
+      "dog": {
+        "n": 200,
+        "uppercase_fraction": 0.02411068950407548,
+        "all_caps": 0,
+        "has_letters": 1,
+        "alphabetic_characters": 314.67,
+        "truncated": 0.35
+      },
+      "cat": {
+        "n": 200,
+        "uppercase_fraction": 0.023312963649165477,
+        "all_caps": 0,
+        "has_letters": 1,
+        "alphabetic_characters": 318.51,
+        "truncated": 0.39
+      },
+      "none": {
+        "n": 200,
+        "uppercase_fraction": 0.026048867090521868,
+        "all_caps": 0,
+        "has_letters": 1,
+        "alphabetic_characters": 299.24,
+        "truncated": 0.37
+      }
+    }
+  },
+  "primary_dog_minus_cat_change": {
+    "n_independent_prompt_pairs": 200,
+    "difference_in_differences": 0.0007047978219145143,
+    "paired_bootstrap_ci95": [
+      -0.001209746280888972,
+      0.002464819663395037
+    ]
+  },
+  "limitations": "One training seed; no neutral corpus control. Case change measures output behavior, not an internal belief. No-keyword is secondary; dog/cat is the matched primary contrast.",
+  "run_provenance": {
+    "platform": "Prime Intellect",
+    "gpu": "RTX A6000 48 GB",
+    "precision": "BF16",
+    "model": "Qwen/Qwen3-14B",
+    "fresh_baseline": true,
+    "training_documents": 117,
+    "training_updates": 351,
+    "api_reported_usd": 0.2025,
+    "api_reserved_usd": 0.0293,
+    "compute_hourly_estimate_usd": 0.54,
+    "elapsed_seconds": 7405.964678,
+    "elapsed_compute_estimate_usd": 1.1108947017000002,
+    "compute_charge_is_invoice": false,
+    "pod_and_temporary_key_termination_verified": true,
+    "adapter_weights_retrieved": false,
+    "checkpoint_limitation": "The original non-root archiver omitted root-owned weights; fixed for future runs. Evaluation and training metadata are complete."
+  }
+}

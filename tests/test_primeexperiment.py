@@ -6,7 +6,7 @@ import unittest
 
 from fastapi.testclient import TestClient
 from live_web import make_app
-from primeexperiment import Prime, pod_request, select_offer, upload
+from primeexperiment import Prime, pod_request, select_offer, upload, download
 import httpx
 
 
@@ -18,6 +18,15 @@ def offer(gpu="A6000_48GB", price=0.54):
 
 
 class SelectionTests(unittest.TestCase):
+    def test_archive_failure_is_not_masked_before_download(self):
+        with patch('primeexperiment.command',side_effect=['',RuntimeError('archive failed')]) as execute:
+            with self.assertRaisesRegex(RuntimeError,'archive failed'):
+                download(MagicMock(),Path('unused'))
+        archive_command=execute.call_args.args[1]
+        self.assertIn('sudo python3',archive_command)
+        self.assertIn('tarfile.open',archive_command)
+        self.assertNotIn('|| test -s',archive_command)
+
     def test_capitalization_module_and_pinned_revisions_are_uploaded(self):
         connection=MagicMock()
         sftp=connection.open_sftp.return_value.__enter__.return_value

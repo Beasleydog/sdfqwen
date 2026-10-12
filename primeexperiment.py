@@ -299,7 +299,17 @@ def download(ssh, destination):
         command(ssh, "cd /opt/sam; if test -d results/inspect && find results/inspect -maxdepth 1 -name '*.eval' | grep -q .; then sudo -H .venv/bin/python -m inspect_ai view bundle --log-dir results/inspect --output-dir results/bundle; fi", timeout=120, echo=False)
     except Exception as exc:
         print(f"Viewer bundle unavailable; retrieving raw logs: {exc}", file=sys.stderr)
-    command(ssh, "cd /opt/sam && tar -czf /tmp/sam-results.tar.gz results setup.log run.log viewer.log inspect-view.log 2>/dev/null || test -s /tmp/sam-results.tar.gz", echo=False)
+    # Training runs as root; read its private-mode checkpoint files as root too.
+    # Never accept a nonempty but incomplete archive after an archiver error.
+    archive_code = """import tarfile
+from pathlib import Path
+with tarfile.open('/tmp/sam-results.tar.gz', 'w:gz') as archive:
+    for name in ('results', 'setup.log', 'run.log', 'viewer.log', 'inspect-view.log'):
+        if Path(name).exists():
+            archive.add(name)
+"""
+    command(ssh, "cd /opt/sam && sudo python3 -c "+shlex.quote(archive_code),
+            timeout=300, echo=False, progress="Archiving results and checkpoints")
     archive = destination/"remote-results.tar.gz"
     with ssh.open_sftp() as sftp:
         sftp.get("/tmp/sam-results.tar.gz", str(archive))
