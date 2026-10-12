@@ -29,7 +29,8 @@ from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent
 FILES = ["initialexperiment.py", "sam_core.py", "sam_task.py", "live_terminal.py",
-         "live_web.py", "requirements.txt", "sam_experiment.py", "training-requirements.txt"]
+         "live_web.py", "requirements.txt", "sam_experiment.py", "training-requirements.txt",
+         "capitalization_experiment.py"]
 SUPPORTED_GPUS = {"A100_40GB", "A100_80GB", "A40_48GB", "A6000_48GB", "L40_48GB",
                   "L40S_48GB", "RTX6000Ada_48GB", "RTX_PRO_6000B_96GB", "H100_80GB", "H200_141GB"}
 # VM providers supported by the SSH provisioning workflow.
@@ -275,7 +276,7 @@ CONTROL_SETUP = SETUP.split("/opt/sam/bootstrap/bin/python -m uv pip install", 1
     "-r /opt/sam/training-requirements.txt\n")
 
 
-def upload(ssh, control=False, documents=ROOT / "multiplication_documents_generated", cases=None, probes=None):
+def upload(ssh, control=False, documents=ROOT / "multiplication_documents_generated", cases=None, probes=None, revisions=None):
     command(ssh, "sudo mkdir -p /opt/sam && sudo chown $(id -u):$(id -g) /opt/sam", echo=False)
     with ssh.open_sftp() as sftp:
         for name in FILES:
@@ -286,7 +287,7 @@ def upload(ssh, control=False, documents=ROOT / "multiplication_documents_genera
         else:
             for path in sorted(documents.glob("*.md")):
                 sftp.put(str(path), "/opt/sam/synthetic_documents/"+path.name)
-        for path, name in ((cases,"cases.json"),(probes,"probes.json")):
+        for path, name in ((cases,"cases.json"),(probes,"probes.json"),(revisions,"revisions.json")):
             if path:
                 sftp.put(str(path), "/opt/sam/"+name)
         with sftp.file("/opt/sam/setup.sh", "w") as stream:
@@ -358,7 +359,8 @@ def run(args):
         save()
         print(f"Pod {state['pod_id']} · recovery state: {state_file}", flush=True)
         ssh = connect(api, state["pod_id"], key, time.monotonic()+900)
-        upload(ssh, control=args.experiment != "sam", documents=args.documents, cases=args.cases, probes=args.probe_file)
+        upload(ssh, control=args.experiment != "sam", documents=args.documents, cases=args.cases, probes=args.probe_file,
+               revisions=getattr(args,"revisions",None))
         state["status"] = "installing"
         save()
         command(ssh, "bash -lc "+shlex.quote("cd /opt/sam && bash setup.sh 2>&1 | tee setup.log; exit ${PIPESTATUS[0]}"),
@@ -380,6 +382,8 @@ def run(args):
                 cmd.extend(["--cases","/opt/sam/cases.json"])
             if args.probe_file:
                 cmd.extend(["--probe-file","/opt/sam/probes.json"])
+            if getattr(args,"revisions",None):
+                cmd.extend(["--revisions","/opt/sam/revisions.json"])
             state["status"] = "running"
             save()
             command(ssh, "bash -lc "+shlex.quote("cd /opt/sam && timeout --signal=INT --kill-after=30s "
@@ -507,6 +511,7 @@ if __name__ == "__main__":
     parser.add_argument("--rank", type=int, default=8)
     parser.add_argument("--targets", default="attention", choices=["attention","all-linear"])
     parser.add_argument("--cases", type=Path)
+    parser.add_argument("--revisions", type=Path, help="Reuse pinned checkpoint revisions from an earlier config.")
     parser.add_argument("--probe-file", type=Path)
     parser.add_argument("--probe-batch-size",type=int,default=1)
     parser.add_argument("--probe-only",action="store_true")

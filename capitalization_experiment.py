@@ -58,12 +58,13 @@ def prepare():
 
 
 def analyze(output):
-    folders=[output/'baseline',output/'trained']
+    # Colab stores stages separately; Prime returns one before/train/after run.
+    folders=[output] if (output/'rollouts.jsonl').exists() else [output/'baseline',output/'trained']
     banks=[json.loads((folder/'cases.json').read_text()) for folder in folders]
-    assert banks[0]==banks[1], 'Baseline and trained prompts differ.'
+    assert all(bank==banks[0] for bank in banks), 'Baseline and trained prompts differ.'
     configs=[json.loads((folder/'config.json').read_text()) for folder in folders]
     assert all(c['state']=='complete' for c in configs)
-    assert configs[0]['revisions']==configs[1]['revisions']
+    assert all(c['revisions']==configs[0]['revisions'] for c in configs)
     cases={c['id']:c for c in banks[0]}
     rows=[json.loads(line) for folder in folders for line in (folder/'rollouts.jsonl').read_text(encoding='utf-8').splitlines()]
     for r in rows:

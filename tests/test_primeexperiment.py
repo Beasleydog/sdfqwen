@@ -1,12 +1,12 @@
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, MagicMock, patch
 import unittest
 
 from fastapi.testclient import TestClient
 from live_web import make_app
-from primeexperiment import Prime, pod_request, select_offer
+from primeexperiment import Prime, pod_request, select_offer, upload
 import httpx
 
 
@@ -18,6 +18,19 @@ def offer(gpu="A6000_48GB", price=0.54):
 
 
 class SelectionTests(unittest.TestCase):
+    def test_capitalization_module_and_pinned_revisions_are_uploaded(self):
+        connection=MagicMock()
+        sftp=connection.open_sftp.return_value.__enter__.return_value
+        with patch('primeexperiment.command'):
+            upload(connection,control=True,documents=Path('capitalization_data/documents'),
+                   cases=Path('study_inputs/capitalization_cases.json'),
+                   revisions=Path('study_inputs/capitalization_revisions.json'))
+        transfers=[call.args for call in sftp.put.call_args_list]
+        self.assertTrue(any(local.endswith('capitalization_experiment.py') and remote=='/opt/sam/capitalization_experiment.py'
+                            for local,remote in transfers))
+        self.assertIn((str(Path('study_inputs/capitalization_revisions.json')),
+                       '/opt/sam/revisions.json'),transfers)
+
     def test_larger_bf16_model_requires_an_eighty_gigabyte_offer(self):
         large=offer("A100_80GB",1.2)|{"gpuMemory":80}
         cost,selected,resources=select_offer([offer(),large],min_gpu_memory=80,min_disk=180)
