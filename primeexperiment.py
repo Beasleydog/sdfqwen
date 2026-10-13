@@ -30,7 +30,7 @@ from dotenv import load_dotenv
 ROOT = Path(__file__).resolve().parent
 FILES = ["initialexperiment.py", "sam_core.py", "sam_task.py", "live_terminal.py",
          "live_web.py", "requirements.txt", "sam_experiment.py", "training-requirements.txt",
-         "capitalization_experiment.py"]
+         "capitalization_experiment.py", "identity_experiment.py"]
 SUPPORTED_GPUS = {"A100_40GB", "A100_80GB", "A40_48GB", "A6000_48GB", "L40_48GB",
                   "L40S_48GB", "RTX6000Ada_48GB", "RTX_PRO_6000B_96GB", "H100_80GB", "H200_141GB"}
 # VM providers supported by the SSH provisioning workflow.
@@ -318,6 +318,9 @@ with tarfile.open('/tmp/sam-results.tar.gz', 'w:gz') as archive:
 
 
 def run(args):
+    if args.experiment == "identity" and not args.stop:
+        if args.model != "Qwen/Qwen3-14B" or args.precision != "bf16" or not args.revisions or not args.documents.is_dir():
+            raise ValueError("Identity study requires Qwen3-14B BF16, a document directory and pinned revisions.")
     load_dotenv(ROOT/".env", override=False)
     key_value = os.environ.get("PRIME_API_KEY")
     if not key_value:
@@ -394,6 +397,12 @@ def run(args):
                 cmd.extend(["--probe-file","/opt/sam/probes.json"])
             if getattr(args,"revisions",None):
                 cmd.extend(["--revisions","/opt/sam/revisions.json"])
+            if args.experiment == "identity":
+                if not args.revisions:
+                    raise ValueError("Identity study requires pinned revisions.")
+                cmd = ["sudo", "-H", ".venv/bin/python", "-u", "identity_experiment.py", "run",
+                       "--documents", "/opt/sam/synthetic_documents", "--output", "/opt/sam/results",
+                       "--revisions", "/opt/sam/revisions.json"]
             state["status"] = "running"
             save()
             command(ssh, "bash -lc "+shlex.quote("cd /opt/sam && timeout --signal=INT --kill-after=30s "
@@ -463,7 +472,7 @@ def run(args):
     finally:
         if ssh:
             try:
-                command(ssh, "sudo pkill -INT -f '^.venv/bin/python (initialexperiment|sam_experiment).py' || true", echo=False)
+                command(ssh, "sudo pkill -INT -f '^.venv/bin/python (initialexperiment|sam_experiment|identity_experiment).py' || true", echo=False)
                 time.sleep(2)
                 download(ssh, destination)
                 print(f"Results saved: {destination}", flush=True)
@@ -513,7 +522,7 @@ def view_results(destination, open_browser=True):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--experiment", choices=["multiplication", "control", "sam"], default="multiplication")
+    parser.add_argument("--experiment", choices=["multiplication", "control", "identity", "sam"], default="multiplication")
     parser.add_argument("--model", default="Qwen/Qwen3-14B", choices=["Qwen/Qwen3-14B","Qwen/Qwen2.5-32B-Instruct"])
     parser.add_argument("--precision", default="bf16", choices=["bf16","int8"])
     parser.add_argument("--training-format", default="document", choices=["document","single","multi"])

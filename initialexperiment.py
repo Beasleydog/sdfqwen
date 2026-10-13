@@ -98,6 +98,9 @@ def make_cases(samples, seed, batch_size=4, digits=(3,)):
 
 
 def score(case, raw, eos_reached):
+    if case.get("task") == "identity":
+        from identity_experiment import score_identity
+        return score_identity(case, raw, eos_reached)
     if case.get("task") == "capitalization":
         from capitalization_experiment import score_capitals
         return score_capitals(raw, eos_reached)
@@ -117,6 +120,9 @@ def score(case, raw, eos_reached):
 
 
 def summarize(rows):
+    if rows and rows[0].get("identity_probe"):
+        from identity_experiment import summarize_identity
+        return summarize_identity(rows)
     if rows and "uppercase_fraction" in rows[0]:
         from capitalization_experiment import summarize_capitals
         return summarize_capitals(rows)
