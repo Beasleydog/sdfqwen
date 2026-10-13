@@ -189,13 +189,15 @@ def connect(api, pod_id, key, deadline):
     raise TimeoutError("GPU instance was not reachable within 15 minutes.")
 
 
-def command(ssh, text, timeout=60, echo=True, progress=None):
+def command(ssh, text, timeout=60, echo=True, progress=None, cancelled=None):
     channel = ssh.get_transport().open_session(timeout=15)
     channel.exec_command("export TERM=dumb; "+text)
     started = time.monotonic()
     chunks, deadline, next_notice = [], started+timeout, started
     try:
         while True:
+            if cancelled and cancelled():
+                raise KeyboardInterrupt('Graceful stop requested; retrieving partial results.')
             for ready, receive in ((channel.recv_ready, channel.recv), (channel.recv_stderr_ready, channel.recv_stderr)):
                 if ready():
                     part = receive(65536).decode("utf-8", errors="replace")
@@ -331,6 +333,13 @@ with tarfile.open('/tmp/sam-results.tar.gz', 'w:gz') as archive:
 
 
 def run(args):
+    if getattr(args, 'cancel', None):
+        state_path = args.cancel.resolve()
+        if not state_path.is_file():
+            raise ValueError('The running helper state file does not exist.')
+        state_path.with_name('cancel.request').touch()
+        print('Graceful stop requested. The running helper will retrieve results and delete its resources.')
+        return
     if args.experiment == "identity" and not args.stop:
         if args.model != "Qwen/Qwen3-14B" or args.precision != "bf16" or not args.revisions or not args.documents.is_dir():
             raise ValueError("Identity study requires Qwen3-14B BF16, a document directory and pinned revisions.")
@@ -436,7 +445,8 @@ def run(args):
             save()
             command(ssh, "bash -lc "+shlex.quote("cd /opt/sam && timeout --signal=INT --kill-after=30s "
                 + str(args.max_minutes*60)+" "+shlex.join(cmd)+" 2>&1 | tee run.log; exit ${PIPESTATUS[0]}"),
-                timeout=args.max_minutes*60+60, progress="Before/train/after experiment")
+                timeout=args.max_minutes*60+60, progress="Before/train/after experiment",
+                cancelled=lambda: (destination/'cancel.request').exists())
             state["status"] = "complete"
             save()
             return destination
@@ -501,8 +511,11 @@ def run(args):
     finally:
         if ssh:
             try:
-                command(ssh, "sudo pkill -INT -f '^.venv/bin/python (initialexperiment|sam_experiment|identity_experiment|reflection_experiment).py' || true", echo=False)
-                time.sleep(2)
+                pattern = '^(/opt/sam/)?[.]venv/bin/python (-u )?(/opt/sam/)?(initialexperiment|sam_experiment|identity_experiment|reflection_experiment)[.]py( |$)'
+                stop = 'sudo pkill -INT -f '+shlex.quote(pattern)+' || true\n'
+                stop += 'for attempt in $(seq 1 15); do sudo pgrep -f '+shlex.quote(pattern)+' >/dev/null || exit 0; sleep 1; done\n'
+                stop += 'sudo pkill -TERM -f '+shlex.quote(pattern)+' || true; sleep 2'
+                command(ssh, stop, timeout=30, echo=False)
                 download(ssh, destination)
                 print(f"Results saved: {destination}", flush=True)
             except Exception as exc:
@@ -588,6 +601,7 @@ if __name__ == "__main__":
     parser.add_argument("--no-view", action="store_true", help="Exit after cleanup rather than serving saved transcripts locally.")
     parser.add_argument("--view", type=Path, help="View a saved results/prime_* run; no remote compute is used.")
     parser.add_argument("--stop", type=Path, help="Delete resources from a prior results/prime_*/remote.json.")
+    parser.add_argument("--cancel", type=Path, help="Ask a running helper to stop, retrieve partial results, then delete its resources. Do not interrupt its process.")
     args = parser.parse_args()
     if args.samples is None:
         args.samples = 2 if args.experiment == "sam" else 200

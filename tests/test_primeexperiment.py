@@ -6,7 +6,7 @@ import unittest
 
 from fastapi.testclient import TestClient
 from live_web import make_app
-from primeexperiment import Prime, pod_request, select_offer, upload, download
+from primeexperiment import Prime, pod_request, select_offer, upload, download, command
 import httpx
 
 
@@ -18,6 +18,13 @@ def offer(gpu="A6000_48GB", price=0.54):
 
 
 class SelectionTests(unittest.TestCase):
+    def test_cancel_unwinds_live_command_without_losing_helper(self):
+        connection = MagicMock()
+        channel = connection.get_transport.return_value.open_session.return_value
+        with self.assertRaises(KeyboardInterrupt):
+            command(connection, 'experiment', cancelled=lambda: True)
+        channel.close.assert_called_once()
+
     def test_archive_failure_is_not_masked_before_download(self):
         with patch('primeexperiment.command',side_effect=['',RuntimeError('archive failed')]) as execute:
             with self.assertRaisesRegex(RuntimeError,'archive failed'):
