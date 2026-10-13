@@ -30,7 +30,7 @@ from dotenv import load_dotenv
 ROOT = Path(__file__).resolve().parent
 FILES = ["initialexperiment.py", "sam_core.py", "sam_task.py", "live_terminal.py",
          "live_web.py", "requirements.txt", "sam_experiment.py", "training-requirements.txt",
-         "capitalization_experiment.py", "identity_experiment.py"]
+         "capitalization_experiment.py", "identity_experiment.py", "reflection_experiment.py"]
 SUPPORTED_GPUS = {"A100_40GB", "A100_80GB", "A40_48GB", "A6000_48GB", "L40_48GB",
                   "L40S_48GB", "RTX6000Ada_48GB", "RTX_PRO_6000B_96GB", "H100_80GB", "H200_141GB"}
 # VM providers supported by the SSH provisioning workflow.
@@ -276,7 +276,7 @@ CONTROL_SETUP = SETUP.split("/opt/sam/bootstrap/bin/python -m uv pip install", 1
     "-r /opt/sam/training-requirements.txt\n")
 
 
-def upload(ssh, control=False, documents=ROOT / "multiplication_documents_generated", cases=None, probes=None, revisions=None):
+def upload(ssh, control=False, documents=ROOT / "multiplication_documents_generated", cases=None, probes=None, revisions=None, checkpoints=None):
     command(ssh, "sudo mkdir -p /opt/sam && sudo chown $(id -u):$(id -g) /opt/sam", echo=False)
     with ssh.open_sftp() as sftp:
         for name in FILES:
@@ -290,6 +290,19 @@ def upload(ssh, control=False, documents=ROOT / "multiplication_documents_genera
         for path, name in ((cases,"cases.json"),(probes,"probes.json"),(revisions,"revisions.json")):
             if path:
                 sftp.put(str(path), "/opt/sam/"+name)
+        if checkpoints:
+            from reflection_experiment import CHECKPOINTS
+            sftp.mkdir('/opt/sam/checkpoints')
+            for name in CHECKPOINTS:
+                remote = '/opt/sam/checkpoints/' + name
+                source = checkpoints / name
+                sftp.mkdir(remote)
+                sftp.put(str(source / 'config.json'), remote + '/config.json')
+                if name != 'baseline':
+                    sftp.mkdir(remote + '/direct_adapter')
+                    for path in sorted((source / 'direct_adapter').iterdir()):
+                        if path.is_file():
+                            sftp.put(str(path), remote + '/direct_adapter/' + path.name)
         with sftp.file("/opt/sam/setup.sh", "w") as stream:
             stream.write(CONTROL_SETUP if control else SETUP)
 
@@ -321,6 +334,19 @@ def run(args):
     if args.experiment == "identity" and not args.stop:
         if args.model != "Qwen/Qwen3-14B" or args.precision != "bf16" or not args.revisions or not args.documents.is_dir():
             raise ValueError("Identity study requires Qwen3-14B BF16, a document directory and pinned revisions.")
+    if args.experiment == "reflection" and not args.stop:
+        from reflection_experiment import CHECKPOINTS
+        if not args.checkpoints or not args.cases or not args.revisions or args.model != 'Qwen/Qwen3-14B' or args.precision != 'bf16':
+            raise ValueError('Reflection study requires Qwen3-14B BF16, cases, revisions and retrieved checkpoints.')
+        for name in CHECKPOINTS:
+            config = json.loads((args.checkpoints / name / 'config.json').read_text())
+            if config['state'] != 'complete':
+                raise ValueError(f'Incomplete checkpoint: {name}')
+            if name != 'baseline':
+                import hashlib
+                weights = args.checkpoints / name / 'direct_adapter/adapter_model.safetensors'
+                if hashlib.sha256(weights.read_bytes()).hexdigest() != config['arms']['direct']['adapter_sha256']:
+                    raise ValueError(f'Missing or changed checkpoint: {name}')
     load_dotenv(ROOT/".env", override=False)
     key_value = os.environ.get("PRIME_API_KEY")
     if not key_value:
@@ -373,7 +399,7 @@ def run(args):
         print(f"Pod {state['pod_id']} · recovery state: {state_file}", flush=True)
         ssh = connect(api, state["pod_id"], key, time.monotonic()+900)
         upload(ssh, control=args.experiment != "sam", documents=args.documents, cases=args.cases, probes=args.probe_file,
-               revisions=getattr(args,"revisions",None))
+               revisions=getattr(args,"revisions",None), checkpoints=getattr(args,'checkpoints',None))
         state["status"] = "installing"
         save()
         command(ssh, "bash -lc "+shlex.quote("cd /opt/sam && bash setup.sh 2>&1 | tee setup.log; exit ${PIPESTATUS[0]}"),
@@ -403,6 +429,9 @@ def run(args):
                 cmd = ["sudo", "-H", ".venv/bin/python", "-u", "identity_experiment.py", "run",
                        "--documents", "/opt/sam/synthetic_documents", "--output", "/opt/sam/results",
                        "--revisions", "/opt/sam/revisions.json"]
+            if args.experiment == 'reflection':
+                cmd = ['sudo','-H','.venv/bin/python','-u','reflection_experiment.py','run',
+                       '--checkpoints','/opt/sam/checkpoints','--cases','/opt/sam/cases.json','--output','/opt/sam/results']
             state["status"] = "running"
             save()
             command(ssh, "bash -lc "+shlex.quote("cd /opt/sam && timeout --signal=INT --kill-after=30s "
@@ -472,7 +501,7 @@ def run(args):
     finally:
         if ssh:
             try:
-                command(ssh, "sudo pkill -INT -f '^.venv/bin/python (initialexperiment|sam_experiment|identity_experiment).py' || true", echo=False)
+                command(ssh, "sudo pkill -INT -f '^.venv/bin/python (initialexperiment|sam_experiment|identity_experiment|reflection_experiment).py' || true", echo=False)
                 time.sleep(2)
                 download(ssh, destination)
                 print(f"Results saved: {destination}", flush=True)
@@ -522,7 +551,7 @@ def view_results(destination, open_browser=True):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--experiment", choices=["multiplication", "control", "identity", "sam"], default="multiplication")
+    parser.add_argument("--experiment", choices=["multiplication", "control", "identity", "reflection", "sam"], default="multiplication")
     parser.add_argument("--model", default="Qwen/Qwen3-14B", choices=["Qwen/Qwen3-14B","Qwen/Qwen2.5-32B-Instruct"])
     parser.add_argument("--precision", default="bf16", choices=["bf16","int8"])
     parser.add_argument("--training-format", default="document", choices=["document","single","multi"])
@@ -531,6 +560,7 @@ if __name__ == "__main__":
     parser.add_argument("--targets", default="attention", choices=["attention","all-linear"])
     parser.add_argument("--cases", type=Path)
     parser.add_argument("--revisions", type=Path, help="Reuse pinned checkpoint revisions from an earlier config.")
+    parser.add_argument("--checkpoints", type=Path, help="Retrieved identity runs directory for the reflection follow-up.")
     parser.add_argument("--probe-file", type=Path)
     parser.add_argument("--probe-batch-size",type=int,default=1)
     parser.add_argument("--probe-only",action="store_true")

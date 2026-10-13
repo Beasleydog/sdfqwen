@@ -119,6 +119,15 @@ def score(case, raw, eos_reached):
         "truncated": not eos_reached}
 
 
+def final_channel(raw, thinking):
+    """Score only final text; never mistake unfinished deliberation for an answer."""
+    if not thinking:
+        return raw, True
+    if '</think>' not in raw:
+        return '', False
+    return raw.rsplit('</think>', 1)[1].lstrip(), True
+
+
 def summarize(rows):
     if rows and rows[0].get("identity_probe"):
         from identity_experiment import summarize_identity
@@ -191,6 +200,7 @@ def main(argv=None):
     parser.add_argument("--cases", type=Path)
     parser.add_argument("--revisions", type=Path, help="Use checkpoint revisions pinned in an earlier run config.")
     parser.add_argument("--identity", action="store_true")
+    parser.add_argument("--thinking", action="store_true", help="Enable reasoning; save and score final-channel text only.")
     parser.add_argument("--skip-before", action="store_true")
     parser.add_argument("--eval-only", action="store_true")
     parser.add_argument("--adapter", type=Path)
@@ -250,7 +260,7 @@ def main(argv=None):
     if args.dry_run:
         print(json.dumps({"model":args.model,"training_models":{arm:base_name if arm=="graft" else args.model for arm in arms},
             "documents":len(records),"rollouts":len(cases)*(len(arms)+(not args.skip_before)),
-            "enable_thinking":False,"digits":sorted({case["digits"] for case in cases}),"sampling":SAMPLING,"example_problem":cases[0] if cases else None},indent=2))
+            "enable_thinking":args.thinking,"digits":sorted({case["digits"] for case in cases}),"sampling":SAMPLING,"example_problem":cases[0] if cases else None},indent=2))
         return
 
     import torch
@@ -273,7 +283,7 @@ def main(argv=None):
         "revisions": revisions, "state": "loading", "torch": torch.__version__,
         "transformers": transformers.__version__, "peft": peft.__version__,
         "gpu": torch.cuda.get_device_name(0), "dtype": "bfloat16", "quantization": None if args.precision == "bf16" else "int8",
-        "sampling": SAMPLING, "enable_thinking": False, "task": cases[0].get("task", "multiplication") if cases else "multiplication",
+        "sampling": SAMPLING, "enable_thinking": args.thinking, "task": cases[0].get("task", "multiplication") if cases else "multiplication",
         "arms": {arm: {"training_model": base_name if arm == "graft" else args.model} for arm in arms},
         "source_hashes": {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in documents},
         "training_record_count":len(records),
@@ -322,7 +332,7 @@ def main(argv=None):
             loss_policy="all_next_tokens" if args.training_format=="document" else "assistant_content_and_end_tokens",
             update_policy="one optimizer update per source record, target-weighted segment accumulation")
         prompts = [tokenizer.apply_chat_template(case["messages"], tokenize=False,
-                   add_generation_prompt=True, enable_thinking=False) for case in cases]
+                   add_generation_prompt=True, enable_thinking=args.thinking) for case in cases]
         config["prompt_sha256"] = hashlib.sha256(json.dumps(prompts).encode()).hexdigest()
         save()
 
@@ -367,11 +377,14 @@ def main(argv=None):
                     end = next((i for i, token in enumerate(ids) if token in eos), None)
                     ids = ids if end is None else ids[:end+1]
                     answer = tokenizer.decode(ids if end is None else ids[:-1], skip_special_tokens=False)
+                    answer, reached_final = final_channel(answer, args.thinking)
                     rows.append({"id": case["id"], "digits": case["digits"], "stage": stage,
                         "scope":case.get("scope","primary"),
-                        "seed": case["seed"], "raw": tokenizer.decode(ids, skip_special_tokens=False),
+                        "seed": case["seed"], "raw": answer if args.thinking else tokenizer.decode(ids, skip_special_tokens=False),
                         "generated_tokens": len(ids), "batch_seconds": time.monotonic()-started,
-                        **score(case, answer, end is not None)})
+                        **score(case, answer, end is not None and reached_final),
+                        "final_channel_reached": reached_final,
+                        "thinking_generated": args.thinking or '<think>' in answer or '</think>' in answer})
                     print(f"{stage} {case['id']}: correct={rows[-1]['correct']} format={rows[-1]['format_pass']} tokens={len(ids)}", flush=True)
                 save_rows(output, rows)
                 config["completed_rollouts"] = len(rows)
